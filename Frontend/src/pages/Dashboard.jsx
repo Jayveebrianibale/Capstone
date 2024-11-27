@@ -1,8 +1,11 @@
+import Navbar from "../components/Navbar"
 function Dashboard() {
   return (
+  <nav>
     <div>
-      <h1 className="">Dashboard</h1>
+      <Navbar/>
     </div>
+  </nav>
   )
 }
 
