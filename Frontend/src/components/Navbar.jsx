@@ -33,9 +33,9 @@ function Navbar() {
               <img
                 src={ProfileIcon}
                 alt="Profile"
-                className="w-10 h-10 object-cover rounded-full border border-gray-300"
+                className="w-8 h-8 object-cover rounded-full border border-gray-300"
               />
-              <span className="font-medium text-gray-400">Student</span>
+              <span className="text-gray-400">Student</span>
             </div>
           </div>
         </header>
