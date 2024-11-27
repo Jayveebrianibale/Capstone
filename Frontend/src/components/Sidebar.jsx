@@ -4,6 +4,7 @@ import { CiHome } from "react-icons/ci";
 import { CiCreditCard2 } from "react-icons/ci";
 import { VscHistory } from "react-icons/vsc";
 import { CiUser } from "react-icons/ci";
+import { CiLogout } from "react-icons/ci";
 
 function Sidebar({ sidebarOpen, toggleSidebar }) {
   return (
@@ -38,6 +39,13 @@ function Sidebar({ sidebarOpen, toggleSidebar }) {
               <CiUser className="w-6 h-6" />  
               <a href="" className="mt-1">My Account</a>
             </li>
+
+            <div className="flex">
+              <li className="list-none flex items-center gap-2">
+                <CiLogout className="w-6 h-6" />  
+                <a href="" className="mt-1">Logout</a>
+              </li>
+            </div>
         </div>
        
       </nav>

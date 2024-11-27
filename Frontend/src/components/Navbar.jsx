@@ -5,7 +5,7 @@ import { IoMdNotificationsOutline } from "react-icons/io";
 import ProfileIcon from "../assets/profile-icon.jpg"
 import Content from '../components/Content';
 import Stats from '../components/Stats';
-import Calendar from '../components/Calendar';
+import Upcoming from '../components/Upcoming';
 
 function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -45,7 +45,7 @@ function Navbar() {
         <main className='p-4'>
           <Content/>
           <Stats/>
-          <Calendar/>
+          <Upcoming/>
         </main> 
       </div>
     </div>
