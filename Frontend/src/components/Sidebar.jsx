@@ -6,7 +6,7 @@ import { VscHistory } from "react-icons/vsc";
 function Sidebar({ sidebarOpen, toggleSidebar }) {
   return (
     <div
-      className={`fixed inset-0 z-40 transition-transform transform bg-white border-x w-56 ${
+      className={`fixed inset-0 z-40 transition-transform transform border-x w-56 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } md:static md:translate-x-0`}
     >
@@ -37,7 +37,6 @@ function Sidebar({ sidebarOpen, toggleSidebar }) {
           </li>
         </div>
 
-        {/* Logout Section */}
         <div className="flex">
           <li className="list-none flex items-center gap-2">
             <CiLogout className="w-6 h-6" />  
