@@ -3,6 +3,9 @@ import Sidebar from './Sidebar';
 import { FaBars } from 'react-icons/fa';
 import { IoMdNotificationsOutline } from "react-icons/io";
 import ProfileIcon from "../assets/profile-icon.jpg"
+import Content from '../components/Content';
+import Stats from '../components/Stats';
+import Calendar from '../components/Calendar';
 
 function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -26,7 +29,7 @@ function Navbar() {
           >
             <FaBars className="h-4 w-4" />
           </button>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-2xl font-medium">Dashboard</h1>
           <div className="flex items-center gap-4 mr-5">
           <IoMdNotificationsOutline className='h-7 w-7' />
             <div className="flex items-center gap-2">
@@ -35,15 +38,15 @@ function Navbar() {
                 alt="Profile"
                 className="w-8 h-8 object-cover rounded-full border border-gray-300"
               />
-              <span className="text-gray-400">Student</span>
+              <span className="text-gray-500 font-normal text-sm">Student</span>
             </div>
           </div>
         </header>
-
-        <main className="p-4">
-          <h2 className="text-2xl font-bold">Main Content</ h2>
-          {/* Your main content goes here */}
-        </main>
+        <main className='p-4'>
+          <Content/>
+          <Stats/>
+          <Calendar/>
+        </main> 
       </div>
     </div>
   );
