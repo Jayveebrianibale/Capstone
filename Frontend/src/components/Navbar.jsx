@@ -6,6 +6,7 @@ import ProfileIcon from "../assets/profile-icon.jpg"
 import Content from '../components/Content';
 import Stats from '../components/Stats';
 import Upcoming from '../components/Upcoming';
+import { MdOutlineDarkMode } from "react-icons/md";
 
 function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -31,7 +32,8 @@ function Navbar() {
           </button>
           <h1 className="text-2xl font-medium">Dashboard</h1>
           <div className="flex items-center gap-4 mr-5">
-          <IoMdNotificationsOutline className='h-7 w-7' />
+            <MdOutlineDarkMode className='h-7 w-7' />
+            <IoMdNotificationsOutline className='h-7 w-7' />
             <div className="flex items-center gap-2">
               <img
                 src={ProfileIcon}
