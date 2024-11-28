@@ -3,7 +3,14 @@ import React from 'react';
 import { CiHome, CiCreditCard2, CiUser, CiLogout } from "react-icons/ci";
 import { VscHistory } from "react-icons/vsc";
 
-function Sidebar({ sidebarOpen, toggleSidebar }) {
+function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
+  const menuItems = [
+    { name: 'Dashboard', icon: CiHome },
+    { name: 'Evaluations', icon: CiCreditCard2 },
+    { name: 'History', icon: VscHistory },
+    { name: 'My Account', icon: CiUser }
+  ];
+
   return (
     <div
       className={`fixed inset-0 z-40 transition-transform transform border-x w-56 ${
@@ -12,35 +19,28 @@ function Sidebar({ sidebarOpen, toggleSidebar }) {
     >
       <nav className="flex flex-col h-full p-4 space-y-2">
         <div className="flex items-center justify-center mb-10 gap-2">
-          <img className="h-14 w-14" src={Logo} alt="LVCC Logo" />
+          <img className="h-16 w-16" src={Logo} alt="LVCC Logo" />
         </div>
 
-        <div className="flex flex-col gap-4 flex-grow">
-          <li className="list-none flex items-center gap-2">
-            <CiHome className="w-6 h-6" />  
-            <a href="" className="mt-1">Dashboard</a>
-          </li>
-
-          <li className="list-none flex items-center gap-2">
-            <CiCreditCard2 className="w-6 h-6" />  
-            <a href="" className="mt-1">Evaluations</a>
-          </li>
-
-          <li className="list-none flex items-center gap-2">
-            <VscHistory className="w-6 h-6" />  
-            <a href="" className="mt-1">History</a>
-          </li>
-
-          <li className="list-none flex items-center gap-2">
-            <CiUser className="w-6 h-6" />  
-            <a href="" className="mt-1">My Account</a>
-          </li>
+        <div className="flex flex-col gap-2 flex-grow">
+          {menuItems.map((item) => (
+            <li 
+              key={item.name} 
+              className={`list-none flex items-center gap-2 cursor-pointer p-2 rounded-lg transition-colors duration-200 ${
+                activePage === item.name ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100'
+              }`} 
+              onClick={() => setActivePage(item.name)}
+            >
+              <item.icon className="w-6 h-6" />
+              <a>{item.name}</a>
+            </li>
+          ))}
         </div>
 
         <div className="flex">
-          <li className="list-none flex items-center gap-2">
-            <CiLogout className="w-6 h-6" />  
-            <a href="" className="mt-1">Logout</a>
+          <li className="list-none flex items-center gap-2 cursor-pointer p-2 rounded-lg text-gray-700">
+            <CiLogout className="w-6 h-6" />
+            <a>Logout</a>
           </li>
         </div>
       </nav>
