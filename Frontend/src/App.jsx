@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import Login from './Auth/Login'
 import Signup from './Auth/Signup';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/Student/SDashboard';
 import VerificationCode from './Auth/Verification';
 import Navbar from './components/Navbar';
 
