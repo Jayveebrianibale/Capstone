@@ -1,5 +1,5 @@
-import React from 'react';
 import Logo from "../assets/lvcc-logo.png";
+import React from 'react';
 import { CiHome, CiCreditCard2, CiUser, CiLogout } from "react-icons/ci";
 import { VscHistory } from "react-icons/vsc";
 
@@ -24,11 +24,11 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
 
         <div className="flex flex-col gap-2 flex-grow">
           {menuItems.map((item) => (
-            <li
-              key={item.name}
+            <li 
+              key={item.name} 
               className={`list-none flex items-center gap-2 cursor-pointer p-2 rounded-lg transition-colors duration-200 ${
                 activePage === item.name ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100'
-              }`}
+              }`} 
               onClick={() => setActivePage(item.name)}
             >
               <item.icon className="w-6 h-6" />

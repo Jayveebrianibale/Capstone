@@ -38,7 +38,7 @@ function Upcoming() {
   };
 
   return (
-    <div className="pt-5 ">
+    <div className="pt-5">
       <h1 className="text-xl pb-5 ml-2 font-medium">Upcoming Evaluations</h1>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-7">
         <div className="h-auto rounded-xl border shadow-md lg:col-span-2">
@@ -93,7 +93,6 @@ function Upcoming() {
                   />
                 </svg>
               </button>
-
               {[...Array(totalPages)].map((_, index) => (
                 <button
                   key={index}
@@ -128,7 +127,7 @@ function Upcoming() {
         </div>
 
         <div className="h-auto rounded-xl border shadow-md">
-            <Calendar />
+          <Calendar />
         </div>
       </div>
     </div>
