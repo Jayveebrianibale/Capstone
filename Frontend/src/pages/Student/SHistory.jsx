@@ -2,7 +2,7 @@ import React from 'react'
 
 function SHistory() {
   return (
-    <div className='text-2xl'>SHistory</div>
+    <div className='p-4'>SHistory</div>
   )
 }
 

@@ -13,7 +13,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
 
   return (
     <div
-      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-white border-r shadow-lg ${
+      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-white border-r ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } md:translate-x-0`}
     >

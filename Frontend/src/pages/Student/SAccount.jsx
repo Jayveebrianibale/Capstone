@@ -2,7 +2,7 @@ import React from 'react'
 
 function SAccount() {
   return (
-    <div>SAccount</div>
+    <div className='p-4'>SAccount</div>
   )
 }
 

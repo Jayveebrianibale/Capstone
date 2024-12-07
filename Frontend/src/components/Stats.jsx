@@ -17,7 +17,7 @@ function Stats() {
       </div>
       <div className="h-36 rounded-xl border shadow-md bg-yellow-50">
         <div className='flex flex-col justify-center items-center gap-7'>
-          <h1 className='text-xl pt-5 text-yellow-800'>Total Subjects</h1>
+          <h1 className='text-xl pt-5 text-yellow-800'>Total Instructors</h1>
           <p className='text-4xl text-yellow-600'>6</p>
         </div>
       </div>
