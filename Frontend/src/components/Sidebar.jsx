@@ -5,17 +5,17 @@ import { VscHistory } from "react-icons/vsc";
 
 function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
   const menuItems = [
-    { name: 'Dashboard', icon: CiHome },
-    { name: 'Evaluations', icon: CiCreditCard2 },
-    { name: 'History', icon: VscHistory },
-    { name: 'My Account', icon: CiUser }
+    { name: 'Dashboard', icon: CiHome, path: '/SDashboard' },
+    { name: 'Evaluations', icon: CiCreditCard2, path: '/SEvaluations' },
+    { name: 'History', icon: VscHistory, path: '/SHistory' },
+    { name: 'My Account', icon: CiUser, path: '/SAccount' },
   ];
 
   return (
     <div
-      className={`fixed inset-0 z-40 transition-transform transform border-x w-56 bg-white ${
+      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-white border-r shadow-lg ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } md:static md:translate-x-0`}
+      } md:translate-x-0`}
     >
       <nav className="flex flex-col h-full p-4 space-y-2">
         <div className="flex items-center justify-center mb-10 gap-2">
@@ -29,7 +29,9 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
               className={`list-none flex items-center gap-2 cursor-pointer p-2 rounded-lg transition-colors duration-200 ${
                 activePage === item.name ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100'
               }`}
-              onClick={() => setActivePage(item.name)}
+              onClick={() => {
+                setActivePage(item.path);
+              }}
             >
               <item.icon className="w-6 h-6" />
               <a>{item.name}</a>

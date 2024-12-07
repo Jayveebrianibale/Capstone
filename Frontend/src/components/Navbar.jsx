@@ -4,7 +4,7 @@ import { IoMdNotificationsOutline } from "react-icons/io";
 import ProfileIcon from "../assets/profile-icon.jpg";
 import { MdOutlineDarkMode } from "react-icons/md";
 
-function Navbar({ toggleSidebar }) {
+function Navbar({ toggleSidebar, title }) {
   return (
     <div className="bg-white h-16 border-b flex items-center justify-between px-4">
       <button
@@ -13,9 +13,9 @@ function Navbar({ toggleSidebar }) {
       >
         <FaBars className="h-4 w-4" />
       </button>
-      <h1 className="text-2xl font-medium text-center sm:text-left">Dashboard</h1>
+      <h1 className="text-2xl font-medium text-center sm:text-left">{title}</h1>
       <div className="flex items-center gap-3 mr-5">
-        <MdOutlineDarkMode className="h-6 w-6 " />
+        <MdOutlineDarkMode className="h-6 w-6" />
         <IoMdNotificationsOutline className="h-6 w-6" />
         <div className="flex items-center gap-2">
           <img
