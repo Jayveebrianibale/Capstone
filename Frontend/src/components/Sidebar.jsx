@@ -11,6 +11,12 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
     { name: 'My Account', icon: CiUser, path: '/SAccount' },
   ];
 
+  const closeSidebar = () => {
+    if (sidebarOpen && window.innerWidth < 768) {
+      toggleSidebar();
+    }
+  };
+
   return (
     <div
       className={`fixed inset-0 z-40 transition-transform transform w-56 bg-white border-r ${
@@ -26,21 +32,22 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
           {menuItems.map((item) => (
             <li
               key={item.name}
-              className={`list-none flex items-center gap-2 cursor-pointer p-2 rounded-lg transition-colors duration-200 ${
+              className={`list-none flex text-sm items-center gap-2 cursor-pointer p-2 rounded-lg transition-colors duration-200 ${
                 activePage === item.name ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100'
               }`}
               onClick={() => {
                 setActivePage(item.path);
+                closeSidebar();
               }}
             >
-              <item.icon className="w-6 h-6" />
+              <item.icon className="w-5 h-5" />
               <a>{item.name}</a>
             </li>
           ))}
         </div>
 
         <div className="flex">
-          <li className="list-none flex items-center gap-2 cursor-pointer p-2 rounded-lg text-gray-700">
+          <li className="list-none flex items-center gap-2 cursor-pointer p-2 rounded-lg text-sm text-gray-700">
             <CiLogout className="w-6 h-6" />
             <a>Logout</a>
           </li>
