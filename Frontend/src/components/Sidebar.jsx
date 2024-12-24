@@ -24,7 +24,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
       } md:translate-x-0`}
     >
       <nav className="flex flex-col h-full p-4 space-y-2">
-        <div className="flex items-center justify-center mb-10 gap-2">
+        <div className="flex items-center justify-center pb-6 pt-5 gap-2">
           <img className="h-16 w-16" src={Logo} alt="LVCC Logo" />
         </div>
 
