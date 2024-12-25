@@ -2,7 +2,6 @@ import React from 'react';
 import Logo from "../assets/lvcc-logo.png";
 import { CiHome, CiCreditCard2, CiUser, CiLogout } from "react-icons/ci";
 import { VscHistory } from "react-icons/vsc";
-import DarkModeToggle from '../components/DarkmodeToggle';
 
 function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
   const menuItems = [

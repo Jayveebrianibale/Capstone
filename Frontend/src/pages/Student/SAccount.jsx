@@ -2,7 +2,9 @@ import React from 'react'
 
 function SAccount() {
   return (
-    <div className='p-4'>SAccount</div>
+    <main className='p-4 dark:text-white bg-white dark:bg-gray-900 min-h-screen'>
+    <div>SAccount</div>
+  </main>
   )
 }
 
