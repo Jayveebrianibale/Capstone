@@ -27,7 +27,7 @@ function ResponsiveCalendar() {
   }, []);
 
   return (
-    <div ref={containerRef} className="flex flex-col h-auto rounded-xl border shadow-md lg:col-span-1 flex-grow">
+    <div ref={containerRef} className="flex flex-col h-auto rounded-xl border lg:col-span-1 flex-grow">
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DateCalendar className="pt-6" style={{ width: containerWidth }} />
       </LocalizationProvider>

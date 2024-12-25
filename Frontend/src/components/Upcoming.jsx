@@ -133,7 +133,7 @@ function Upcoming() {
           </div>
         </div>
 
-        <div className="flex flex-col h-auto rounded-xl border shadow-md lg:col-span-1 flex-grow">
+        <div className="flex flex-col h-auto rounded-xl shadow-md lg:col-span-1 flex-grow">
           <Calendar />
         </div>
       </div>
