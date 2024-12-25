@@ -39,31 +39,31 @@ function Upcoming() {
 
   return (
     <div className="pt-5">
-      <h1 className="text-xl text-gray-600 pb-5 ml-2 font-medium">Upcoming Evaluations</h1>
+      <h1 className="text-xl text-gray-600 dark:text-gray-300 pb-5 ml-2 font-medium">Upcoming Evaluations</h1>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-7">
         <div className="flex flex-col h-auto rounded-xl shadow-md lg:col-span-2">
-          <div className="rounded-lg border border-gray-200 flex-grow">
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700 flex-grow">
             <div className="overflow-x-auto rounded-t-lg">
-              <table className="min-w-full divide-y-2 divide-gray-200 bg-white text-sm text-center">
+              <table className="min-w-full divide-y-2 divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800 text-sm text-center">
                 <thead className="ltr:text-left rtl:text-right">
                   <tr>
-                    <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Name</th>
-                    <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Subjects</th>
-                    <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Due Date</th>
-                    <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Evaluate</th>
+                    <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900 dark:text-gray-300">Name</th>
+                    <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900 dark:text-gray-300">Subjects</th>
+                    <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900 dark:text-gray-300">Due Date</th>
+                    <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900 dark:text-gray-300">Evaluate</th>
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {currentData.map((item, index) => (
                     <tr key={index}>
-                      <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{item.name}</td>
-                      <td className="whitespace-nowrap px-4 py-2 text-gray-700">{item.subject}</td>
-                      <td className="whitespace-nowrap px-4 py-2 text-gray-700">{item.dueDate}</td>
+                      <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900 dark:text-gray-100">{item.name}</td>
+                      <td className="whitespace-nowrap px-4 py-2 text-gray-700 dark:text-gray-400">{item.subject}</td>
+                      <td className="whitespace-nowrap px-4 py-2 text-gray-700 dark:text-gray-400">{item.dueDate}</td>
                       <td className="whitespace-nowrap px-4 py-2">
                         <a
                           href="#"
-                          className="inline-block rounded bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-700"
+                          className="inline-block rounded bg-blue-600 dark:bg-blue-500 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-700 dark:hover:bg-indigo-600"
                         >
                           View
                         </a>
@@ -74,13 +74,13 @@ function Upcoming() {
               </table>
             </div>
 
-            <div className="rounded-b-lg border-t border-gray-200 px-4 py-2">
+            <div className="rounded-b-lg border-t border-gray-200 dark:border-gray-700 px-4 py-2">
               <ol className="flex justify-end gap-1 text-xs font-medium">
                 <li>
                   <button
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
-                    className="inline-flex size-8 items-center justify-center rounded border border-gray-100 bg-white text-gray-900 rtl:rotate-180"
+                    className="inline-flex size-8 items-center justify-center rounded border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rtl:rotate-180"
                   >
                     <span className="sr-only">Prev Page</span>
                     <svg
@@ -101,7 +101,7 @@ function Upcoming() {
                   <li key={index}>
                     <button
                       onClick={() => setCurrentPage(index + 1)}
-                      className={`block size-8 rounded border ${currentPage === index + 1 ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-100 bg-white text-gray-900'}`}
+                      className={`block size-8 rounded border ${currentPage === index + 1 ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'}`}
                     >
                       {index + 1}
                     </button>
@@ -111,7 +111,7 @@ function Upcoming() {
                   <button
                     onClick={handleNextPage}
                     disabled={currentPage === totalPages}
-                    className="inline-flex size-8 items-center justify-center rounded border border-gray-100 bg-white text-gray-900 rtl:rotate-180"
+                    className="inline-flex size-8 items-center justify-center rounded border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rtl:rotate-180"
                   >
                     <span className="sr-only">Next Page</span>
                     <svg
@@ -133,7 +133,7 @@ function Upcoming() {
           </div>
         </div>
 
-        <div className="flex flex-col h-auto rounded-xl shadow-md lg:col-span-1 flex-grow">
+        <div className="flex flex-col h-auto rounded-xl shadow-md lg:col-span-1 flex-grow dark:bg-gray-800 dark:border-gray-700">
           <Calendar />
         </div>
       </div>

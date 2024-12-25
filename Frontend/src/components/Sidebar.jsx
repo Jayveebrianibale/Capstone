@@ -2,6 +2,7 @@ import React from 'react';
 import Logo from "../assets/lvcc-logo.png";
 import { CiHome, CiCreditCard2, CiUser, CiLogout } from "react-icons/ci";
 import { VscHistory } from "react-icons/vsc";
+import DarkModeToggle from '../components/DarkmodeToggle';
 
 function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
   const menuItems = [
@@ -19,7 +20,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
 
   return (
     <div
-      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-white border-r ${
+      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-white dark:bg-gray-900 border-r dark:border-gray-700 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } md:translate-x-0`}
     >
@@ -33,7 +34,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
             <li
               key={item.name}
               className={`list-none flex text-sm items-center gap-2 cursor-pointer p-2 rounded-lg transition-colors duration-200 ${
-                activePage === item.name ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100'
+                activePage === item.name ? 'bg-blue-600 text-white' : 'text-gray-700 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-gray-800'
               }`}
               onClick={() => {
                 setActivePage(item.path);
@@ -47,7 +48,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
         </div>
 
         <div className="flex">
-          <li className="list-none flex items-center gap-2 cursor-pointer p-2 rounded-lg text-sm text-gray-700">
+          <li className="list-none flex items-center gap-2 cursor-pointer p-2 rounded-lg text-sm text-gray-700 dark:text-gray-200">
             <CiLogout className="w-6 h-6" />
             <a>Logout</a>
           </li>

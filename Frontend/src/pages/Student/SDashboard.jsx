@@ -5,7 +5,7 @@ import Upcoming from '../../components/Upcoming';
 
 function SDashboard() {
   return (
-    <main className='p-4'>
+    <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
       <Content />
       <Stats />
       <Upcoming />
