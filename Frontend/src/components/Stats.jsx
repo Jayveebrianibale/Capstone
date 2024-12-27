@@ -2,7 +2,7 @@ import React from 'react';
 
 function Stats() {
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-6">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-5">
       <div className="h-36 rounded-xl border shadow-md bg-red-50 dark:bg-red-900">
         <div className='flex flex-col justify-center items-center gap-7'>
           <h1 className='text-lg pt-5 text-red-800 dark:text-red-300'>Pending</h1>

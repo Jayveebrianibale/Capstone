@@ -29,20 +29,19 @@ function ResponsiveCalendar() {
   return (
     <div
       ref={containerRef}
-      className="flex flex-col h-auto rounded-xl shadow-md lg:col-span-1 flex-grow dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-300"
+      className="flex flex-col h-auto rounded-xl shadow-md lg:col-span-1 flex-grow dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-300 justify-center items-center"
     >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DateCalendar
           sx={{
-           
             "& .MuiTypography-root": {
-              color: "black", 
+              color: "black",
               ".dark &": {
                 color: "white",
               },
             },
             "& .MuiPickersCalendarHeader-label": {
-              color: "black", 
+              color: "black",
               ".dark &": {
                 color: "white",
               },
@@ -50,24 +49,23 @@ function ResponsiveCalendar() {
             "& .MuiSvgIcon-root": {
               color: "black",
               ".dark &": {
-                color: "white", 
+                color: "white",
               },
             },
             "& .MuiPickersDay-root": {
               color: "black",
               ".dark &": {
-                color: "white", 
+                color: "white",
               },
             },
             "& .MuiPickersDay-root.Mui-selected": {
-              backgroundColor: "rgba(0, 0, 0, 0.2)", 
+              backgroundColor: "rgba(0, 0, 0, 0.2)",
               ".dark &": {
                 backgroundColor: "rgba(255, 255, 255, 0.2)",
               },
             },
-           
             "& .MuiPickersDay-root:hover": {
-              backgroundColor: "rgba(0, 0, 0, 0.1)", 
+              backgroundColor: "rgba(0, 0, 0, 0.1)",
               ".dark &": {
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
