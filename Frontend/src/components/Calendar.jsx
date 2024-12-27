@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 function ResponsiveCalendar() {
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [selectedDate, setSelectedDate] = useState(dayjs()); // Track selected date
+  const [selectedDate, setSelectedDate] = useState(dayjs());
   const today = dayjs();
 
   useEffect(() => {
@@ -30,12 +30,12 @@ function ResponsiveCalendar() {
   }, []);
 
   const handleDateChange = (newDate) => {
-    setSelectedDate(newDate); // Update selected date when clicked
+    setSelectedDate(newDate); 
   };
 
   const renderDay = (day, pickersDayProps) => {
     const isToday = day.isSame(today, "day");
-    const isSelected = day.isSame(selectedDate, "day"); // Check if the day is selected
+    const isSelected = day.isSame(selectedDate, "day");
 
     return (
       <PickersDay
@@ -47,7 +47,7 @@ function ResponsiveCalendar() {
             ? "bg-blue-500 text-white" 
             : isSelected
             ? "bg-blue-500 text-white" 
-            : "" // No default background color, remove it
+            : ""
         } ${pickersDayProps.dayOutsideMonth ? "text-gray-400" : "text-black"}`}
       />
     );

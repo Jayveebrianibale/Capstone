@@ -8,7 +8,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
     { name: 'Dashboard', icon: CiHome, path: '/SDashboard' },
     { name: 'Evaluations', icon: CiCreditCard2, path: '/SEvaluations' },
     { name: 'History', icon: VscHistory, path: '/SHistory' },
-    { name: 'Account', icon: CiUser, path: '/SAccount' },
+    { name: 'My Account', icon: CiUser, path: '/SAccount' },
   ];
 
   const closeSidebar = () => {
@@ -33,7 +33,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
             <li
               key={item.name}
               className={`list-none flex text-sm items-center gap-2 cursor-pointer p-2 rounded-lg transition-colors duration-200 ${
-                activePage === item.name ? 'bg-blue-600 text-white' : 'text-gray-700 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-gray-800'
+                activePage === item.name ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-gray-800'
               }`}
               onClick={() => {
                 setActivePage(item.path);

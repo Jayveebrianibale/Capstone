@@ -13,7 +13,7 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
         >
           <FaBars className="h-4 w-4" />
         </button>
-        <h1 className="text-xl font-light text-center sm:text-left ml-4 md:ml-0 hidden sm:block dark:text-gray-200">{title}</h1>
+        <h1 className="text-xl font-medium text-center sm:text-left ml-4 md:ml-0 hidden sm:block dark:text-gray-200">{title}</h1>
       </div>
       <div className="flex items-center gap-2 mr-2">
         <DarkModeToggle darkMode={darkMode} handleDarkModeToggle={handleDarkModeToggle} />
