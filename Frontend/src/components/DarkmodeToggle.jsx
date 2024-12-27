@@ -1,23 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { MdOutlineDarkMode } from "react-icons/md";
-import { MdOutlineLightMode } from "react-icons/md";
+import React from 'react';
+import { MdOutlineDarkMode, MdOutlineLightMode } from 'react-icons/md';
 
-const DarkModeToggle = () => {
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('darkMode') === 'true';
-    setDarkMode(savedTheme);
-    document.documentElement.classList.toggle('dark', savedTheme);
-  }, []);
-
-  const handleDarkModeToggle = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    localStorage.setItem('darkMode', newMode);
-    document.documentElement.classList.toggle('dark', newMode);
-  };
-
+const DarkModeToggle = ({ darkMode, handleDarkModeToggle }) => {
   return (
     <button onClick={handleDarkModeToggle}>
       {darkMode ? (

@@ -3,7 +3,7 @@ import { FaBars } from 'react-icons/fa';
 import ProfileIcon from "../assets/profile-icon.jpg";
 import DarkModeToggle from '../components/DarkmodeToggle';
 
-function Navbar({ toggleSidebar, title }) {
+function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
   return (
     <div className="bg-white dark:bg-gray-900 h-16 border-b dark:border-gray-700 flex items-center justify-between px-4">
       <div className="flex items-center">
@@ -16,7 +16,7 @@ function Navbar({ toggleSidebar, title }) {
         <h1 className="text-xl font-medium text-center sm:text-left ml-4 md:ml-0 hidden sm:block text-gray-800 dark:text-gray-200">{title}</h1>
       </div>
       <div className="flex items-center gap-2 mr-2">
-        <DarkModeToggle />
+        <DarkModeToggle darkMode={darkMode} handleDarkModeToggle={handleDarkModeToggle} />
         <div className="flex items-center gap-2">
           <img
             src={ProfileIcon}

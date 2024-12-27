@@ -10,12 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.13.5",
-    "@emotion/styled": "^11.13.5",
-    "@mui/icons-material": "^6.1.8",
-    "@mui/material": "^6.1.8",
-    "@mui/styled-engine-sc": "^6.1.8",
-    "@mui/x-date-pickers": "^7.22.3",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.3.0",
+    "@mui/material": "^6.3.0",
+    "@mui/styled-engine-sc": "^6.3.0",
+    "@mui/system": "^6.3.0",
+    "@mui/x-charts": "^7.23.2",
+    "@mui/x-date-pickers": "^7.23.3",
     "@radix-ui/react-tabs": "^1.1.0",
     "@shadcn/ui": "^0.0.4",
     "axios": "^1.7.2",
@@ -28,6 +30,7 @@
     "react-dom": "^18.3.1",
     "react-icons": "^5.2.1",
     "react-router-dom": "^6.24.0",
+    "recharts": "^2.15.0",
     "resize-observer-polyfill": "^1.5.1",
     "styled-components": "^6.1.13"
   },

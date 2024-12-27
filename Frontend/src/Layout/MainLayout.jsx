@@ -6,8 +6,15 @@ import Navbar from '../components/Navbar';
 function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState('Dashboard');
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('darkMode') === 'true';
+    setIsDarkMode(savedTheme);
+    document.documentElement.classList.toggle('dark', savedTheme);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -43,8 +50,15 @@ function MainLayout() {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const handleDarkModeToggle = () => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    localStorage.setItem('darkMode', newMode);
+    document.documentElement.classList.toggle('dark', newMode);
+  };
+
   return (
-    <div className="flex">
+    <div className={`flex ${isDarkMode ? 'dark' : ''}`}>
       <Sidebar
         sidebarOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
@@ -52,8 +66,13 @@ function MainLayout() {
         setActivePage={handlePageNavigation}
       />
       <div className={`flex-grow ${sidebarOpen ? 'ml-56' : 'ml-0'} transition-all duration-300`}>
-        <Navbar toggleSidebar={toggleSidebar} title={activePage} />
-        <Outlet />
+        <Navbar
+          toggleSidebar={toggleSidebar}
+          title={activePage}
+          darkMode={isDarkMode}
+          handleDarkModeToggle={handleDarkModeToggle}
+        />
+        <Outlet context={{ isDarkMode, handleDarkModeToggle }} />
       </div>
     </div>
   );

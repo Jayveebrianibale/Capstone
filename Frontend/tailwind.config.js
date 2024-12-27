@@ -10,6 +10,10 @@ export default {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
       },
+      colors: {
+        desktop: "#2563eb",  // Custom color for desktop bars
+        mobile: "#60a5fa",   // Custom color for mobile bars
+      },
     },
   },
   plugins: [],
