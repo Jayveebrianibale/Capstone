@@ -1,12 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
+import { DateCalendar, PickersDay } from "@mui/x-date-pickers";
 import ResizeObserver from "resize-observer-polyfill";
+import dayjs from "dayjs";
 
 function ResponsiveCalendar() {
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(dayjs()); // Track selected date
+  const today = dayjs();
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -26,6 +29,30 @@ function ResponsiveCalendar() {
     };
   }, []);
 
+  const handleDateChange = (newDate) => {
+    setSelectedDate(newDate); // Update selected date when clicked
+  };
+
+  const renderDay = (day, pickersDayProps) => {
+    const isToday = day.isSame(today, "day");
+    const isSelected = day.isSame(selectedDate, "day"); // Check if the day is selected
+
+    return (
+      <PickersDay
+        {...pickersDayProps}
+        day={day}
+        onClick={() => handleDateChange(day)} 
+        className={`${
+          isToday
+            ? "bg-blue-500 text-white" 
+            : isSelected
+            ? "bg-blue-500 text-white" 
+            : "" // No default background color, remove it
+        } ${pickersDayProps.dayOutsideMonth ? "text-gray-400" : "text-black"}`}
+      />
+    );
+  };
+
   return (
     <div
       ref={containerRef}
@@ -33,7 +60,11 @@ function ResponsiveCalendar() {
     >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DateCalendar
+          renderDay={renderDay}
+          onChange={handleDateChange}
           sx={{
+            fontFamily: "'Inter', sans-serif",
+            padding: '16px',
             "& .MuiTypography-root": {
               color: "black",
               ".dark &": {
@@ -57,17 +88,11 @@ function ResponsiveCalendar() {
               ".dark &": {
                 color: "white",
               },
-            },
+            }, 
             "& .MuiPickersDay-root.Mui-selected": {
-              backgroundColor: "rgba(0, 0, 0, 0.2)",
+              backgroundColor: "transparent", 
               ".dark &": {
-                backgroundColor: "rgba(255, 255, 255, 0.2)",
-              },
-            },
-            "& .MuiPickersDay-root:hover": {
-              backgroundColor: "rgba(0, 0, 0, 0.1)",
-              ".dark &": {
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
+              backgroundColor: "transparent", 
               },
             },
           }}

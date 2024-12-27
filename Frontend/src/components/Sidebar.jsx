@@ -8,7 +8,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
     { name: 'Dashboard', icon: CiHome, path: '/SDashboard' },
     { name: 'Evaluations', icon: CiCreditCard2, path: '/SEvaluations' },
     { name: 'History', icon: VscHistory, path: '/SHistory' },
-    { name: 'My Account', icon: CiUser, path: '/SAccount' },
+    { name: 'Account', icon: CiUser, path: '/SAccount' },
   ];
 
   const closeSidebar = () => {
