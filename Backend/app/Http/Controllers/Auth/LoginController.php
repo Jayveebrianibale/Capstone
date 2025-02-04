@@ -3,55 +3,61 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use App\Providers\RouteServiceProvider;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use App\Models\User;
 
 class LoginController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Login Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles authenticating users for the application and
-    | redirecting them to your home screen. The controller uses a trait
-    | to conveniently provide its functionality to your applications.
-    |
-    */
-
-    use AuthenticatesUsers;
-
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    protected $redirectTo = RouteServiceProvider::HOME;
-
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    // Redirect to Google
+    public function redirectToGoogle()
     {
-        $this->middleware('guest')->except('logout');
-        $this->middleware('auth')->only('logout');
+        return Socialite::driver('google')->redirect();
     }
-    protected function authenticated(Request $request, $user)
+
+    // Handle Google Callback
+    public function handleGoogleCallback()
     {
-        // Generate verification code
-        $verificationCode = Str::random(6); // Adjust length as needed
+        try {
+            // Retrieve Google user data
+            $googleUser = Socialite::driver('google')->stateless()->user();
 
-        // Store verification code in user's record
-        $user->verification_code = $verificationCode;
-        $user->save();
+            // Log Google user email for debugging
+            Log::info('Google Email: ' . $googleUser->getEmail());
 
-        // Send verification code to user (e.g., via email)
+            // Restrict login to only La Verdad student emails
+            if (!str_ends_with($googleUser->getEmail(), '@student.laverdad.edu.ph')) {
+                Log::warning('Unauthorized email attempted: ' . $googleUser->getEmail());
+                return redirect('http://localhost:5173/login?error=Use your La Verdad email');
+            }
 
-        // Redirect user to enter verification code page
-        return redirect()->route('verification.page');
+            // Create or update user in the database
+            $user = User::updateOrCreate(
+                ['email' => $googleUser->getEmail()],
+                [
+                    'name' => $googleUser->getName(),
+                    'google_id' => $googleUser->getId(),
+                    'profile_picture' => $googleUser->getAvatar(),
+                    'password' => bcrypt(str()->random(16)), // Ensures password field is not empty
+                ]
+            );
+
+            // Log the user in
+            Auth::login($user);
+
+            // Generate API token
+            $token = $user->createToken('authToken')->plainTextToken;
+
+            // Redirect to frontend with token
+            return redirect("http://localhost:5173/dashboard?token={$token}");
+
+        } catch (\Exception $e) {
+            // Log the actual error message
+            Log::error('Google Authentication Error: ' . $e->getMessage());
+
+            // Redirect with error message
+            return redirect('http://localhost:5173/login?error=' . urlencode($e->getMessage()));
+        }
     }
 }

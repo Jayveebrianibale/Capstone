@@ -1,112 +1,134 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import authService from '../services/authService';
-import Onlogin from '../assets/Onlogin.png';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import React, { useEffect } from 'react';
+import LoginPic from '../assets/Login.jpg';
+import Logo from '../assets/lvcc-logo.png';
+import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom";
 
-const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedUser = sessionStorage.getItem('user');
-    if (savedUser) {
-      navigate('/dashboard'); // Navigate to dashboard if user is already logged in
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get("error");
+
+    if (error) {
+      alert(error);
+      navigate("/login"); 
     }
   }, [navigate]);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await authService.login(email, password);
-      console.log('Login successful:', response.data);
-      
-      // Check if the session storage is working
-      try {
-        sessionStorage.setItem('user', JSON.stringify(response.data));
-        console.log('Data stored in session storage:', sessionStorage.getItem('user'));
-      } catch (storageError) {
-        console.error('Session Storage Error:', storageError);
-      }
-      
-      navigate('/verification', { state: { email } });
-    } catch (error) {
-      console.error('Login error:', error.response?.data || error.message);
-      setError('Invalid email or password');
-    }
+  
+  const handleGoogleLogin = () => {
+    window.location.href = "http://127.0.0.1:8000/auth/google";
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
-        <div>
-          <img src={Onlogin} alt="Login" />
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Login to your account</h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email-address" className="sr-only">Email address</label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="relative">
-              <label htmlFor="password" className="sr-only">Password</label>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingRight: '2.5rem' }}
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{ zIndex: 10 }}
-              >
-                {showPassword ? <FaEye /> : <FaEyeSlash />}
-              </button>
-            </div>
-          </div>
+    <div className="bg-gray-100 min-h-screen flex items-center justify-center">
+      <section className="bg-white shadow-md rounded-lg overflow-hidden max-w-4xl w-full">
+        <div className="grid lg:grid-cols-12">
+        
+          <section className="hidden lg:block lg:col-span-5 xl:col-span-6 relative">
+            <img
+              alt="Login background"
+              src={LoginPic}
+              className="h-full w-full object-cover"
+            />
+          </section>
 
-          <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Login
-            </button>
-          </div>
-        </form>
-        {error && (
-          <div className="mt-4 text-red-600 text-center">
-            {error}
-          </div>
-        )}
-        <div className="mt-4 text-center text-sm text-gray-600">
-          Do you already have an account? <Link to="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">Sign up</Link>
+         
+          <main className="lg:col-span-7 xl:col-span-6 p-10">
+            <div className="text-center">
+             
+              <div className="flex justify-center mb-4">
+                <img src={Logo} alt="LVCC Logo" className="w-16 h-16" />
+              </div>
+
+              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+                Welcome to Sign In!
+              </h1>
+              <p className="mt-2 text-gray-600 text-sm">
+                Please sign in using your La Verdad account.
+              </p>
+            </div>
+
+        
+            <form className="mt-6 space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  required
+                />
+              </div>
+
+              <div className="mt-4">
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md text-sm transition duration-200"
+                >
+                  Sign In
+                </button>
+              </div>
+
+              <div className="flex items-start gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  id="marketing_accept"
+                  name="marketing_accept"
+                  className="h-5 w-5 rounded-md border-gray-300 focus:ring-blue-500"
+                />
+                <label htmlFor="marketing_accept">
+                  I accept the data privacy agreement and agree to the processing of my personal data.
+                </label>
+              </div>
+
+              <p className="text-xs text-gray-500 text-center">
+                By signing in, you agree to our{" "}
+                <a href="#" className="text-blue-600 hover:underline">Terms & Conditions</a>{" "}
+                and{" "}
+                <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>.
+              </p>
+
+              <div className="flex items-center my-4">
+                <hr className="w-full border-gray-300" />
+                <span className="px-3 text-gray-500 text-sm">OR</span>
+                <hr className="w-full border-gray-300" />
+              </div>
+
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className="w-full flex items-center justify-center bg-white border border-gray-400 py-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition duration-200"
+                >
+                  <FcGoogle className="w-6 h-6 mr-2" />
+                  <span>Sign in with Google</span>
+                </button>
+              </div>
+            </form>
+          </main>
         </div>
-      </div>
+      </section>
     </div>
   );
-};
+}
 
 export default Login;
