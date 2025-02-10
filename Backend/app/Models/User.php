@@ -18,7 +18,7 @@ class User extends Authenticatable
         'password',
         'verification_code',
         'profile_picture',
-        'google_id', // Added google_id
+        'google_id',
     ];
 
     protected $hidden = [
@@ -34,4 +34,11 @@ class User extends Authenticatable
     {
         return $this->profile_picture ? Storage::url($this->profile_picture) : null;
     }
+
+    public function resetTwoFactorCode()
+{
+    $this->two_factor_code = null;
+    $this->two_factor_expires_at = null;
+    $this->save();
+}
 }

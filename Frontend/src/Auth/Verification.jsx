@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Onverify from '../assets/Onverify.png';
 import axios from 'axios';
@@ -10,7 +10,13 @@ const VerificationCode = () => {
   const inputRefs = useRef([]);
   const navigate = useNavigate();
   const location = useLocation();
-  const { email } = location.state;
+  const email = new URLSearchParams(location.search).get('email');
+
+  useEffect(() => {
+    if (!email) {
+      navigate('/login'); // Prevent users from accessing verification page directly
+    }
+  }, [email, navigate]);
 
   const handleChange = (e, index) => {
     const value = e.target.value;
@@ -41,20 +47,12 @@ const VerificationCode = () => {
     try {
       const response = await axios.post('http://127.0.0.1:8000/api/verify-code', { email, code });
       console.log('Verification successful:', response.data);
-      // Add a console log to check the response data
-      console.log('Response Data:', response.data);
 
-      // Check if the session storage is working
-      try {
-        sessionStorage.setItem('user', JSON.stringify(response.data));
-        console.log('Data stored in session storage:', sessionStorage.getItem('user'));
-      } catch (storageError) {
-        console.error('Session Storage Error:', storageError);
-      }
-
-      navigate('/dashboard');
+      // Store user session after successful verification
+      sessionStorage.setItem('user', JSON.stringify(response.data));
+      navigate('/dashboard'); // Redirect to the dashboard
     } catch (err) {
-      setError(err.response.data.message || 'Invalid verification code');
+      setError(err.response?.data?.message || 'Invalid verification code');
     } finally {
       setLoading(false);
     }

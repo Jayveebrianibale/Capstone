@@ -19,12 +19,9 @@ class GoogleAuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
 
-            // Check if the email domain is valid
-            if (!str_ends_with($googleUser->getEmail(), '@student.laverdad.edu.ph')) {
-                return redirect('/login')->with('error', 'Use your La Verdad email');
-            }
-
-            // Find or create the user
+            // if (!str_ends_with($googleUser->getEmail(), 'laverdad.edu.ph')) {
+            //     return redirect('/login')->with('error', 'Use your La Verdad email');
+            // } 
             $user = User::updateOrCreate(
                 ['email' => $googleUser->getEmail()],
                 [
@@ -32,17 +29,16 @@ class GoogleAuthController extends Controller
                     'google_id' => $googleUser->getId(),
                     'profile_picture' => $googleUser->getAvatar(),
                     'password' => bcrypt(str()->random(16)), 
-                    'email_verified_at' => now(), // Mark email as verified
+                    'email_verified_at' => now(), 
                 ]
             );
 
-            // Log the user in
+           
             Auth::login($user);
 
-            // Create token for API
             $token = $user->createToken('authToken')->plainTextToken;
 
-            // Redirect with token
+        
             return redirect("http://localhost:5173/dashboard?token={$token}");
         } catch (\Exception $e) {
             return redirect('/login')->with('error', 'Authentication failed');

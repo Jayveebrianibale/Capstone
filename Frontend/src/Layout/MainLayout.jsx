@@ -32,6 +32,13 @@ function MainLayout() {
   }, []);
 
   useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      navigate("/login");
+    }
+  }, []);
+
+  useEffect(() => {
     const pathToPage = {
       '/SDashboard': 'Dashboard',
       '/SEvaluations': 'Evaluations',

@@ -1,9 +1,12 @@
 import React from 'react';
+import { useNavigate } from "react-router-dom";
 import Logo from "../assets/lvcc-logo.png";
 import { CiHome, CiCreditCard2, CiUser, CiLogout } from "react-icons/ci";
 import { VscHistory } from "react-icons/vsc";
 
 function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
+  const navigate = useNavigate();
+
   const menuItems = [
     { name: 'Dashboard', icon: CiHome, path: '/SDashboard' },
     { name: 'Evaluations', icon: CiCreditCard2, path: '/SEvaluations' },
@@ -15,6 +18,12 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
     if (sidebarOpen && window.innerWidth < 768) {
       toggleSidebar();
     }
+  };
+
+  
+  const handleLogout = () => {
+    localStorage.removeItem("authToken"); 
+    navigate("/login");
   };
 
   return (
@@ -46,8 +55,12 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
           ))}
         </div>
 
+      
         <div className="flex">
-          <li className="list-none flex items-center gap-2 cursor-pointer p-2 rounded-lg text-sm text-gray-700 dark:text-gray-200">
+          <li 
+            className="list-none flex items-center gap-2 p-2 rounded-lg text-sm text-gray-700 dark:text-gray-200 hover:bg-red-100 dark:hover:bg-gray-800 transition-colors duration-200"
+            onClick={handleLogout}
+          >
             <CiLogout className="w-6 h-6" />
             <a>Logout</a>
           </li>

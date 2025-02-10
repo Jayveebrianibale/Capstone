@@ -14,7 +14,6 @@ function Upcoming() {
           <BarChart isDarkMode={isDarkMode} />
         </div>
         <div className="flex flex-col shadow-md border rounded-xl lg:col-span-1 dark:bg-gray-800 dark:border-gray-700">
-          <Calendar />
         </div>
       </div>
     </div>

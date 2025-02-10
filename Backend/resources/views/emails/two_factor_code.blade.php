@@ -1,9 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Two Factor Code</title>
-</head>
-<body>
-    <p>Your two factor code is: {{ $code }}</p>
-</body>
-</html>
+<p>Your verification code is: <strong>{{ $code }}</strong></p>
+<p>This code will expire in 10 minutes.</p>
+
