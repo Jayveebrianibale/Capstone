@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers;
 
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Controllers\Controller;
@@ -19,9 +19,6 @@ class GoogleAuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
 
-            // if (!str_ends_with($googleUser->getEmail(), 'laverdad.edu.ph')) {
-            //     return redirect('/login')->with('error', 'Use your La Verdad email');
-            // } 
             $user = User::updateOrCreate(
                 ['email' => $googleUser->getEmail()],
                 [
@@ -29,16 +26,13 @@ class GoogleAuthController extends Controller
                     'google_id' => $googleUser->getId(),
                     'profile_picture' => $googleUser->getAvatar(),
                     'password' => bcrypt(str()->random(16)), 
-                    'email_verified_at' => now(), 
+                    'email_verified_at' => now(),
                 ]
             );
 
-           
             Auth::login($user);
-
             $token = $user->createToken('authToken')->plainTextToken;
 
-        
             return redirect("http://localhost:5173/dashboard?token={$token}");
         } catch (\Exception $e) {
             return redirect('/login')->with('error', 'Authentication failed');

@@ -2,22 +2,31 @@ import React, { useEffect } from 'react';
 import LoginPic from '../assets/Login.jpg';
 import Logo from '../assets/lvcc-logo.png';
 import { FcGoogle } from "react-icons/fc";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(location.search);
+    const token = urlParams.get("token");
     const error = urlParams.get("error");
 
     if (error) {
       alert(error);
       navigate("/login"); 
+      return;
     }
-  }, [navigate]);
 
-  
+    if (token) {
+      console.log("Received Token:", token); 
+      localStorage.setItem("authToken", token); 
+      navigate("/dashboard");
+    }
+  }, [location, navigate]);
+
   const handleGoogleLogin = () => {
     window.location.href = "http://127.0.0.1:8000/auth/google";
   };
