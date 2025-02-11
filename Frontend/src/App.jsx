@@ -12,9 +12,9 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        {/* <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={<Navigate to="/login" />} /> */}
         <Route path="*" element={<MainLayout />}>
           <Route path="SDashboard" element={<SDashboard />} />
           <Route path="SEvaluations" element={<SEvaluations />} />
