@@ -4,6 +4,7 @@ import MainLayout from './Layout/MainLayout';
 import SDashboard from './pages/Student/SDashboard';
 import Login from './Auth/Login';
 import SEvaluations from './pages/Student/SEvaluations';
+import ADashboard from './pages/Admin/ADashboard';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="SDashboard" element={<SDashboard />} />
           <Route path="SEvaluations" element={<SEvaluations />} />
         </Route>
+        <Route path="/ADashboard" element={<ADashboard />} />
       </Routes>
     </Router>
   );

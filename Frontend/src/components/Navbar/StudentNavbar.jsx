@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FaBars } from 'react-icons/fa';
-import DarkModeToggle from '../components/DarkmodeToggle';
+import DarkModeToggle from '../DarkmodeToggle';
 
-function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
+function StudentNavbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
   const [user, setUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -59,4 +59,4 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
   );
 }
 
-export default Navbar;
+export default StudentNavbar;

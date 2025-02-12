@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigate } from "react-router-dom";
-import Logo from "../assets/lvcc-logo.png";
-import { CiHome, CiCreditCard2, CiUser, CiLogout } from "react-icons/ci";
+import Logo from "../../assets/lvcc-logo.png";
+import { CiHome, CiCreditCard2, CiLogout } from "react-icons/ci";
 
 
-function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
+function StudentSidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
   const navigate = useNavigate();
 
   const menuItems = [
@@ -68,4 +68,4 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
   );
 }
 
-export default Sidebar;
+export default StudentSidebar;
