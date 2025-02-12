@@ -1,19 +1,22 @@
 import React from 'react';
 import { useOutletContext } from 'react-router-dom';
-import Calendar from '../components/Calendar';
-import BarChart from '../components/BarChart';
+import ResponsiveCalendar from '../components/Calendar';
+import Stats from '../components/Stats'; // Import Stats
 
 function Upcoming() {
   const { isDarkMode } = useOutletContext();
 
   return (
-    <div className="pt-5">
-      <h1 className="text-xl text-gray-600 dark:text-gray-300 pb-3 ml-2 font-medium">Evaluations Overview</h1>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
-        <div className="lg:col-span-2 border shadow-md rounded-xl p-6 dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-300">
-          <BarChart isDarkMode={isDarkMode} />
+    <div className="pt-1">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        {/* Left column for Stats */}
+        <div className="lg:col-span-1 border shadow-md rounded-xl p-2 dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-200">
+          <Stats />
         </div>
-        <div className="flex flex-col shadow-md border rounded-xl lg:col-span-1 dark:bg-gray-800 dark:border-gray-700">
+
+        {/* Right column for Calendar */}
+        <div className="lg:col-span-2 border shadow-md rounded-xl p-2 dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-200">
+          <ResponsiveCalendar isDarkMode={isDarkMode} />
         </div>
       </div>
     </div>

@@ -10,20 +10,18 @@ function CEvaluation() {
   const itemsPerPage = 10;
 
   const instructors = [
-    { name: 'John Doe', email: 'john@example.com', subject: 'CRM', course: 'BSIS4' },
-    { name: 'Jane Doe', email: 'jane@example.com', subject: 'ETHICS', course: 'BSIS4' },
-    { name: 'Gary Barlow', email: 'gary@example.com', subject: 'Entrepreneurial Mind', course: 'BSIS4' },
-    { name: 'Gary Barlow', email: 'gary@example.com', subject: 'Math Logic', course: 'BSIS4' },
-    { name: 'Gary Barlow', email: 'gary@example.com', subject: 'Capstone 1', course: 'BSIS4' },
-    { name: 'Gary Barlow', email: 'gary@example.com', subject: 'Capstone 2', course: 'BSIS4' },
-    { name: 'Gary Barlow', email: 'gary@example.com', subject: 'Web Development', course: 'BSIS4' },
-    { name: 'John Doe', email: 'john@example.com', subject: 'CRM', course: 'BSIS4' },
-    { name: 'Jane Doe', email: 'jane@example.com', subject: 'ETHICS', course: 'BSIS4' },
-    { name: 'Gary Barlow', email: 'gary@example.com', subject: 'Entrepreneurial Mind', course: 'BSIS4' },
-    { name: 'Gary Barlow', email: 'gary@example.com', subject: 'Math Logic', course: 'BSIS4' },
-    { name: 'Gary Barlow', email: 'gary@example.com', subject: 'Capstone 1', course: 'BSIS4' },
-    { name: 'Gary Barlow', email: 'gary@example.com', subject: 'Capstone 2', course: 'BSIS4' },
-    { name: 'Gary Barlow', email: 'gary@example.com', subject: 'Web Development', course: 'BSIS4' }
+    { name: 'John Doe', subject: 'CRM', status: 'COMPLETED' },
+    { name: 'Jane Doe', subject: 'ETHICS', status: 'COMPLETED' },
+    { name: 'Gary Barlow', subject: 'Entrepreneurial Mind', status: 'NOT COMPLETED' },
+    { name: 'Gary Barlow', subject: 'Math Logic', status: 'COMPLETED' },
+    { name: 'Gary Barlow', subject: 'Capstone 1', status: 'COMPLETED' },
+    { name: 'Gary Barlow', subject: 'Capstone 2', status: 'NOT COMPLETED' },
+    { name: 'Gary Barlow', subject: 'Web Development', status: 'COMPLETED' },
+    { name: 'Gary Barlow', subject: 'Entrepreneurial Mind', status: 'NOT COMPLETED' },
+    { name: 'Gary Barlow', subject: 'Math Logic', status: 'COMPLETED' },
+    { name: 'Gary Barlow', subject: 'Capstone 1', status: 'COMPLETED' },
+    { name: 'Gary Barlow', subject: 'Capstone 2', status: 'NOT COMPLETED' },
+    { name: 'Gary Barlow', subject: 'Web Development', status: 'COMPLETED' }
   ];
 
   const handleSort = (column) => {
@@ -38,20 +36,15 @@ function CEvaluation() {
         ? a.name.localeCompare(b.name)
         : b.name.localeCompare(a.name);
     }
-    if (sortedColumn === 'email') {
-      return sortOrder === 'asc'
-        ? a.email.localeCompare(b.email)
-        : b.email.localeCompare(a.email);
-    }
     if (sortedColumn === 'subject') {
       return sortOrder === 'asc'
         ? a.subject.localeCompare(b.subject)
         : b.subject.localeCompare(a.subject);
     }
-    if (sortedColumn === 'course') {
+    if (sortedColumn === 'status') {
       return sortOrder === 'asc'
-        ? a.course.localeCompare(b.course)
-        : b.course.localeCompare(a.course);
+        ? a.status.localeCompare(b.status)
+        : b.status.localeCompare(a.status);
     }
     return 0;
   });
@@ -72,10 +65,12 @@ function CEvaluation() {
   );
 
   return (
-    <div>
+    <div >
       <div className="flex justify-between items-center mb-4 flex-col lg:flex-row">
         <h1 className="text-xl font-medium dark:text-white mb-2 lg:mb-0">Instructors</h1>
-
+        {/* <h1 className="text-slate-500 font-normal text-sm text-center dark:text-slate-400 ">
+        Evaluate your instructors with your honest and best ratings.
+          </h1>  */}
         <div className="relative w-full lg:w-auto">
           <FaSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
           <input
@@ -88,9 +83,9 @@ function CEvaluation() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-9">
         <div className="h-auto lg:col-span-2">
-          <div className="overflow-x-auto p-4">
+          <div className="h-full min-h-[500px] overflow-x-auto p-4">
             <table className="min-w-full divide-y-2 text-center divide-gray-200 bg-white text-sm dark:bg-gray-900 dark:divide-gray-700">
               <thead className="ltr:text-left rtl:text-right">
                 <tr>
@@ -103,13 +98,6 @@ function CEvaluation() {
                   </th>
                   <th
                     className="whitespace-nowrap px-4 py-2 font-medium text-gray-900 dark:text-white cursor-pointer"
-                    onClick={() => handleSort('email')}
-                  >
-                    Email
-                    <FaSort className={`inline ml-1 ${sortedColumn === 'email' ? 'text-indigo-600' : 'text-gray-400'}`} />
-                  </th>
-                  <th
-                    className="whitespace-nowrap px-4 py-2 font-medium text-gray-900 dark:text-white cursor-pointer"
                     onClick={() => handleSort('subject')}
                   >
                     Subject
@@ -117,10 +105,10 @@ function CEvaluation() {
                   </th>
                   <th
                     className="whitespace-nowrap px-4 py-2 font-medium text-gray-900 dark:text-white cursor-pointer"
-                    onClick={() => handleSort('course')}
+                    onClick={() => handleSort('status')}
                   >
-                    Course
-                    <FaSort className={`inline ml-1 ${sortedColumn === 'course' ? 'text-indigo-600' : 'text-gray-400'}`} />
+                    Status
+                    <FaSort className={`inline ml-1 ${sortedColumn === 'status' ? 'text-indigo-600' : 'text-gray-400'}`} />
                   </th>
                   <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900 dark:text-white">
                     Evaluate
@@ -132,9 +120,8 @@ function CEvaluation() {
                 {currentInstructors.map((instructor, index) => (
                   <tr key={index}>
                     <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900 dark:text-white">{instructor.name}</td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700 dark:text-gray-200">{instructor.email}</td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700 dark:text-gray-200">{instructor.subject}</td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700 dark:text-gray-200">{instructor.course}</td>
+                    <td className="whitespace-nowrap px-4 py-2 text-gray-700 dark:text-gray-200">{instructor.status}</td>
                     <td className="whitespace-nowrap px-4 py-2">
                       <div className="flex items-center justify-center gap-2">
                         <button className="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white">

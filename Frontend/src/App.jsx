@@ -5,8 +5,7 @@ import SDashboard from './pages/Student/SDashboard';
 import Login from './Auth/Login';
 import Signup from './Auth/Signup';
 import SEvaluations from './pages/Student/SEvaluations';
-import SHistory from './pages/Student/SHistory';
-import SAccount from './pages/Student/SAccount';
+
 
 function App() {
   return (
@@ -18,8 +17,7 @@ function App() {
         <Route path="*" element={<MainLayout />}>
           <Route path="SDashboard" element={<SDashboard />} />
           <Route path="SEvaluations" element={<SEvaluations />} />
-          <Route path="SHistory" element={<SHistory />} />
-          <Route path="SAccount" element={<SAccount />} />
+          
         </Route>
       </Routes>
     </Router>

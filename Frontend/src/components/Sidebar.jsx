@@ -1,17 +1,14 @@
 import React from 'react';
 import { useNavigate } from "react-router-dom";
-import Logo from "../assets/lvcc-logo.png";
-import { CiHome, CiCreditCard2, CiUser, CiLogout } from "react-icons/ci";
-import { VscHistory } from "react-icons/vsc";
+import Logo from "../assets/Updated logo.png";
+import { CiHome, CiCreditCard2, CiLogout } from "react-icons/ci";
 
 function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
   const navigate = useNavigate();
 
   const menuItems = [
     { name: 'Dashboard', icon: CiHome, path: '/SDashboard' },
-    { name: 'Evaluations', icon: CiCreditCard2, path: '/SEvaluations' },
-    { name: 'History', icon: VscHistory, path: '/SHistory' },
-    { name: 'My Account', icon: CiUser, path: '/SAccount' },
+    { name: 'Evaluations', icon: CiCreditCard2, path: '/SEvaluations' }, 
   ];
 
   const closeSidebar = () => {
@@ -20,7 +17,6 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
     }
   };
 
-  
   const handleLogout = () => {
     localStorage.removeItem("authToken"); 
     navigate("/login");
@@ -28,13 +24,13 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
 
   return (
     <div
-      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-white dark:bg-gray-900 border-r dark:border-gray-700 ${
+      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-[#1F3463] border-r border-gray-700 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } md:translate-x-0`}
     >
-      <nav className="flex flex-col h-full p-4 space-y-2">
+      <nav className="flex flex-col h-full p-4 space-y-2 text-white">
         <div className="flex items-center justify-center pb-6 pt-5 gap-2">
-          <img className="h-16 w-16" src={Logo} alt="LVCC Logo" />
+          <img className="h-20 w-20" src={Logo} alt="Updated logo" />
         </div>
 
         <div className="flex flex-col gap-2 flex-grow">
@@ -42,7 +38,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
             <li
               key={item.name}
               className={`list-none flex text-sm items-center gap-2 cursor-pointer p-2 rounded-lg transition-colors duration-200 ${
-                activePage === item.name ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-gray-800'
+                activePage === item.name ? 'bg-indigo-600 text-white' : 'hover:bg-indigo-500'
               }`}
               onClick={() => {
                 setActivePage(item.path);
@@ -55,10 +51,9 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
           ))}
         </div>
 
-      
         <div className="flex">
           <li 
-            className="list-none flex items-center gap-2 p-2 rounded-lg text-sm text-gray-700 dark:text-gray-200 hover:bg-red-100 dark:hover:bg-gray-800 transition-colors duration-200"
+            className="list-none flex items-center gap-2 p-2 rounded-lg text-sm hover:bg-red-600 transition-colors duration-200 cursor-pointer"
             onClick={handleLogout}
           >
             <CiLogout className="w-6 h-6" />
