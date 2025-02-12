@@ -1,12 +1,12 @@
 import React from 'react'
-import Sidebar from '../../components/Sidebar/StudentSidebar';
-import Navbar from '../../components/Navbar/StudentNavbar';
+import AdminNavbar from '../../components/Navbar/AdminNavbar';
+import AdminSidebar from '../../components/Sidebar/AdminSidebar';
 
 function ADashboard() {
   return (
     <div>
-      <Navbar/>
-      <Sidebar/>
+      <AdminNavbar/>
+      <AdminSidebar/>
     </div>
   )
 }
