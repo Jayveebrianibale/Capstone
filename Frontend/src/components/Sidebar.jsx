@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from "react-router-dom";
 import Logo from "../assets/lvcc-logo.png";
 import { CiHome, CiCreditCard2, CiUser, CiLogout } from "react-icons/ci";
-import { VscHistory } from "react-icons/vsc";
+
 
 function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
   const navigate = useNavigate();
@@ -10,8 +10,6 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
   const menuItems = [
     { name: 'Dashboard', icon: CiHome, path: '/SDashboard' },
     { name: 'Evaluations', icon: CiCreditCard2, path: '/SEvaluations' },
-    { name: 'History', icon: VscHistory, path: '/SHistory' },
-    { name: 'My Account', icon: CiUser, path: '/SAccount' },
   ];
 
   const closeSidebar = () => {

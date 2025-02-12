@@ -42,8 +42,6 @@ function MainLayout() {
     const pathToPage = {
       '/SDashboard': 'Dashboard',
       '/SEvaluations': 'Evaluations',
-      '/SHistory': 'History',
-      '/SAccount': 'My Account',
     };
     setActivePage(pathToPage[location.pathname] || 'Dashboard');
   }, [location.pathname]);

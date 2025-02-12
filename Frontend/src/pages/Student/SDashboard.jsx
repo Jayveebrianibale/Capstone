@@ -29,9 +29,15 @@ function SDashboard() {
       localStorage.removeItem("authToken");
       navigate("/login");
     });
-  }, [navigate]);
-  
 
+  }, [navigate]);
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    }
+  }, [user]);
+  
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
       <h1>Welcome to Dashboard</h1>
