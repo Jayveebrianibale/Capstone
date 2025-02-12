@@ -20,20 +20,24 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\EvaluationController;
 
 
-//Login routes
-Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
-Route::post('/verify-code', [AuthController::class, 'verifyCode']);
+// //Login routes
+// Route::post('register', [AuthController::class, 'register']);
+// Route::post('login', [AuthController::class, 'login']);
+// Route::post('/verify-code', [AuthController::class, 'verifyCode']);
 
-//User Profile routes
-Route::post('/upload-profile-picture', [UserController::class, 'uploadProfilePicture']);
+// //User Profile routes
+// Route::post('/upload-profile-picture', [UserController::class, 'uploadProfilePicture']);
 
-//Evaluation Routes
-Route::apiResource('teachers', TeacherController::class);
-Route::post('evaluations', [EvaluationController::class, 'store']);
+// //Evaluation Routes
+// Route::apiResource('teachers', TeacherController::class);
+// Route::post('evaluations', [EvaluationController::class, 'store']);
 
-
-
+// Login Routes Verify Token
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    return response()->json($request->user());
+});
+
+Route::post('/verify-token', function (Request $request) {
+    $user = Auth::guard('sanctum')->user();
+    return response()->json(['valid' => $user ? true : false]);
 });
