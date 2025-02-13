@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { FaSort, FaSearch, FaStar, FaEdit } from 'react-icons/fa';
 import Pagination from '../components/Pagination';
+import EvaluationFormModal from '../contents/EvaluationModal';
+
 
 function CEvaluation() {
   const [search, setSearch] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
   const [sortedColumn, setSortedColumn] = useState('name');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   const itemsPerPage = 10;
 
   const instructors = [
@@ -24,10 +27,21 @@ function CEvaluation() {
     { name: 'Gary Barlow', subject: 'Web Development', status: 'COMPLETED' }
   ];
 
+  
+
   const handleSort = (column) => {
     const order = sortedColumn === column && sortOrder === 'asc' ? 'desc' : 'asc';
     setSortOrder(order);
     setSortedColumn(column);
+  };
+
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   const sortedInstructors = [...instructors].sort((a, b) => {
@@ -124,7 +138,7 @@ function CEvaluation() {
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700 dark:text-gray-200">{instructor.status}</td>
                     <td className="whitespace-nowrap px-4 py-2">
                       <div className="flex items-center justify-center gap-2">
-                        <button className="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white">
+                        <button className="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white" onClick={handleOpenModal}>
                           <FaStar />
                         </button>
                         <button className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
@@ -145,6 +159,16 @@ function CEvaluation() {
         totalPages={totalPages}
         onPageChange={handleChangePage}
       />
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <EvaluationFormModal />
+            <button onClick={handleCloseModal} className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
