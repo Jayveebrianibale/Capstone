@@ -49,18 +49,10 @@ function MainLayout() {
 
   useEffect(() => {
     const pathToPage = {
-      student: {
-        '/SDashboard': 'Dashboard',
-        '/SEvaluations': 'Evaluations',
-      },
-      admin: {
-        '/ADashboard': 'Dashboard',
-        '/ManageUsers': 'Manage Users',
-      },
-      instructor: {
-        '/IDashboard': 'Dashboard',
-        '/IClasses': 'Classes',
-      }
+      '/SDashboard': 'Dashboard',
+      '/SEvaluations': 'Evaluations',
+      '/SHistory': 'History',
+      '/SAccount': 'My Account',
     };
     setActivePage(pathToPage[role]?.[location.pathname] || 'Dashboard');
   }, [location.pathname, role]);

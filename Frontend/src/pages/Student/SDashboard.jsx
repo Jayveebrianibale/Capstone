@@ -1,46 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
+import Content from '../../components/Content';
+import Stats from '../../components/Stats';
+import Upcoming from '../../components/Upcoming';
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 function SDashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-  
-    if (!token) {
-      console.log("No token found, redirecting to login...");
-      navigate("/login");
-      return;
-    }
-  
-    axios.get("http://127.0.0.1:8000/api/user", {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    .then(response => {
-      console.log("User authenticated:", response.data);
-      setUser(response.data);
-    })
-    .catch(error => {
-      console.error("Authentication failed:", error);
-      alert("Invalid token, please log in again.");
-      localStorage.removeItem("authToken");
-      navigate("/login");
-    });
 
-  }, [navigate]);
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
+    if (token) {
+      setIsAuthenticated(true);
+    } else {
+      navigate("/login"); // Redirect to login if no token
     }
-  }, [user]);
-  
+  }, []);
+
+  if (!isAuthenticated) {
+    return null; // Prevent rendering until auth state is determined
+  }
+
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
-      <h1>Welcome to Dashboard</h1>
-      {user && <p>Hello, {user.name}!</p>}
+      <Content />
+      <Stats />
+      <Upcoming />
     </main>
   );
 }
