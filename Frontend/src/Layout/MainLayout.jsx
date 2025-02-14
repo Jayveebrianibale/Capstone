@@ -51,6 +51,7 @@ function MainLayout() {
     setActivePage(page);
     navigate(path);
   };
+  
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const EvaluationFormModal = () => {
+const EvaluationFormModal = ({ onClose }) => {
   const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,35 +81,43 @@ const EvaluationFormModal = () => {
   };
 
   const handleClose = () => {
-    navigate("/CEvaluations");
+    navigate("/SEvaluations"); // Ensure correct path
+    if (onClose) {
+      onClose(); // Close modal if parent component expects it
+    }
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="bg-white max-w-lg w-full rounded-2xl shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
+     <div className="bg-white dark:bg-gray-800 max-w-lg w-full rounded-2xl shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
+
         {showSubmitNotice ? (
           <div className="text-center">
-            <h2 className="text-lg font-semibold text-gray-700 mt-3">Submission Successful!</h2>
-            <p className="text-gray-500 text-sm mt-2">
+            <h2 className="text-lg font-semibold text-gray-700 dark:text-white mt-3">
+            Submission Successful!</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+
               Thank you for your evaluation. Your response has been recorded.
             </p>
             <button
               onClick={handleClose}
-              className="mt-4 px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all"
+              className="mt-4 px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 transition-all"
             >
               OK
             </button>
           </div>
         ) : (
           <>
-            <div className="text-center mb-4 text-gray-600 text-sm">
+            <div className="text-center dark:text-gray-300 mb-4 text-gray-600 text-sm">
               Question {currentQuestion + 1} of {questions.length}
             </div>
 
-            <p className="font-bold text-lg text-gray-700 text-center max-w-lg mx-auto">
+            <p className="font-bold text-lg text-gray-700 dark:text-white text-center max-w-lg mx-auto">
+
               {questions[currentQuestion].title}
             </p>
-            <p className="text-gray-600 text-sm text-justify max-w-lg mx-auto">
+            <p className="text-gray-600 dark:text-gray-300 text-sm text-justify max-w-lg mx-auto">
+
               {questions[currentQuestion].description}
             </p>
 
@@ -117,27 +125,30 @@ const EvaluationFormModal = () => {
               <div className="flex flex-col gap-3 mt-6">
                 <div className="grid grid-cols-2 gap-3">
                   {options.slice(0, 4).map((option, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleAnswerSelection(index)}
-                      className={`w-full px-4 py-2 border rounded-lg flex items-center justify-center gap-2 transition-all ${
-                        answers[currentQuestion] === index ? "bg-yellow-400 text-white" : "bg-gray-100 hover:bg-gray-200"
-                      }`}
-                    >
-                      <span className="text-lg">{option.split(" ")[0]}</span>
-                      <span className="text-sm">{option.split(" ").slice(1).join(" ")}</span>
-                    </button>
+                   <button
+                   key={index}
+                   onClick={() => handleAnswerSelection(index)}
+                   className={`w-full px-4 py-2 border rounded-lg flex items-center justify-center gap-2 transition-all ${
+                     answers[currentQuestion] === index ? "bg-yellow-400 dark:text-gray-800 text-white" : "bg-gray-100 hover:bg-gray-200 dark:text-black"
+                   }`}
+                 >
+                   <span className="text-lg">{option.split(" ")[0]}</span>
+                   <span className="text-sm">{option.split(" ").slice(1).join(" ")}</span>
+                 </button>
+                 
                   ))}
+                  
                 </div>
                 <button
-                  onClick={() => handleAnswerSelection(4)}
-                  className={`w-full px-4 py-2 border rounded-lg flex items-center justify-center gap-2 transition-all ${
-                    answers[currentQuestion] === 4 ? "bg-yellow-400 text-white" : "bg-gray-100 hover:bg-gray-200"
-                  }`}
-                >
-                  <span className="text-lg">😡</span>
-                  <span className="text-sm">Not at all</span>
-                </button>
+  onClick={() => handleAnswerSelection(4)}
+  className={`w-full px-4 py-2 border rounded-lg flex items-center justify-center gap-2 transition-all ${
+    answers[currentQuestion] === 4 ? "bg-yellow-400 dark:text-gray-800 text-white" : "bg-gray-100 hover:bg-gray-200 dark:text-black"
+  }`}
+>
+  <span className="text-lg">😡</span>
+  <span className="text-sm dark:text-black">Not at all</span>
+</button>
+
               </div>
             )}
 

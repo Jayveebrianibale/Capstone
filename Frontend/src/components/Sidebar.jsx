@@ -24,7 +24,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
 
   return (
     <div
-      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-[#1F3463] border-r border-gray-700 ${
+      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-[#1F3463] dark:bg-gray-800 dark:border-gray-900 border-r border-gray-700 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } md:translate-x-0`}
     >
@@ -33,7 +33,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
           <img className="h-20 w-20" src={Logo} alt="Updated logo" />
         </div>
 
-        <div className="flex flex-col gap-2 flex-grow">
+        <ul className="flex flex-col gap-2 flex-grow">
           {menuItems.map((item) => (
             <li
               key={item.name}
@@ -41,23 +41,24 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
                 activePage === item.name ? 'bg-indigo-600 text-white' : 'hover:bg-indigo-500'
               }`}
               onClick={() => {
-                setActivePage(item.path);
+                setActivePage(item.name);
+                navigate(item.path);
                 closeSidebar();
               }}
             >
               <item.icon className="w-5 h-5" />
-              <a>{item.name}</a>
+              <span>{item.name}</span>
             </li>
           ))}
-        </div>
+        </ul>
 
-        <div className="flex">
+        <div>
           <li 
             className="list-none flex items-center gap-2 p-2 rounded-lg text-sm hover:bg-red-600 transition-colors duration-200 cursor-pointer"
             onClick={handleLogout}
           >
             <CiLogout className="w-6 h-6" />
-            <a>Logout</a>
+            <span>Logout</span>
           </li>
         </div>
       </nav>
