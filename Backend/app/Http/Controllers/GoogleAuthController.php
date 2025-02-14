@@ -34,9 +34,6 @@ class GoogleAuthController extends Controller
         Auth::login($user);
         $token = $user->createToken('authToken')->plainTextToken;
 
-        // ✅ DEBUG: Check if token is being generated
-        \Log::info('Generated Token: ' . $token);
-
         return redirect("http://localhost:5173/login?token={$token}");
     } catch (\Exception $e) {
         \Log::error('Google Login Error: ' . $e->getMessage());
