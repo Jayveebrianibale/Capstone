@@ -4,10 +4,10 @@ import AdminSidebar from '../../components/Sidebar/AdminSidebar';
 
 function ADashboard() {
   return (
-    <div>
+    <main>
       <AdminNavbar/>
       <AdminSidebar/>
-    </div>
+    </main>
   )
 }
 

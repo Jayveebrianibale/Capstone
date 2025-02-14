@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import Sidebar from '../components/Sidebar/StudentSidebar';
-import Navbar from '../components/Navbar/StudentNavbar';
+import Sidebar from '../components/Sidebar';
+import Navbar from '../components/Navbar';
 
 function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState('Dashboard');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [role, setRole] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -39,12 +40,30 @@ function MainLayout() {
   }, []);
 
   useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setRole(parsedUser.role);
+    }
+  }, []);
+
+  useEffect(() => {
     const pathToPage = {
-      '/SDashboard': 'Dashboard',
-      '/SEvaluations': 'Evaluations',
+      student: {
+        '/SDashboard': 'Dashboard',
+        '/SEvaluations': 'Evaluations',
+      },
+      admin: {
+        '/ADashboard': 'Dashboard',
+        '/ManageUsers': 'Manage Users',
+      },
+      instructor: {
+        '/IDashboard': 'Dashboard',
+        '/IClasses': 'Classes',
+      }
     };
-    setActivePage(pathToPage[location.pathname] || 'Dashboard');
-  }, [location.pathname]);
+    setActivePage(pathToPage[role]?.[location.pathname] || 'Dashboard');
+  }, [location.pathname, role]);
 
   const handlePageNavigation = (path, page) => {
     setActivePage(page);
@@ -69,6 +88,7 @@ function MainLayout() {
         toggleSidebar={toggleSidebar}
         activePage={activePage}
         setActivePage={handlePageNavigation}
+        role={role}
       />
       <div className={`flex-grow ${sidebarOpen ? 'ml-56' : 'ml-0'} transition-all duration-300`}>
         <Navbar

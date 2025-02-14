@@ -8,7 +8,6 @@ function SDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    console.log("Stored Token:", token);
   
     if (!token) {
       console.log("No token found, redirecting to login...");

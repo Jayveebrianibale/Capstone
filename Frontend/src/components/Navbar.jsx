@@ -1,8 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { FaBars } from 'react-icons/fa';
-import DarkModeToggle from '../DarkmodeToggle';
-
-function AdminNavbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
+function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
   const [user, setUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -40,7 +36,7 @@ function AdminNavbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
                 className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600"
               />
               <span className="hidden sm:block text-gray-700 dark:text-gray-200 font-normal text-sm">
-                {user.email.includes("@gmail") ? "Admin" : "User"}
+                {user.role === "student" ? "Student" : user.role === "admin" ? "Admin" : "Instructor"}
               </span>
             </button>
           )}
@@ -58,4 +54,5 @@ function AdminNavbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
     </nav>
   );
 }
-export default AdminNavbar
+
+export default Navbar;

@@ -1,16 +1,28 @@
 import React from 'react';
 import { useNavigate } from "react-router-dom";
-import Logo from "../../assets/lvcc-logo.png";
+import Logo from "../assets/lvcc-logo.png";
 import { CiHome, CiCreditCard2, CiLogout } from "react-icons/ci";
 
 
-function AdminSidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage }) {
+function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage, role }) {
   const navigate = useNavigate();
 
-  const menuItems = [
-    { name: 'Dashboard', icon: CiHome, path: '/SDashboard' },
-    { name: 'Evaluations', icon: CiCreditCard2, path: '/SEvaluations' },
-  ];
+  const menuItemsByRole = {
+    student: [
+      { name: 'Dashboard', icon: CiHome, path: '/SDashboard' },
+      { name: 'Evaluations', icon: CiCreditCard2, path: '/SEvaluations' },
+    ],
+    admin: [
+      { name: 'Dashboard', icon: CiHome, path: '/ADashboard' },
+      { name: 'Manage Users', icon: CiCreditCard2, path: '/ManageUsers' },
+    ],
+    instructor: [
+      { name: 'Dashboard', icon: CiHome, path: '/IDashboard' },
+      { name: 'Classes', icon: CiCreditCard2, path: '/IClasses' },
+    ],
+  };
+
+  const menuItems = menuItemsByRole[role] || [];
 
   const closeSidebar = () => {
     if (sidebarOpen && window.innerWidth < 768) {
@@ -18,7 +30,6 @@ function AdminSidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage })
     }
   };
 
-  
   const handleLogout = () => {
     localStorage.removeItem("authToken"); 
     navigate("/login");
@@ -53,7 +64,6 @@ function AdminSidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage })
           ))}
         </div>
 
-      
         <div className="flex">
           <li 
             className="list-none flex items-center gap-2 p-2 rounded-lg text-sm text-gray-700 dark:text-gray-200 hover:bg-red-100 dark:hover:bg-gray-800 transition-colors duration-200"
@@ -68,4 +78,4 @@ function AdminSidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage })
   );
 }
 
-export default AdminSidebar;
+export default Sidebar;
