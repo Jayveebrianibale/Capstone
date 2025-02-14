@@ -14,7 +14,7 @@ const EvaluationFormModal = ({ onClose }) => {
   const questions = [
     { 
       title: "Teaching Effectiveness", 
-      description: <>How effective was the teacher in delivering lessons and engaging students in the learning process? <br /> <br /> <em>*Gaano kaepektibo ang guro sa paghahatid ng mga aralin at paghikayat sa mga mag-aaral sa proseso ng pagkatuto?*</em></>
+      description: <>How effective was the teacher in delivering lessons and engaging students in the learning process?<br /> <em>*Gaano kaepektibo ang guro sa paghahatid ng mga aralin at paghikayat sa mga mag-aaral sa proseso ng pagkatuto?*</em></>
     },
     { 
       title: "Communication Skills", 

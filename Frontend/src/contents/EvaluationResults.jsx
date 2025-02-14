@@ -21,7 +21,7 @@ const EvaluationResultsModal = ({ isOpen, onClose }) => {
         >
           &times;
         </button>
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">Evaluation Results</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-justify">Evaluation Results</h2>
         <div className="space-y-6">
           {dummyData.map((result, index) => (
             <div
