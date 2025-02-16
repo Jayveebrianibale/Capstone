@@ -3,26 +3,27 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import MainLayout from './Layout/MainLayout';
 import SDashboard from './pages/Student/SDashboard';
 import Login from './Auth/Login';
-import Signup from './Auth/Signup';
 import SEvaluations from './pages/Student/SEvaluations';
-import SHistory from './pages/Student/SHistory';
-import SAccount from './pages/Student/SAccount';
+import AdminDashboard from './pages/Admin/ADashboard';
+import InstructorDashboard from './pages/Instructor/InstrucDashboard';
+
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/" element={<Navigate to="/login" />} />
+        {/* <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} /> */}
+        
+        {/* <Route path="/" element={<Navigate to="/login" />} /> */}
         <Route path="*" element={<MainLayout />}>
           <Route path="SDashboard" element={<SDashboard />} />
           <Route path="SEvaluations" element={<SEvaluations />} />
-          <Route path="SHistory" element={<SHistory />} />
-          <Route path="SAccount" element={<SAccount />} />
+
+          <Route path="AdminDashboard" element={<AdminDashboard />} />
+          <Route path="InstructorDashboard" element={<InstructorDashboard />} />
         </Route>
-        <Route path="/ADashboard" element={<ADashboard />} />
+      
       </Routes>
     </Router>
   );

@@ -1,18 +1,26 @@
-import React from 'react';
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "../assets/lvcc-logo.png";
-import { CiHome, CiCreditCard2, CiUser, CiLogout } from "react-icons/ci";
-import { VscHistory } from "react-icons/vsc";
+import Logo from "../assets/Updated-logo.png";
+import { CiHome, CiCreditCard2, CiLogout } from "react-icons/ci";
 
 function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage, role }) {
   const navigate = useNavigate();
 
-  const menuItems = [
-    { name: 'Dashboard', icon: CiHome, path: '/SDashboard' },
-    { name: 'Evaluations', icon: CiCreditCard2, path: '/SEvaluations' },
-    { name: 'History', icon: VscHistory, path: '/SHistory' },
-    { name: 'My Account', icon: CiUser, path: '/SAccount' },
-  ];
+  const menus = {
+    student: [
+      { name: "Dashboard", icon: CiHome, path: "/SDashboard" },
+      { name: "Evaluations", icon: CiCreditCard2, path: "/SEvaluations" },
+    ],
+    admin: [
+      { name: "Dashboard", icon: CiHome, path: "/AdminDashboard" },
+      
+    ],
+    instructor: [
+      { name: "Dashboard", icon: CiHome, path: "/InstructorDashboard" },
+    ],
+  };
+
+  const menuItems = menus[role] || [];
 
   const closeSidebar = () => {
     if (sidebarOpen && window.innerWidth < 768) {
@@ -21,14 +29,14 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage, role }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken"); 
+    localStorage.removeItem("authToken");
     navigate("/login");
   };
 
   return (
     <div
       className={`fixed inset-0 z-40 transition-transform transform w-56 bg-[#1F3463] border-r border-gray-700 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        sidebarOpen ? "translate-x-0" : "-translate-x-full"
       } md:translate-x-0`}
     >
       <nav className="flex flex-col h-full p-4 space-y-2 text-white">
@@ -41,10 +49,11 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage, role }
             <li
               key={item.name}
               className={`list-none flex text-sm items-center gap-2 cursor-pointer p-2 rounded-lg transition-colors duration-200 ${
-                activePage === item.name ? 'bg-indigo-600 text-white' : 'hover:bg-indigo-500'
+                activePage === item.name ? "bg-indigo-600 text-white" : "hover:bg-indigo-500"
               }`}
               onClick={() => {
                 setActivePage(item.path);
+                navigate(item.path);
                 closeSidebar();
               }}
             >
@@ -55,7 +64,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage, role }
         </div>
 
         <div className="flex">
-          <li 
+          <li
             className="list-none flex items-center gap-2 p-2 rounded-lg text-sm hover:bg-red-600 transition-colors duration-200 cursor-pointer"
             onClick={handleLogout}
           >
