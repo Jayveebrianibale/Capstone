@@ -27,7 +27,7 @@ function MainLayout() {
 
   useEffect(() => {
     const storedRole = localStorage.getItem("role");
-    setRole(storedRole || "student");
+    setRole(storedRole || "Student");
   }, []);
 
   const handleDarkModeToggle = () => {
@@ -51,6 +51,7 @@ function MainLayout() {
           toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           darkMode={isDarkMode}
           handleDarkModeToggle={handleDarkModeToggle}
+          title={activePage}
         />
         <Outlet context={{ isDarkMode, handleDarkModeToggle }} />
       </div>

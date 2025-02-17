@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaSort, FaSearch, FaStar, FaEdit } from 'react-icons/fa';
-import Pagination from '../components/Pagination';
-import EvaluationFormModal from '../contents/EvaluationModal';
+import Pagination from '../../components/Pagination';
+import EvaluationFormModal from '../Student/EvaluationModal';
 
 
 function CEvaluation() {
@@ -9,7 +9,7 @@ function CEvaluation() {
   const [sortOrder, setSortOrder] = useState('asc');
   const [sortedColumn, setSortedColumn] = useState('name');
   const [currentPage, setCurrentPage] = useState(1);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const itemsPerPage = 10;
 
   const instructors = [

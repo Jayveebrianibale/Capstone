@@ -41,7 +41,7 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
                 className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600"
               />
               <span className="hidden sm:block text-gray-700 dark:text-gray-200 font-normal text-sm">
-                {user.role === "student" ? "Student" : user.role === "admin" ? "Admin" : "Instructor"}
+                {user.role}
               </span>
             </button>
           )}

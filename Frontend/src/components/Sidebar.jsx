@@ -7,15 +7,15 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage, role }
   const navigate = useNavigate();
 
   const menus = {
-    student: [
+    Student: [
       { name: "Dashboard", icon: CiHome, path: "/SDashboard" },
       { name: "Evaluations", icon: CiCreditCard2, path: "/SEvaluations" },
     ],
-    admin: [
+    Admin: [
       { name: "Dashboard", icon: CiHome, path: "/AdminDashboard" },
       
     ],
-    instructor: [
+    Instructor: [
       { name: "Dashboard", icon: CiHome, path: "/InstructorDashboard" },
     ],
   };
@@ -52,7 +52,7 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage, role }
                 activePage === item.name ? "bg-indigo-600 text-white" : "hover:bg-indigo-500"
               }`}
               onClick={() => {
-                setActivePage(item.path);
+                setActivePage(item.name);
                 navigate(item.path);
                 closeSidebar();
               }}

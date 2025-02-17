@@ -1,5 +1,5 @@
 import React from 'react'
-import CEvaluation from '../../contents/CEvaluation';
+import CEvaluation from '../../contents/Student/CEvaluation';
 
 function SEvaluations() {
   return (
