@@ -1,10 +1,16 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../assets/Updated-logo.png";
 import { CiHome, CiCreditCard2, CiLogout } from "react-icons/ci";
+import { PiStudent } from "react-icons/pi";
+import { LiaChildSolid } from "react-icons/lia";
+import { MdExpandMore, MdExpandLess } from "react-icons/md";
+import { MdOutlineManageAccounts } from "react-icons/md";
+import { VscPerson } from "react-icons/vsc";
 
-function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage, role }) {
+function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role, isMobile }) {
   const navigate = useNavigate();
+  const [openDropdowns, setOpenDropdowns] = useState({});
 
   const menus = {
     Student: [
@@ -13,7 +19,46 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage, role }
     ],
     Admin: [
       { name: "Dashboard", icon: CiHome, path: "/AdminDashboard" },
-      
+      {
+        name: "Higher Education",
+        icon: PiStudent,
+        submenu: [
+          { name: "BSA", path: "/BSA" },
+          { name: "BSAIS", path: "/BSAIS" },
+          { name: "BSSW", path: "/BSSW" },
+          { name: "BAB", path: "/BAB" },
+          { name: "BSIS", path: "/BSIS" },
+          { name: "ACT", path: "/ACT" },
+        ],
+      },
+      {
+        name: "Intermediate",
+        icon: LiaChildSolid,
+        submenu: [
+          { name: "Grade 4", path: "/Grade4" },
+          { name: "Grade 5", path: "/Grade5" },
+          { name: "Grade 6", path: "/Grade6" },
+        ],
+      },
+      {
+        name: "Junior Highschool",
+        icon: VscPerson,
+        submenu: [
+          { name: "Grade 7", path: "/Grade7" },
+          { name: "Grade 8", path: "/Grade8" },
+          { name: "Grade 9", path: "/Grade9" },
+          { name: "Grade 10", path: "/Grade10" },
+        ],
+      },
+      {
+        name: "Senior Highschool",
+        icon: VscPerson,
+        submenu: [
+          { name: "Grade 11", path: "/Grade11" },
+          { name: "Grade 12", path: "/Grade12" },
+        ],
+      },
+      { name: "Accounts", icon: MdOutlineManageAccounts, path: "/Accounts" },
     ],
     Instructor: [
       { name: "Dashboard", icon: CiHome, path: "/InstructorDashboard" },
@@ -23,9 +68,15 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage, role }
   const menuItems = menus[role] || [];
 
   const closeSidebar = () => {
-    if (sidebarOpen && window.innerWidth < 768) {
-      toggleSidebar();
+    if (sidebarOpen && isMobile) {
+      setSidebarOpen(false);
     }
+  };
+
+  const handleDropdownToggle = (name) => {
+    setOpenDropdowns((prev) => ({
+      [name]: !prev[name] ? true : false,
+    }));
   };
 
   const handleLogout = () => {
@@ -46,31 +97,68 @@ function Sidebar({ sidebarOpen, toggleSidebar, activePage, setActivePage, role }
 
         <div className="flex flex-col gap-2 flex-grow">
           {menuItems.map((item) => (
-            <li
-              key={item.name}
-              className={`list-none flex text-sm items-center gap-2 cursor-pointer p-2 rounded-lg transition-colors duration-200 ${
-                activePage === item.name ? "bg-indigo-600 text-white" : "hover:bg-indigo-500"
-              }`}
-              onClick={() => {
-                setActivePage(item.name);
-                navigate(item.path);
-                closeSidebar();
-              }}
-            >
-              <item.icon className="w-5 h-5" />
-              <a>{item.name}</a>
-            </li>
+            <div key={item.name}>
+              {!item.submenu ? (
+                <button
+                  className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-500 transition-colors duration-200 ${
+                    activePage === item.name ? "bg-indigo-600" : ""
+                  }`}
+                  onClick={() => {
+                    setActivePage(item.name);
+                    navigate(item.path);
+                    closeSidebar();
+                  }}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span>{item.name}</span>
+                </button>
+              ) : (
+                <div>
+                  <button
+                    className="flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-500 transition-colors duration-200"
+                    onClick={() => handleDropdownToggle(item.name)}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span>{item.name}</span>
+                    {openDropdowns[item.name] ? (
+                      <MdExpandLess className="ml-auto" />
+                    ) : (
+                      <MdExpandMore className="ml-auto" />
+                    )}
+                  </button>
+                  {openDropdowns[item.name] && (
+                    <div className="ml-6 max-h-[300px] overflow-y-auto">
+                      {item.submenu.map((sub) => (
+                        <button
+                          key={sub.name}
+                          className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-500 transition-colors duration-200 ${
+                            activePage === sub.name ? "bg-indigo-600" : ""
+                          }`}
+                          onClick={() => {
+                            setActivePage(sub.name);
+                            navigate(sub.path);
+                            closeSidebar();
+                          }}
+                        >
+                          <span>{sub.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           ))}
         </div>
 
         <div className="flex">
-          <li
-            className="list-none flex items-center gap-2 p-2 rounded-lg text-sm hover:bg-red-600 transition-colors duration-200 cursor-pointer"
+          <button
+            className="flex w-full items-center gap-2 p-2 rounded-lg text-sm hover:bg-red-600 transition-colors duration-200"
             onClick={handleLogout}
           >
             <CiLogout className="w-6 h-6" />
-            <a>Logout</a>
-          </li>
+            <span>Logout</span>
+          </button>
         </div>
       </nav>
     </div>

@@ -20,10 +20,10 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
           className="md:hidden text-gray-800 dark:text-gray-200 focus:outline-none"
           onClick={toggleSidebar}
         >
-          <FaBars className="h-5 w-5" />
+          <FaBars className="h-4 w-4" />
         </button>
-        <h1 className="text-xl font-medium text-center sm:text-left ml-4 md:ml-0 hidden sm:block dark:text-gray-200">
-          {title}
+        <h1 className="sm:text-lg md:text-xl lg:text-[130%] font-medium text-center sm:text-left ml-4 md:ml-0 dark:text-gray-200">
+         {title}
         </h1>
       </div>
       <div className="flex items-center gap-2 mr-2">
