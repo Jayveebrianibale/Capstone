@@ -33,7 +33,7 @@ const CompletionIndicator = ({ value, size = 150 }) => {
           </Typography>
         </Box>
       </Box>
-      <p className="mt-4 text-gray-900 dark:text-gray-100 font-medium">
+      <p className="mt-4 mb-6 text-gray-900 dark:text-gray-100 font-medium">
         Completion Rate
       </p>
     </div>

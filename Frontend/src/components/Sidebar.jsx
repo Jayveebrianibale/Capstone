@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../assets/Updated-logo.png";
 import { CiHome, CiCreditCard2, CiLogout } from "react-icons/ci";
@@ -7,6 +7,7 @@ import { LiaChildSolid } from "react-icons/lia";
 import { MdExpandMore, MdExpandLess } from "react-icons/md";
 import { MdOutlineManageAccounts } from "react-icons/md";
 import { VscPerson } from "react-icons/vsc";
+import { TbMessageQuestion } from "react-icons/tb";
 
 function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role, isMobile }) {
   const navigate = useNavigate();
@@ -59,6 +60,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
         ],
       },
       { name: "Accounts", icon: MdOutlineManageAccounts, path: "/Accounts" },
+      { name: "Questionnaires", icon: TbMessageQuestion, path: "/Questions" },
     ],
     Instructor: [
       { name: "Dashboard", icon: CiHome, path: "/InstructorDashboard" },
