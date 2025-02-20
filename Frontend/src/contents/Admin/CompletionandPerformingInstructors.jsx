@@ -11,8 +11,8 @@ function CompletionandPerformingInstructors() {
         <CompletionIndicator value={CompletionRate} />
       </div>
 
-      <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg p-6">
-        <h1 className="text-xl mb-4 text-gray-900 dark:text-gray-100">
+      <div className="lg:col-span-2 bg-white shadow-md dark:bg-gray-800 rounded-lg p-6">
+        <h1 className="text-xl font-medium mb-4 text-gray-900 dark:text-gray-100">
           Top 3 Performing Instructors
         </h1>
         <PerformingInstructor />
