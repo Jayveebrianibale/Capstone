@@ -1,7 +1,7 @@
 import React from "react";
 import { CircularProgress, Typography, Box } from "@mui/material";
 
-const CompletionIndicator = ({ value, size = 150 }) => {
+const CompletionIndicator = ({ value, size = 180 }) => {
   return (
     <div className="flex flex-col items-center" style={{ width: size, height: size }}>
       <Box position="relative" display="inline-flex" width={size} height={size}>

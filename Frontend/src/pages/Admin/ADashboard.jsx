@@ -6,7 +6,7 @@ import CompletionandPerformingInstructors from '../../contents/Admin/Completiona
 function ADashboard() {
 
   return (
-    <main className="p-6 bg-white dark:bg-gray-900 min-h-screen">
+    <main className="p-6 min-h-screen dark:bg-gray-900">
       <h1 className="sm:text-xl md:text-2xl lg:text-3xl pb-2 font-medium text-gray-900 dark:text-gray-100">
         Welcome, Admin!
       </h1>
