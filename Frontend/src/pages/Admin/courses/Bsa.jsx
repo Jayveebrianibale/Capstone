@@ -66,7 +66,7 @@ function Bsa() {
 
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
-        <div>
+      <div>
       <ContentHeader
         title="Instructors"
         stats={["Students: 35", "Submitted: 30"]}

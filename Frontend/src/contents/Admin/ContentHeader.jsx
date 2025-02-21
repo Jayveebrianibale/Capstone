@@ -4,12 +4,13 @@ import { Search, FileDown, Plus } from "lucide-react";
 const ContentHeader = ({ title, stats = [], onSearch, onExport, onAdd }) => {
   return (
     <div className="grid gap-4 lg:grid-cols-2 items-center mb-4">
-      <div className="font-bold text-gray-800 dark:text-white">
-        <h1 className="text-2xl">{title}</h1>
+      <div className="font-bold flex flex-wrap gap-4 md:gap-6 lg:gap-10 text-gray-800 dark:text-white">
+        <h1 className="text-2xl w-full md:w-auto">{title}</h1>
         {stats.map((stat, index) => (
-          <h1 key={index} className="mt-2">{stat}</h1>
+        <h1 key={index} className="mt-2">{stat}</h1>
         ))}
       </div>
+
 
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] lg:justify-self-end gap-4 w-full sm:w-auto">
         

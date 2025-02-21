@@ -12,6 +12,7 @@ import Bssw from './pages/Admin/courses/Bssw';
 import Bab from './pages/Admin/courses/Bab';
 import Bsis from './pages/Admin/courses/Bsis';
 import Act from './pages/Admin/courses/Act';
+import Questionnaires from './pages/Admin/Questionnaires';
 
 function App() {
   return (
@@ -36,6 +37,8 @@ function App() {
             <Route path="BAB" element={<Bab />} />
             <Route path="BSIS" element={<Bsis />} />
             <Route path="ACT" element={<Act />} />
+            <Route path="Questions" element={<Questionnaires />} />
+
           </Route>
         </Routes>
       </div>

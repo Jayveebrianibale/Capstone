@@ -5,6 +5,35 @@ import DarkModeToggle from "../components/DarkmodeToggle";
 function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
   const [user, setUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [displayTitle, setDisplayTitle] = useState(title);
+
+  const abbreviationMap = {
+    "Bachelor of Science in Accountancy": "BSA",
+    "Bachelor of Science in Accounting Information System": "BSAIS",
+    "Bachelor of Science in Social Work": "BSSW",
+    "Bachelor of Arts in Broadcasting": "BAB",
+    "Bachelor of Science in Information Systems": "BSIS",
+    "Associate in Computer Technology": "ACT",
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  
+  useEffect(() => {
+    if (windowWidth < 768) {
+      setDisplayTitle(abbreviationMap[title] || title); 
+    } else {
+      setDisplayTitle(title); 
+    }
+  }, [windowWidth, title]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -23,7 +52,7 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
           <FaBars className="h-4 w-4" />
         </button>
         <h1 className="sm:text-lg md:text-xl lg:text-[130%] font-medium text-center sm:text-left ml-4 md:ml-0 dark:text-gray-200">
-         {title}
+          {displayTitle}
         </h1>
       </div>
       <div className="flex items-center gap-2 mr-2">

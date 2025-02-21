@@ -23,12 +23,12 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
         name: "Higher Education",
         icon: PiStudent,
         submenu: [
-          { name: "BSA", path: "/BSA" },
-          { name: "BSAIS", path: "/BSAIS" },
-          { name: "BSSW", path: "/BSSW" },
-          { name: "BAB", path: "/BAB" },
-          { name: "BSIS", path: "/BSIS" },
-          { name: "ACT", path: "/ACT" },
+          { name: "BSA", fullName: "Bachelor of Science in Accountancy", path: "/BSA" },
+          { name: "BSAIS", fullName: "Bachelor of Science in Accounting Information System", path: "/BSAIS" },
+          { name: "BSSW", fullName: "Bachelor of Science in Social Work", path: "/BSSW" },
+          { name: "BAB", fullName: "Bachelor of Arts in Broadcasting", path: "/BAB" },
+          { name: "BSIS", fullName: "Bachelor of Science in Information Systems", path: "/BSIS" },
+          { name: "ACT", fullName: "Associate in Computer Technology", path: "/ACT" },
         ],
       },
       {
@@ -100,7 +100,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
             <div key={item.name}>
               {!item.submenu ? (
                 <button
-                  className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-500 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                  className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 ${
                     activePage === item.name ? "bg-indigo-600 dark:bg-gray-800" : ""
                   }`}
                   onClick={() => {
@@ -115,7 +115,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
               ) : (
                 <div>
                   <button
-                    className="flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-500 dark:hover:bg-gray-700 transition-colors duration-200"
+                    className="flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200"
                     onClick={() => handleDropdownToggle(item.name)}
                   >
                     <item.icon className="w-5 h-5" />
@@ -127,7 +127,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
                       {item.submenu.map((sub) => (
                         <button
                           key={sub.name}
-                          className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-500 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                          className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 ${
                             activePage === sub.name ? "bg-indigo-600 dark:bg-gray-800" : ""
                           }`}
                           onClick={() => {
