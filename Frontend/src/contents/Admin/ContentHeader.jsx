@@ -45,4 +45,4 @@ const ContentHeader = ({ title, stats = [], onSearch, onExport, onAdd }) => {
   );
 };
 
-export default ContentHeader;x``
+export default ContentHeader;

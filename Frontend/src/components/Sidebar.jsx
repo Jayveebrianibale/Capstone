@@ -114,7 +114,6 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
                 </button>
               ) : (
                 <div>
-                  {/* Dropdown Button */}
                   <button
                     className="flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-500 dark:hover:bg-gray-700 transition-colors duration-200"
                     onClick={() => handleDropdownToggle(item.name)}
@@ -123,7 +122,6 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
                     <span>{item.name}</span>
                     {openDropdowns[item.name] ? <MdExpandLess className="ml-auto" /> : <MdExpandMore className="ml-auto" />}
                   </button>
-                  {/* Dropdown Menu */}
                   {openDropdowns[item.name] && (
                     <div className="ml-6 max-h-[300px] overflow-y-auto">
                       {item.submenu.map((sub) => (
@@ -149,7 +147,6 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
           ))}
         </div>
 
-        {/* Logout Button */}
         <div className="flex">
           <button
             className="flex w-full items-center gap-2 p-2 rounded-lg text-sm hover:bg-red-600 dark:hover:bg-red-700 transition-colors duration-200"
