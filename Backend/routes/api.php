@@ -18,7 +18,18 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\QuestionController;
 
+
+// Login Routes Verify Token
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return response()->json($request->user());
+});
+
+Route::post('/verify-token', function (Request $request) {
+    $user = Auth::guard('sanctum')->user();
+    return response()->json(['valid' => $user ? true : false]);
+});
 
 // //Login routes
 // Route::post('register', [AuthController::class, 'register']);
@@ -32,12 +43,8 @@ use App\Http\Controllers\EvaluationController;
 // Route::apiResource('teachers', TeacherController::class);
 // Route::post('evaluations', [EvaluationController::class, 'store']);
 
-// Login Routes Verify Token
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return response()->json($request->user());
-});
-
-Route::post('/verify-token', function (Request $request) {
-    $user = Auth::guard('sanctum')->user();
-    return response()->json(['valid' => $user ? true : false]);
-});
+//Create Questions Routes
+Route::post('/questions', [QuestionController::class, 'store']);  // Create
+Route::get('/questions', [QuestionController::class, 'index']);   // Fetch all questions
+Route::put('/questions/{id}', [QuestionController::class, 'update']); // Update a question
+Route::delete('/questions/{id}', [QuestionController::class, 'destroy']); // Delete a question
