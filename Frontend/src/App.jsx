@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from "react-hot-toast";
 import MainLayout from './Layout/MainLayout';
 import SDashboard from './pages/Student/SDashboard';
 import Login from './Auth/Login';
@@ -17,12 +18,16 @@ import Questionnaires from './pages/Admin/Questionnaires';
 function App() {
   return (
     <Router>
+      <Toaster position="top-right" reverseOrder={false} />
       <div className="overflow-x-hidden">
         <Routes>
-          {/* <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/login" element={<Login />} /> */}
+          {/* Redirect root to login */}
+          <Route path="/" element={<Navigate to="/login" />} />
+          
+          {/* Login Route (Outside MainLayout) */}
+          <Route path="/login" element={<Login />} />
 
-          {/* <Route path="/" element={<Navigate to="/login" />} /> */}
+          {/* Routes with MainLayout */}
           <Route path="*" element={<MainLayout />}>
             {/* Student Routes */}
             <Route path="SDashboard" element={<SDashboard />} />
@@ -38,8 +43,10 @@ function App() {
             <Route path="BSIS" element={<Bsis />} />
             <Route path="ACT" element={<Act />} />
             <Route path="Questions" element={<Questionnaires />} />
-
           </Route>
+
+          {/* 404 - Redirect to Login */}
+          <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </div>
     </Router>

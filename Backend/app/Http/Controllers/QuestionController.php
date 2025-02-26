@@ -2,63 +2,60 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Question;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use App\Models\Question;
 
-class QuestionController extends Controller {
-    
-    // Store multiple questions
-    public function store(Request $request): JsonResponse {
+class QuestionController extends Controller
+{
+    // Store Multiple Questions
+    public function store(Request $request)
+    {
         $validated = $request->validate([
             'questions' => 'required|array|min:1',
-            'questions.*.question' => 'required|string|max:255',
-            'questions.*.type' => 'required|in:Likert Scale,Multiple Choice,Short Answer',
-            'questions.*.category' => 'required|in:Teaching Effectiveness,Classroom Management,Student Engagement',
+            'questions.*.question' => 'required|string',
+            'questions.*.type' => 'required|string',
+            'questions.*.category' => 'required|string',
         ]);
 
-        // Insert questions into the database
-        $savedQuestions = Question::insert($validated['questions']);
+        $createdQuestions = Question::insert($validated['questions']);
 
-        return response()->json([
-            'message' => 'Questions saved successfully!',
-            'success' => $savedQuestions
-        ], 201);
+        return response()->json(['message' => 'Questions saved successfully', 'questions' => $createdQuestions], 201);
     }
 
-    // Fetch all questions
-    public function index(): JsonResponse {
-        return response()->json(Question::all(), 200);
+    // Get All Questions
+    public function index()
+    {
+        return response()->json(Question::all());
     }
 
     // Update a question
-    public function update(Request $request, $id): JsonResponse {
+    public function update(Request $request, $id)
+    {
         $question = Question::find($id);
+    
         if (!$question) {
             return response()->json(['message' => 'Question not found'], 404);
         }
-
-        $validated = $request->validate([
-            'question' => 'required|string|max:255',
-            'type' => 'required|in:Likert Scale,Multiple Choice,Short Answer',
-            'category' => 'required|in:Teaching Effectiveness,Classroom Management,Student Engagement',
+    
+        $request->validate([
+            'question' => 'required|string',
+            'type' => 'required|string',
+            'category' => 'required|string',
         ]);
-
-        $question->update($validated);
-
-        return response()->json(['message' => 'Question updated successfully!', 'question' => $question], 200);
+    
+        $question->update($request->all());
+    
+        return response()->json(['message' => 'Question updated successfully', 'question' => $question]);
     }
+    
 
     // Delete a question
-    public function destroy($id): JsonResponse {
-        $question = Question::find($id);
-        if (!$question) {
-            return response()->json(['message' => 'Question not found'], 404);
-        }
-
+    public function destroy($id)
+    {
+        $question = Question::findOrFail($id);
         $question->delete();
 
-        return response()->json(['message' => 'Question deleted successfully!'], 200);
+        return response()->json(['message' => 'Question deleted successfully']);
     }
 }
 
