@@ -31,7 +31,7 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
   };
 
   return isOpen ? (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4 ">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg max-h-[80vh] flex flex-col">
         <div className="flex justify-between items-center border-b pb-3 mb-4">
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">

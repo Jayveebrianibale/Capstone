@@ -101,7 +101,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
               {!item.submenu ? (
                 <button
                   className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 ${
-                    activePage === item.name ? "bg-indigo-600 dark:bg-gray-800" : ""
+                    activePage === item.name ? "bg-indigo-700 dark:bg-gray-800" : ""
                   }`}
                   onClick={() => {
                     setActivePage(item.name);

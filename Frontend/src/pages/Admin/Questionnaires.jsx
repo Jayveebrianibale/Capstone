@@ -37,7 +37,7 @@ function Questionnaires() {
 
   const toggleEnable = () => {
     setIsEnabled(!isEnabled);
-    toast.success(`Questionnaire is now ${isEnabled ? "Disabled" : "Enabled for Students"}`);
+    toast.success(`Questionnaire is now ${isEnabled ? "Disabled" : "Enabled"}`);
   };
 
   const confirmDelete = (id) => {
@@ -65,8 +65,15 @@ function Questionnaires() {
         toast.success("Question updated successfully!");
       } else {
         const savedQuestion = await saveQuestions(newQuestion);
+        const isFirstQuestion = questions.length === 0;
+  
         setQuestions([...questions, savedQuestion]);
-        toast.success("Question added successfully!");
+  
+        if (isFirstQuestion) {
+          toast.success("Questions Created Successfully!");
+        } else {
+          toast.success("Questions Added Successfully!");
+        }
       }
     } catch (error) {
       console.error("Error saving question:", error);
@@ -75,27 +82,33 @@ function Questionnaires() {
     setShowModal(false);
   };
   
+  
 
   return (
     <main className="p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex flex-col md:flex-row md:justify-between items-center mb-6">
         <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">Questionnaires</h1>
-        <div className="flex items-center gap-4 mt-4 md:mt-0">
-          <button
-            onClick={handleAddClick}
-            className="flex items-center gap-2 bg-[#1F3463] text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
-            title="Add Questions"
-          >
-            <FaPlus />
-          </button>
+        <div className="flex items-center gap-2 mt-4 md:mt-0">
+        <button
+          onClick={() => {
+            setIsEditing(false);
+            setQuestionToEdit(null);
+            setShowModal(true);
+          }}
+          className="flex items-center gap-2 bg-[#1F3463] text-white px-2 py-2 rounded-lg shadow hover:bg-blue-800 transition"
+          title="Add Questions"
+        >
+          <FaPlus />
+        </button>
+        
           <button
             onClick={toggleEnable}
             className="text-gray-700 dark:text-gray-200 hover:scale-110 transition"
           >
             {isEnabled ? (
-              <FaToggleOn size={28} className="text-blue-500" />
+              <FaToggleOn size={28} className="text-[#1F3463]" />
             ) : (
-              <FaToggleOff size={28} className="text-gray-400" />
+              <FaToggleOff size={28}/>
             )}
           </button>
         </div>
@@ -105,11 +118,16 @@ function Questionnaires() {
         <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <p className="text-gray-500 dark:text-gray-400 text-lg">No questions available</p>
           <button
-            onClick={handleAddClick}
-            className="mt-4 bg-[#1F3463] text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
+            onClick={() => {
+              setIsEditing(false);
+              setQuestionToEdit(null);
+              setShowModal(true);
+            }}
+            className="mt-4 bg-[#1F3463] text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-800 transition"
           >
             Create Question
           </button>
+
         </div>
       ) : (
         <div className="overflow-auto bg-white dark:bg-gray-800 rounded-lg shadow-md">
