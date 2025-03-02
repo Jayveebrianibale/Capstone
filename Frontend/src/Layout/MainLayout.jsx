@@ -38,7 +38,7 @@ function MainLayout() {
 
   useEffect(() => {
     const storedRole = localStorage.getItem("role");
-    setRole(storedRole || "Admin");
+    setRole(storedRole || "Student");
   }, []);
 
   const handleDarkModeToggle = () => {

@@ -6,6 +6,9 @@ use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\TwoFactorController;
+use BeyondCode\LaravelWebSockets\Facades\WebSocketsRouter;
+use BeyondCode\LaravelWebSockets\WebSockets\WebSocketHandler;
+use App\Http\Controllers\BroadcastController;
 
 // ✅ Test Email Route
 Route::get('/verify-2fa', function () {
@@ -22,7 +25,14 @@ Route::get('/verify-2fa', function () {
 
 Route::get('/', function () {
     return view('welcome');
+
 });
+
+Route::match(['get', 'post'], '/broadcast-message', [BroadcastController::class, 'broadcastMessage']);
+
+//Web Socket
+WebSocketsRouter::webSocket('/app/{appKey}', WebSocketHandler::class);
+
 
 //Verification Routes
 Route::get('/verify-2fa', [TwoFactorController::class, 'index'])->name('2fa.index');

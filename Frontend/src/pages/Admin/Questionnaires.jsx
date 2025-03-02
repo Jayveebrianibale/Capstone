@@ -13,14 +13,17 @@ function Questionnaires() {
   const [questionToEdit, setQuestionToEdit] = useState(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [deleteQuestionId, setDeleteQuestionId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     fetchQuestions()
       .then((data) => setQuestions(data))
       .catch((err) => {
         console.error("Error fetching questions:", err);
         toast.error("Failed to load questions.");
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const handleAddClick = () => {
@@ -37,7 +40,7 @@ function Questionnaires() {
 
   const toggleEnable = () => {
     setIsEnabled(!isEnabled);
-    toast.success(`Questionnaire is now ${isEnabled ? "Disabled" : "Enabled"}`);
+    toast.success(`Questions is now ${isEnabled ? "Disabled" : "Enabled"}`);
   };
 
   const confirmDelete = (id) => {
@@ -46,6 +49,7 @@ function Questionnaires() {
   };
 
   const handleDelete = async () => {
+    setLoading(true);
     try {
       await deleteQuestion(deleteQuestionId);
       setQuestions(questions.filter(q => q.id !== deleteQuestionId));
@@ -55,6 +59,7 @@ function Questionnaires() {
       toast.error("Failed to delete question.");
     }
     setConfirmModalOpen(false);
+    setLoading(false);
   };
 
   const handleSave = async (newQuestion) => {
@@ -82,7 +87,6 @@ function Questionnaires() {
     setShowModal(false);
   };
   
-  
 
   return (
     <main className="p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -90,31 +94,36 @@ function Questionnaires() {
         <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">Questionnaires</h1>
         <div className="flex items-center gap-2 mt-4 md:mt-0">
         <button
-          onClick={() => {
-            setIsEditing(false);
-            setQuestionToEdit(null);
-            setShowModal(true);
-          }}
-          className="flex items-center gap-2 bg-[#1F3463] text-white px-2 py-2 rounded-lg shadow hover:bg-blue-800 transition"
-          title="Add Questions"
-        >
-          <FaPlus />
+            onClick={() => {
+              setIsEditing(false);
+              setQuestionToEdit(null);
+              setShowModal(true);
+            }}
+            className="flex items-center gap-2 bg-[#1F3463] text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+            title="Add Questions"
+          >
+            <FaPlus />
         </button>
-        
+
+
           <button
             onClick={toggleEnable}
             className="text-gray-700 dark:text-gray-200 hover:scale-110 transition"
           >
             {isEnabled ? (
-              <FaToggleOn size={28} className="text-[#1F3463]" />
+              <FaToggleOn size={28} className="text-[#1F3463] dark:text-indigo-600" />
             ) : (
-              <FaToggleOff size={28}/>
+              <FaToggleOff size={28}  />
             )}
           </button>
         </div>
       </div>
 
-      {questions.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <Spinner />
+        </div>
+      ) : questions.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <p className="text-gray-500 dark:text-gray-400 text-lg">No questions available</p>
           <button
@@ -123,11 +132,10 @@ function Questionnaires() {
               setQuestionToEdit(null);
               setShowModal(true);
             }}
-            className="mt-4 bg-[#1F3463] text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-800 transition"
+            className="mt-4 bg-[#1F3463] text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
           >
             Create Question
           </button>
-
         </div>
       ) : (
         <div className="overflow-auto bg-white dark:bg-gray-800 rounded-lg shadow-md">
@@ -143,15 +151,15 @@ function Questionnaires() {
               key={`${q.id}-${index}`}
               className="grid grid-cols-[1fr_1fr_3fr_auto] p-3 items-center hover:bg-gray-50 dark:hover:bg-gray-700"
             >
-              <div className="p-2">{q.category}</div>
-              <div className="p-2">{q.type}</div>
-              <div className="p-2 break-words overflow-hidden">{q.question}</div>
+              <div className="p-2 dark:text-gray-200">{q.category}</div>
+              <div className="p-2 dark:text-gray-200">{q.type}</div>
+              <div className="p-2 break-words overflow-hidden dark:text-gray-200">{q.question}</div>
               <div className="p-2 flex justify-center gap-4">
                 <button onClick={() => handleEditClick(q)} className="text-blue-600 hover:underline">
                   <FaEdit />
                 </button>
                 <button onClick={() => confirmDelete(q.id)} className="text-red-600 hover:underline">
-                  <FaTrash />
+                  {loading ? <Spinner size={16} /> : <FaTrash />}
                 </button>
               </div>
             </div>
@@ -179,5 +187,9 @@ function Questionnaires() {
     </main>
   );
 }
+
+const Spinner = ({ size = 24 }) => (
+  <div className={`border-t-2 border-[#1F3463] border-solid rounded-full animate-spin`} style={{ width: size, height: size }}></div>
+);
 
 export default Questionnaires;

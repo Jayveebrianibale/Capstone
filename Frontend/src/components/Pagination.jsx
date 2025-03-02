@@ -21,7 +21,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   };
 
   return (
-    <ol className="flex justify-center gap-1 text-xs font-medium">
+    <ol className="flex justify-center mt-4 gap-1 text-xs font-medium">
       <li>
         <a
           href="#"
