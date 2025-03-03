@@ -1,5 +1,5 @@
 import React from "react";
-import { FiClipboard, FiCheckCircle, FiCalendar, FiInfo, FiUsers } from "react-icons/fi";
+import {FiCheckCircle, FiCalendar, FiInfo, FiUsers } from "react-icons/fi";
 
 const SDashboard = () => {
   const studentName = "John Doe";
@@ -17,17 +17,6 @@ const SDashboard = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg flex flex-col">
-          <div className="flex items-center gap-3 mb-4">
-            <FiClipboard className="text-blue-500 text-2xl" />
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Pending Evaluations</h2>
-          </div>
-          <p className="text-gray-600 dark:text-gray-300">You have <strong>2</strong> pending evaluations.</p>
-          <button className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">
-            View Pending
-          </button>
-        </div>
-
         <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg flex flex-col">
           <div className="flex items-center gap-3 mb-4">
             <FiCheckCircle className="text-green-500 text-2xl" />
@@ -63,7 +52,7 @@ const SDashboard = () => {
             <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Announcements</h2>
           </div>
           <p className="text-gray-600 dark:text-gray-300">
-            <strong>Evaluation Deadline:</strong> March 15, 2025. Please complete all pending evaluations before the deadline.
+            <strong>Evaluation Deadline:</strong> March 15, 2025. Please complete all evaluations before the deadline.
           </p>
         </div>
       </div>

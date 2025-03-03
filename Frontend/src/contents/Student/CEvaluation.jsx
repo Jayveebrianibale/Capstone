@@ -1,47 +1,56 @@
 import React, { useState } from 'react';
-import { FaSort, FaSearch, FaStar } from 'react-icons/fa';
-import Pagination from '../../components/Pagination';
-import EvaluationFormModal from '../Student/EvaluationModal';
+import { FaSearch } from 'react-icons/fa';
 
 function CEvaluation() {
   const [search, setSearch] = useState('');
-  const [sortOrder, setSortOrder] = useState('asc');
-  const [sortedColumn, setSortedColumn] = useState('name');
   const [currentPage, setCurrentPage] = useState(1);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
 
   const instructors = [
-    { name: 'John Doe', status: 'Completed' },
-    { name: 'Gary Barlow', status: 'Not Started' },
-    { name: 'Jane Smith', status: 'Completed' },
-    { name: 'Alice Johnson', status: 'Not Started' },
-    { name: 'Bob Brown', status: 'Completed' },
-    { name: 'Emily Davis', status: 'Completed' },
-    { name: 'Michael Clark', status: 'Not Started' },
-    { name: 'Olivia Martin', status: 'Completed' },
-    { name: 'Sophia Lopez', status: 'Completed' },
-    { name: 'Daniel Wilson', status: 'Not Started' },
-    { name: 'Emma Taylor', status: 'Completed' }
+    { name: 'John Doe', status: 'Pending Evaluation' },
+    { name: 'Gary Barlow', status: 'In Progress' },
+    { name: 'Jane Smith', status: 'Not Started' },
+    { name: 'Alice Johnson', status: 'Completed' },
   ];
 
-  const handleSort = (column) => {
-    const order = sortedColumn === column && sortOrder === 'asc' ? 'desc' : 'asc';
-    setSortOrder(order);
-    setSortedColumn(column);
+  const questions = [
+    { category: "Teaching Effectiveness", question: "How effective is the teacher in delivering lessons?" },
+    { category: "Communication Skills", question: "How well does the teacher communicate ideas and concepts?" },
+    { category: "Classroom Management", question: "How well does the teacher manage the classroom?" },
+    { category: "Knowledge of Subject Matter", question: "How knowledgeable is the teacher in the subject matter?" },
+    { category: "Fairness in Grading", question: "How fair is the teacher in grading student work?" },
+    { category: "Student Engagement", question: "How well does the teacher engage students in learning activities?" },
+    { category: "Use of Technology", question: "How effectively does the teacher use technology in teaching?" },
+    { category: "Professionalism", question: "How professional is the teacher in their conduct and interactions?" },
+    { category: "Availability for Assistance", question: "How available is the teacher for providing additional assistance?" },
+  ];
+
+  const options = [
+    { value: "5", label: "5 - Excellent" },
+    { value: "4", label: "4 - Very Good" },
+    { value: "3", label: "3 - Satisfactory" },
+    { value: "2", label: "2 - Needs Improvement" },
+    { value: "1", label: "1 - Poor" },
+  ];
+
+  const [responses, setResponses] = useState({});
+
+  const handleResponseChange = (instructor, category, value) => {
+    setResponses((prev) => ({
+      ...prev,
+      [instructor]: {
+        ...prev[instructor],
+        [category]: value,
+      },
+    }));
   };
 
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
+  const handleSubmit = () => {
+    console.log("Submitted Evaluations:", responses);
+    alert("Evaluation submitted successfully!");
+  };
 
-  const sortedInstructors = [...instructors].sort((a, b) => {
-    if (sortedColumn === 'name') {
-      return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-    }
-    return 0;
-  });
-
-  const filteredInstructors = sortedInstructors.filter((instructor) =>
+  const filteredInstructors = instructors.filter((instructor) =>
     instructor.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -54,67 +63,59 @@ function CEvaluation() {
   );
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4 flex-col sm:flex-row">
-        <h1 className="text-2xl font-medium dark:text-white mb-2 sm:mb-0">Instructors</h1>
-        <div className="relative w-full sm:w-auto">
-          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search instructors"
-            className="pl-10 pr-4 py-2 w-full sm:w-64 border border-gray-300 rounded-md dark:bg-gray-800 dark:text-white dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
+    <div className="p-4 dark:bg-gray-900 min-h-screen">
+      <div className="bg-white dark:bg-gray-800 p-6 shadow-lg rounded-lg">
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Instructor Evaluation</h1>
+        <p className="text-gray-600 dark:text-gray-300 mt-2">Please evaluate each instructor based on the listed criteria. Your responses are confidential and will help improve teaching quality.</p>
       </div>
 
-      <div className="overflow-hidden rounded-lg shadow bg-white dark:bg-gray-900">
-        <div className="hidden sm:grid grid-cols-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold text-center p-3">
-          <div className="cursor-pointer" onClick={() => handleSort('name')}>
-            Name <FaSort className="inline ml-1" />
-          </div>
-          <div>Status</div>
-          <div>Evaluate</div>
-        </div>
-
-        
+      <div className="mt-6">
         {currentInstructors.map((instructor, index) => (
-          <div key={index} className="grid grid-cols-3 p-2 items-center text-center border-b border-gray-300 dark:border-gray-700 text-sm md:text-base">
-          <div className="truncate px-2">{instructor.name}</div>
-          <div className={`font-medium px-2 ${instructor.status === 'Completed' ? 'text-green-600' : 'text-red-600'}`}>
-            {instructor.status}
+          <div key={index} className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-lg mb-6">
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">Name: {instructor.name}</h2>
+            <p className={`text-sm font-medium mt-1 ${instructor.status === 'Completed' ? 'text-green-500' : instructor.status === 'In Progress' ? 'text-yellow-500' : instructor.status === 'Pending Evaluation' ? 'text-blue-500' : 'text-gray-500'}`}>Status: {instructor.status}</p>
+            <div className="mt-4 border-t pt-4 overflow-x-auto">
+              <table className="w-full border border-gray-300 dark:border-gray-700">
+                <tbody>
+                  {questions.map((q, catIndex) => (
+                    <React.Fragment key={catIndex}>
+                      <tr className="bg-gray-100 dark:bg-gray-700">
+                        <td className="border border-gray-300 dark:border-gray-700 p-3 font-semibold text-gray-800 dark:text-white" colSpan="3">
+                          {catIndex + 1}. {q.category}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="border border-gray-300 dark:border-gray-700 p-3 text-gray-800 dark:text-white">{q.question}</td>
+                        <td className="border border-gray-300 dark:border-gray-700 p-3">
+                          <select
+                            className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring focus:ring-blue-300"
+                            value={responses[instructor.name]?.[q.category] || ""}
+                            onChange={(e) => handleResponseChange(instructor.name, q.category, e.target.value)}
+                          >
+                            <option value="" disabled>Select Rating</option>
+                            {options.map((option) => (
+                              <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div className="flex justify-center">
-            <button 
-              className="flex items-center gap-2 bg-indigo-500 text-white px-3 py-2 text-sm md:px-4 md:py-2 rounded-md font-medium shadow-md transition-all hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-300"
-              onClick={handleOpenModal}
-            >
-              <FaStar className="text-xs md:text-sm" />
-              <span className="hidden md:inline">Evaluate</span>
-            </button>
-          </div>
-        </div>
-        
         ))}
       </div>
 
-      
-      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handleChangePage} />
- 
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-lg shadow-lg w-full max-w-md">
-            <EvaluationFormModal />
-            <button 
-              onClick={handleCloseModal} 
-              className="mt-4 w-full sm:w-auto px-6 py-3 bg-red-500 text-white rounded-lg text-sm font-medium transition-all hover:bg-red-700 focus:ring-2 focus:ring-red-300"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      <div className="mt-6 flex justify-end">
+        <button
+          onClick={handleSubmit}
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+        >
+          Submit
+        </button>
+      </div>
     </div>
   );
 }
