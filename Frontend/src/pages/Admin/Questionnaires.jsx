@@ -91,7 +91,7 @@ function Questionnaires() {
   return (
     <main className="p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex flex-col md:flex-row md:justify-between items-center mb-6">
-        <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">Questionnaires</h1>
+        <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">Evaluation Questions</h1>
         <div className="flex items-center gap-2 mt-4 md:mt-0">
         <button
             onClick={() => {

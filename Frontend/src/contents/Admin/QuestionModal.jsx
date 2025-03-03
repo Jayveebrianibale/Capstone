@@ -31,20 +31,22 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
   };
 
   return isOpen ? (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4 ">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg max-h-[80vh] flex flex-col">
-        <div className="flex justify-between items-center border-b pb-3 mb-4">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-6">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex justify-between items-center border-b pb-4 mb-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
             {isEditing ? "Edit Question" : "Create New Questions"}
           </h2>
           <button onClick={onClose} className="text-gray-600 dark:text-gray-400 hover:text-red-500">
-            <X size={20} />
+            <X size={24} />
           </button>
         </div>
 
-        <div className="overflow-y-auto max-h-[50vh] pr-2 rounded">
+        {/* Scrollable Content */}
+        <div className="overflow-y-auto max-h-[65vh] pr-2">
           {questions.map((q, index) => (
-            <div key={index} className="relative p-3 mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <div key={index} className="relative p-4 mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
               {!isEditing && questions.length > 1 && (
                 <button
                   onClick={() => setQuestions(questions.filter((_, i) => i !== index))}
@@ -57,20 +59,20 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
 
               <label className="block font-semibold text-gray-700 dark:text-gray-300">Question {index + 1}</label>
               <textarea
-                rows="2"
+                rows="3"
                 placeholder="Enter your question..."
                 value={q.question}
                 onChange={(e) => handleChange(index, "question", e.target.value)}
-                className="w-full border dark:border-gray-600 rounded p-2 mb-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                className="w-full border dark:border-gray-600 rounded p-3 mb-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-gray-700 dark:text-gray-300">Type</label>
                   <select
                     value={q.type}
                     onChange={(e) => handleChange(index, "type", e.target.value)}
-                    className="w-full border dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    className="w-full border dark:border-gray-600 rounded p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   >
                     <option value="Likert Scale">Likert Scale (1-5)</option>
                     <option value="Multiple Choice">Multiple Choice</option>
@@ -83,7 +85,7 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
                   <select
                     value={q.category}
                     onChange={(e) => handleChange(index, "category", e.target.value)}
-                    className="w-full border dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    className="w-full border dark:border-gray-600 rounded p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   >
                     <option value="Teaching Effectiveness">Teaching Effectiveness</option>
                     <option value="Classroom Management">Classroom Management</option>
@@ -95,18 +97,22 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
           ))}
         </div>
 
+        {/* Add Question Button */}
         {!isEditing && (
           <button
             onClick={() => setQuestions([...questions, { question: "", type: "Likert Scale", category: "Teaching Effectiveness" }])}
-            className="w-full bg-[#1F3463] hover:bg-indigo-800 text-white px-4 py-2 rounded mt-4"
+            className="w-full bg-[#1F3463] hover:bg-indigo-800 text-white px-5 py-3 rounded-lg mt-4 text-lg"
           >
             + Add More Questions
           </button>
         )}
 
-        <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
-          <button onClick={handleSave} className="bg-[#1F3463] hover:bg-indigo-700 text-white px-4 py-2 rounded">
+        {/* Footer Buttons */}
+        <div className="flex justify-end gap-3 mt-5">
+          <button onClick={onClose} className="bg-gray-400 hover:bg-gray-500 text-white px-5 py-3 rounded-lg text-lg">
+            Cancel
+          </button>
+          <button onClick={handleSave} className="bg-[#1F3463] hover:bg-indigo-700 text-white px-5 py-3 rounded-lg text-lg">
             {isEditing ? "Update" : questions.length > 1 ? "Save All" : "Save"}
           </button>
         </div>

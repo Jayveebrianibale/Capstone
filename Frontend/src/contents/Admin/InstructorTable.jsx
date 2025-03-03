@@ -11,16 +11,16 @@ function InstructorTable({ instructors }) {
           <thead className="bg-gray-100 dark:bg-gray-800">
             <tr>
               <th className="px-6 py-3 font-semibold">Instructor Name</th>
-              <th className="px-6 py-3 font-semibold text-center">Exceedingly Well (5)</th>
-              <th className="px-6 py-3 font-semibold text-center">Very Well (4)</th>
-              <th className="px-6 py-3 font-semibold text-center">Moderately (3)</th>
-              <th className="px-6 py-3 font-semibold text-center">Slightly (2)</th>
-              <th className="px-6 py-3 font-semibold text-center">Not at All (1)</th>
+              {[...Array(9)].map((_, i) => (
+                <th key={i} className="px-6 py-3 font-semibold text-center">
+                  Q{i + 1}
+                </th>
+              ))}
               <th className="px-6 py-3 font-semibold w-1/4">Comments</th>
               <th className="px-6 py-3 font-semibold text-center">Percentage</th>
             </tr>
           </thead>
-          <tbody className="space-y-2">
+          <tbody>
             {instructors.map((instructor, index) => (
               <tr
                 key={index}
@@ -29,11 +29,11 @@ function InstructorTable({ instructors }) {
                 } hover:bg-gray-200 dark:hover:bg-gray-700`}
               >
                 <td className="px-6 py-3 font-medium">{instructor.name}</td>
-                <td className="px-6 py-3 text-center">{instructor.ratings.five}</td>
-                <td className="px-6 py-3 text-center">{instructor.ratings.four}</td>
-                <td className="px-6 py-3 text-center">{instructor.ratings.three}</td>
-                <td className="px-6 py-3 text-center">{instructor.ratings.two}</td>
-                <td className="px-6 py-3 text-center">{instructor.ratings.one}</td>
+                {[...Array(9)].map((_, i) => (
+                  <td key={i} className="px-6 py-3 text-center">
+                    {instructor.ratings[`q${i + 1}`]?.toFixed(2)}
+                  </td>
+                ))}
                 <td className="px-6 py-3 italic text-gray-600 dark:text-gray-400 w-1/4 max-w-xs whitespace-normal break-words">
                   {instructor.comments}
                 </td>
@@ -44,7 +44,7 @@ function InstructorTable({ instructors }) {
                       : "text-red-600 dark:text-red-400"
                   }`}
                 >
-                  {instructor.overallRating}%
+                  {instructor.overallRating.toFixed(2)}%
                 </td>
               </tr>
             ))}
@@ -63,12 +63,12 @@ function InstructorTable({ instructors }) {
             <p className="text-gray-600 dark:text-gray-400 text-sm italic">
               {instructor.comments}
             </p>
-            <div className="grid grid-cols-2 gap-4 mt-3">
-              <span className="text-gray-700 dark:text-gray-300">Exceedingly Well (5): {instructor.ratings.five}</span>
-              <span className="text-gray-700 dark:text-gray-300">Very Well (4): {instructor.ratings.four}</span>
-              <span className="text-gray-700 dark:text-gray-300">Moderately (3): {instructor.ratings.three}</span>
-              <span className="text-gray-700 dark:text-gray-300">Slightly (2): {instructor.ratings.two}</span>
-              <span className="text-gray-700 dark:text-gray-300">Not at all (1): {instructor.ratings.one}</span>
+            <div className="grid grid-cols-3 gap-4 mt-3">
+              {[...Array(9)].map((_, i) => (
+                <span key={i} className="text-gray-700 dark:text-gray-300">
+                  Q{i + 1} : {instructor.ratings[`q${i + 1}`]?.toFixed(2)}
+                </span>
+              ))}
             </div>
             <div
               className={`mt-3 font-bold text-center ${
@@ -77,7 +77,7 @@ function InstructorTable({ instructors }) {
                   : "text-red-600 dark:text-red-400"
               }`}
             >
-              {instructor.overallRating}%
+              {instructor.overallRating.toFixed(2)}%
             </div>
           </div>
         ))}

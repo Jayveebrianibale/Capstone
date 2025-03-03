@@ -64,7 +64,7 @@ function CEvaluation() {
 
   return (
     <div className="p-4 dark:bg-gray-900 min-h-screen">
-      <div className="bg-white dark:bg-gray-800 p-6 shadow-lg rounded-lg">
+      <div className="bg-white text-center dark:bg-gray-800 p-6 shadow-lg rounded-lg">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Instructor Evaluation</h1>
         <p className="text-gray-600 dark:text-gray-300 mt-2">Please evaluate each instructor based on the listed criteria. Your responses are confidential and will help improve teaching quality.</p>
       </div>
