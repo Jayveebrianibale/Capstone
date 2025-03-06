@@ -19,17 +19,13 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\GoogleAuthController;
 
 
-// Login Routes Verify Token
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return response()->json($request->user());
-});
+Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'getUser']);
 
-Route::post('/verify-token', function (Request $request) {
-    $user = Auth::guard('sanctum')->user();
-    return response()->json(['valid' => $user ? true : false]);
-});
+Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
 
 // //Login routes
 // Route::post('register', [AuthController::class, 'register']);

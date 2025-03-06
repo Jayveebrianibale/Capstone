@@ -6,13 +6,13 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class RoleMiddleware
+class CheckRole
 {
     public function handle(Request $request, Closure $next, $role)
     {
-        if (!Auth::check() || Auth::user()->role !== $role) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+        if (Auth::check() && Auth::user()->role === $role) {
+            return $next($request);
         }
-        return $next($request);
+        return response()->json(['message' => 'Unauthorized'], 403);
     }
 }

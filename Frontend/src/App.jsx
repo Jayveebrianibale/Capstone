@@ -1,19 +1,19 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import MainLayout from './Layout/MainLayout';
-import SDashboard from './pages/Student/SDashboard';
-import Login from './Auth/Login';
-import SEvaluations from './pages/Student/SEvaluations';
-import AdminDashboard from './pages/Admin/ADashboard';
-import InstructorDashboard from './pages/Instructor/InstrucDashboard';
-import Bsa from './pages/Admin/courses/Bsa';
-import Bsais from './pages/Admin/courses/Bsais';
-import Bssw from './pages/Admin/courses/Bssw';
-import Bab from './pages/Admin/courses/Bab';
-import Bsis from './pages/Admin/courses/Bsis';
-import Act from './pages/Admin/courses/Act';
-import Questionnaires from './pages/Admin/Questionnaires';
+import MainLayout from "./Layout/MainLayout";
+import SDashboard from "./pages/Student/SDashboard";
+import Login from "./Auth/Login";
+import SEvaluations from "./pages/Student/SEvaluations";
+import AdminDashboard from "./pages/Admin/ADashboard";
+import InstructorDashboard from "./pages/Instructor/InstrucDashboard";
+import Bsa from "./pages/Admin/courses/Bsa";
+import Bsais from "./pages/Admin/courses/Bsais";
+import Bssw from "./pages/Admin/courses/Bssw";
+import Bab from "./pages/Admin/courses/Bab";
+import Bsis from "./pages/Admin/courses/Bsis";
+import Act from "./pages/Admin/courses/Act";
+import Questionnaires from "./pages/Admin/Questionnaires";
 
 function App() {
   return (
@@ -23,12 +23,12 @@ function App() {
         <Routes>
           {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" />} />
-          
+
           {/* Login Route (Outside MainLayout) */}
           <Route path="/login" element={<Login />} />
 
-          {/* Routes with MainLayout */}
-          <Route path="*" element={<MainLayout />}>
+          {/* Protected Routes with MainLayout */}
+          <Route path="/" element={<MainLayout />}>
             {/* Student Routes */}
             <Route path="SDashboard" element={<SDashboard />} />
             <Route path="SEvaluations" element={<SEvaluations />} />

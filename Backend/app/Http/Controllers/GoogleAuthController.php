@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Sanctum\HasApiTokens;
 
 class GoogleAuthController extends Controller
 {
@@ -19,25 +19,42 @@ class GoogleAuthController extends Controller
 {
     try {
         $googleUser = Socialite::driver('google')->stateless()->user();
+        $user = User::where('email', $googleUser->email)->first();
 
-        $user = User::updateOrCreate(
-            ['email' => $googleUser->getEmail()],
-            [
-                'name' => $googleUser->getName(),
-                'google_id' => $googleUser->getId(),
-                'profile_picture' => $googleUser->getAvatar(),
-                'password' => bcrypt(str()->random(16)), 
-                'email_verified_at' => now(),
-            ]
-        );
+        if (!$user) {
+            // Assign role based on email domain
+            if (str_contains($googleUser->email, '@student')) {
+                $role = 'Student';
+            } elseif (str_contains($googleUser->email, '@laverdad')) {
+                $role = 'Instructor';
+            } elseif (str_contains($googleUser->email, '@gmail')) {
+                $role = 'Admin';
+            } else {
+                $role = 'Student';
+            }
 
-        Auth::login($user);
+            // Create new user
+            $user = User::create([
+                'name' => $googleUser->name,
+                'email' => $googleUser->email,
+                'google_id' => $googleUser->id,
+                'profile_picture' => $googleUser->avatar,
+                'role' => $role,
+            ]);
+        }
+
+        // Generate a token
         $token = $user->createToken('authToken')->plainTextToken;
 
+        // Redirect with token
         return redirect("http://localhost:5173/login?token={$token}");
-    } catch (\Exception $e) {
-        \Log::error('Google Login Error: ' . $e->getMessage());
-        return redirect('/login')->with('error', 'Authentication failed');
+    } catch (Exception $e) {
+        return response()->json(['error' => 'Authentication failed'], 500);
     }
 }
+    public function logout(Request $request)
+    {
+        $request->user()->tokens()->delete();
+        return response()->json(['message' => 'Logged out']);
+    }
 }

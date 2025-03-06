@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaBars } from "react-icons/fa";
+import axios from "axios";
 import DarkModeToggle from "../components/DarkmodeToggle";
 
 function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
@@ -26,7 +27,6 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  
   useEffect(() => {
     if (windowWidth < 768) {
       setDisplayTitle(abbreviationMap[title] || title); 
@@ -35,11 +35,25 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
     }
   }, [windowWidth, title]);
 
+  // Fetch user data from API
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const token = localStorage.getItem("authToken");
+
+    if (!token) return;
+
+    axios
+      .get("http://127.0.0.1:8000/api/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        const userData = response.data;
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+      })
+      .catch(() => {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
+      });
   }, []);
 
   return (
@@ -64,11 +78,11 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
         >
           {user && (
             <button className="flex items-center gap-2 focus:outline-none">
-              <img
-                src={user.profile_picture || "https://via.placeholder.com/40"}
-                alt="Profile"
-                className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600"
-              />
+             <img
+              src={user?.profile_picture || "https://api.dicebear.com/7.x/avataaars/svg?seed=random"}
+              alt="Profile"
+              className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600"
+            />
               <span className="hidden sm:block text-gray-700 dark:text-gray-200 font-normal text-sm">
                 {user.role}
               </span>
