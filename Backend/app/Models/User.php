@@ -38,9 +38,14 @@ class User extends Authenticatable
     }
 
     public function resetTwoFactorCode()
-{
-    $this->two_factor_code = null;
-    $this->two_factor_expires_at = null;
-    $this->save();
-}
+    {
+        $this->two_factor_code = null;
+        $this->two_factor_expires_at = null;
+        $this->save();
+    }
+    public function enrolledCourses()
+    {
+        return $this->hasMany(StudentCourse::class, 'student_id');
+    }
+
 }

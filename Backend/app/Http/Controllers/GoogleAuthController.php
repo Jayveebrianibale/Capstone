@@ -22,7 +22,6 @@ class GoogleAuthController extends Controller
         $user = User::where('email', $googleUser->email)->first();
 
         if (!$user) {
-            // Assign role based on email domain
             if (str_contains($googleUser->email, '@student')) {
                 $role = 'Student';
             } elseif (str_contains($googleUser->email, '@laverdad')) {
@@ -33,7 +32,6 @@ class GoogleAuthController extends Controller
                 $role = 'Student';
             }
 
-            // Create new user
             $user = User::create([
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
@@ -43,10 +41,8 @@ class GoogleAuthController extends Controller
             ]);
         }
 
-        // Generate a token
         $token = $user->createToken('authToken')->plainTextToken;
 
-        // Redirect with token
         return redirect("http://localhost:5173/login?token={$token}");
     } catch (Exception $e) {
         return response()->json(['error' => 'Authentication failed'], 500);

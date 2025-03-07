@@ -70,11 +70,15 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
     if (isMobile) setSidebarOpen(false);
   };
 
+  // Ensure only one dropdown is open at a time
   const handleDropdownToggle = (name) => {
-    setOpenDropdowns((prev) => ({
-      ...prev,
-      [name]: !prev[name],
-    }));
+    setOpenDropdowns((prev) => {
+      const updatedDropdowns = {};
+      Object.keys(prev).forEach((key) => {
+        updatedDropdowns[key] = key === name ? !prev[key] : false;
+      });
+      return updatedDropdowns;
+    });
   };
 
   const handleNavigation = (path, name) => {
@@ -101,7 +105,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
           <img className="h-20 w-20" src={Logo} alt="Updated logo" />
         </div>
 
-        {/* Menu Section */}
+        {/* Menu Items */}
         <div className="flex flex-col gap-2 flex-grow">
           {menuItems.map((item) => (
             <div key={item.name}>
@@ -117,7 +121,6 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
                 </button>
               ) : (
                 <div>
-                  {/* Parent Dropdown Button */}
                   <button
                     className="flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200"
                     onClick={() => handleDropdownToggle(item.name)}
@@ -127,7 +130,6 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
                     {openDropdowns[item.name] ? <MdExpandLess className="ml-auto" /> : <MdExpandMore className="ml-auto" />}
                   </button>
 
-                  {/* Submenu Items */}
                   {openDropdowns[item.name] && (
                     <div className="ml-6 max-h-[300px] overflow-y-auto">
                       {item.submenu.map((sub) => (

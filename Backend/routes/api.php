@@ -20,6 +20,8 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\CourseController;
 
 
 Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'getUser']);
@@ -39,8 +41,18 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleC
 // Route::apiResource('teachers', TeacherController::class);
 // Route::post('evaluations', [EvaluationController::class, 'store']);
 
+//StudentSetupProfile Routes
+
+Route::get('/students/{student_id}', [StudentController::class, 'getStudent']);
+Route::get('/students/{student}/check-enrollment', [StudentController::class, 'checkEnrollment']);
+Route::post('/students/{student_id}/enroll', [StudentController::class, 'enroll']);
+Route::get('/students/{student}/courses', [StudentController::class, 'getCourses']);
+Route::get('/students/{student}/instructors', [StudentController::class, 'getInstructors']);
+
+
 //Create Questions Routes
 Route::post('/questions', [QuestionController::class, 'store']);  // Create
 Route::get('/questions', [QuestionController::class, 'index']);   // Fetch all questions
 Route::put('/questions/{id}', [QuestionController::class, 'update']); // Update a question
 Route::delete('/questions/{id}', [QuestionController::class, 'destroy']); // Delete a question
+
