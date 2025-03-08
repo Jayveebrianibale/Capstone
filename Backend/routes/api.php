@@ -41,14 +41,16 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleC
 // Route::apiResource('teachers', TeacherController::class);
 // Route::post('evaluations', [EvaluationController::class, 'store']);
 
-//StudentSetupProfile Routes
-
-Route::get('/students/{student_id}', [StudentController::class, 'getStudent']);
+//StudentSetupProfile and Assigning Instructor by Course Routes
+Route::post('/students', [StudentController::class, 'createStudent']);
+Route::post('/courses', [StudentController::class, 'createCourse']);
+Route::get('/students/{student}', [StudentController::class, 'getStudent']);
 Route::get('/students/{student}/check-enrollment', [StudentController::class, 'checkEnrollment']);
-Route::post('/students/{student_id}/enroll', [StudentController::class, 'enroll']);
+Route::post('/students/{student}/enroll', [StudentController::class, 'enroll']);
+Route::post('/assign-instructor', [StudentController::class, 'assignInstructor']);
+Route::post('/get-instructors-by-course', [StudentController::class, 'getInstructorsByCourse']);
 Route::get('/students/{student}/courses', [StudentController::class, 'getCourses']);
 Route::get('/students/{student}/instructors', [StudentController::class, 'getInstructors']);
-
 
 //Create Questions Routes
 Route::post('/questions', [QuestionController::class, 'store']);  // Create

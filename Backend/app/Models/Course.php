@@ -9,12 +9,16 @@ class Course extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['course_name'];
+
+    public function instructors()
+    {
+        return $this->belongsToMany(Instructor::class, 'course_instructors');
+    }
 
     public function students()
 {
-    return $this->belongsToMany(Student::class, 'student_courses')
-                ->withPivot('semester')
-                ->withTimestamps();
+    return $this->belongsToMany(Student::class, 'student_courses')->withPivot('semester');
 }
+
 }
