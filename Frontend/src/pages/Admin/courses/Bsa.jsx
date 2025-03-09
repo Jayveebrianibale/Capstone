@@ -20,7 +20,7 @@ function Bsa() {
   };
 
   const instructorsByYear = [
-    // 1st Year
+
     [
       { 
         name: "Prof. A", 

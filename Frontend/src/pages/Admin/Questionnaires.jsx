@@ -91,7 +91,7 @@ function Questionnaires() {
   return (
     <main className="p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex flex-col md:flex-row md:justify-between items-center mb-6">
-        <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">Evaluation Questions</h1>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Evaluation Questions</h1>
         <div className="flex items-center gap-2 mt-4 md:mt-0">
         <button
             onClick={() => {
@@ -99,7 +99,7 @@ function Questionnaires() {
               setQuestionToEdit(null);
               setShowModal(true);
             }}
-            className="flex items-center gap-2 bg-[#1F3463] text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+            className="flex items-center gap-2 bg-[#1F3463] text-white px-2 py-2 rounded-lg shadow hover:bg-blue-700 transition"
             title="Add Questions"
           >
             <FaPlus />
@@ -111,9 +111,9 @@ function Questionnaires() {
             className="text-gray-700 dark:text-gray-200 hover:scale-110 transition"
           >
             {isEnabled ? (
-              <FaToggleOn size={28} className="text-[#1F3463] dark:text-indigo-600" />
+              <FaToggleOn size={26} className="text-[#1F3463] dark:text-indigo-600" />
             ) : (
-              <FaToggleOff size={28}  />
+              <FaToggleOff size={26}  />
             )}
           </button>
         </div>

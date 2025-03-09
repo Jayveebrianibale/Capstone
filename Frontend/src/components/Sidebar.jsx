@@ -70,19 +70,16 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
     if (isMobile) setSidebarOpen(false);
   };
 
-  // Ensure only one dropdown is open at a time
   const handleDropdownToggle = (name) => {
-    setOpenDropdowns((prev) => {
-      const updatedDropdowns = {};
-      Object.keys(prev).forEach((key) => {
-        updatedDropdowns[key] = key === name ? !prev[key] : false;
-      });
-      return updatedDropdowns;
-    });
+    setOpenDropdowns((prev) => ({
+      [name]: !prev[name],
+    }));
   };
+  
+  
 
-  const handleNavigation = (path, name) => {
-    setActivePage(name);
+  const handleNavigation = (path, name, fullName = null) => {
+    setActivePage(fullName || name);
     navigate(path);
     closeSidebar();
   };
@@ -100,12 +97,10 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
       } md:translate-x-0`}
     >
       <nav className="flex flex-col h-full p-4 space-y-2 text-white dark:text-gray-200">
-        {/* Logo Section */}
+       
         <div className="flex items-center justify-center pb-6 pt-5 gap-2">
           <img className="h-20 w-20" src={Logo} alt="Updated logo" />
         </div>
-
-        {/* Menu Items */}
         <div className="flex flex-col gap-2 flex-grow">
           {menuItems.map((item) => (
             <div key={item.name}>
@@ -136,9 +131,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
                         <button
                           key={sub.name}
                           className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 ${
-                            activePage === sub.name ? "bg-indigo-600 dark:bg-gray-800" : ""
+                            activePage === sub.fullName ? "bg-indigo-600 dark:bg-gray-800" : ""
                           }`}
-                          onClick={() => handleNavigation(sub.path, sub.name)}
+                          onClick={() => handleNavigation(sub.path, sub.name, sub.fullName)}
                         >
                           <span>{sub.name}</span>
                         </button>
@@ -150,8 +145,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
             </div>
           ))}
         </div>
-
-        {/* Logout Button */}
+        
         <div className="flex">
           <button
             className="flex w-full items-center gap-2 p-2 rounded-lg text-sm hover:bg-red-600 dark:hover:bg-red-700 transition-colors duration-200"

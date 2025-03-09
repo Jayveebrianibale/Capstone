@@ -4,7 +4,7 @@ function InstructorTable({ instructors }) {
   return (
     <div className="overflow-x-auto rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
       <div className="bg-[#1F3463] text-white text-center p-4 font-bold rounded-t-lg dark:bg-[#1F3463]">
-        Instructor Evaluation Results
+        Evaluation Results
       </div>
       <div className="hidden lg:block">
         <table className="w-full text-sm text-left text-gray-700 dark:text-gray-300">

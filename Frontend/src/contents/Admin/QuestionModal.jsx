@@ -96,23 +96,28 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
             </div>
           ))}
         </div>
-
-        {/* Add Question Button */}
+        
         {!isEditing && (
-          <button
-            onClick={() => setQuestions([...questions, { question: "", type: "Likert Scale", category: "Teaching Effectiveness" }])}
-            className="w-full bg-[#1F3463] hover:bg-indigo-800 text-white px-5 py-3 rounded-lg mt-4 text-lg"
-          >
-            + Add More Questions
-          </button>
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={() => setQuestions([...questions, { question: "", type: "Likert Scale", category: "Teaching Effectiveness" }])}
+              className="w-full bg-[#1F3463] hover:bg-indigo-800 text-white px-3 py-2 rounded-md text-sm"
+            >
+              + Add More Questions
+            </button>
+          </div>
         )}
-
-        {/* Footer Buttons */}
-        <div className="flex justify-end gap-3 mt-5">
-          <button onClick={onClose} className="bg-gray-400 hover:bg-gray-500 text-white px-5 py-3 rounded-lg text-lg">
+        <div className="flex justify-end gap-3 mt-4">
+          <button
+            onClick={onClose}
+            className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-md text-sm"
+          >
             Cancel
           </button>
-          <button onClick={handleSave} className="bg-[#1F3463] hover:bg-indigo-700 text-white px-5 py-3 rounded-lg text-lg">
+          <button
+            onClick={handleSave}
+            className="bg-[#1F3463] hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm"
+          >
             {isEditing ? "Update" : questions.length > 1 ? "Save All" : "Save"}
           </button>
         </div>
