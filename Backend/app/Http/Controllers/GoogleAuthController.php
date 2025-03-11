@@ -39,6 +39,7 @@ class GoogleAuthController extends Controller
                 'profile_picture' => $googleUser->avatar,
                 'role' => $role,
                 'password' => bcrypt('defaultpassword'),
+                'profile_completed' => $existingUser->profile_completed ?? false,
             ]);
         }
 

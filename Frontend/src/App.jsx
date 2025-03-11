@@ -18,6 +18,7 @@ import Grade5 from "./pages/Admin/Intermediate/Grade5";
 import Grade6 from "./pages/Admin/Intermediate/Grade6";
 import Accounts from "./pages/Admin/Accounts";
 import Questionnaires from "./pages/Admin/Questionnaires";
+import StudentProfileSetup from "./pages/Student/StudentProfileSetup";
 
 
 const PrivateRoute = ({ children }) => {
@@ -40,6 +41,7 @@ function App() {
           {/* Protected Routes with MainLayout */}
           <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
             {/* Student Routes */}
+            <Route path="Student-profile-setup" element={<StudentProfileSetup/>} />
             <Route path="SDashboard" element={<SDashboard />} />
             <Route path="SEvaluations" element={<SEvaluations />} />
 

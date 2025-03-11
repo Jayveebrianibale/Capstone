@@ -11,10 +11,10 @@ class Student extends Model
 
     protected $fillable = ['name', 'email'];
 
-    public function courses()
-    {
-        return $this->belongsToMany(Course::class, 'student_courses')->withPivot('semester');
+    public function courses() {
+        return $this->belongsToMany(Course::class, 'course_student')->withPivot('semester');
     }
+    
 }
 
 
