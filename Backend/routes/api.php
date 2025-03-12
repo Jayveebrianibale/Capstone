@@ -33,7 +33,9 @@ Route::middleware('auth:sanctum')->get('/student/instructors', [EvaluationContro
 
 
 // Student 
-Route::post('/student/setup-profile', [StudentController::class, 'setupProfile']);
+Route::middleware('auth:sanctum')->post('/student/setup-profile', [StudentController::class, 'setupProfile']);
+Route::get('/student/setup-data', [CourseController::class, 'getAllData']);
+Route::get('/student/setup-options', [StudentController::class, 'getSetupOptions']);
 Route::post('/students', [StudentController::class, 'createStudent']);
 Route::post('/students/register', [StudentController::class, 'registerStudent']);
 Route::get('/students/{student}', [StudentController::class, 'getStudent']);

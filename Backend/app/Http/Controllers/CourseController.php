@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use App\Models\EducationLevel;
+use App\Models\Semester;
 
 class CourseController extends Controller
 {
-    // ✅ Create a new course
     public function createCourse(Request $request)
     {
         $request->validate([
@@ -22,6 +23,15 @@ class CourseController extends Controller
             'course' => $course
         ], 201);
     }
+
+
+    public function getAllData() {
+    return response()->json([
+        'education_levels' => EducationLevel::all(),
+        'courses' => Course::all(),
+        'semesters' => Semester::all()
+    ]);
+}
 
     // ✅ Get all courses created by the admin
     public function getAllCourses()

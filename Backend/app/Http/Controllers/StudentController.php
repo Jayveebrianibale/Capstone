@@ -56,40 +56,26 @@ class StudentController extends Controller
 
 public function setupProfile(Request $request)
 {
-    try {
-        
-        $validatedData = $request->validate([
-            'educationLevel' => 'required|string|max:255',
-            'selectedCourse' => 'required|integer|exists:courses,id',
-            'semester' => 'required|string|max:255',
-        ]);
+    \Log::info('Received Profile Data:', $request->all());
 
-        
-        $student = auth()->user();
-        if (!$student) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
+    $validated = $request->validate([
+        'educationLevel' => 'required|string',
+        'selectedCourse' => 'required|integer',
+        'semester' => 'required|string'
+    ]);
 
-       
-        if ($student->profile) {
-            return response()->json(['message' => 'Profile already exists'], 409);
-        }
+    $studentProfile = StudentProfile::updateOrCreate(
+        ['user_id' => auth()->id()],
+        [
+            'education_level' => $validated['educationLevel'],
+            'course_id' => $validated['selectedCourse'],
+            'semester' => $validated['semester']
+        ]
+    );
 
-       
-        $student->profile()->create([
-            'education_level' => $validatedData['educationLevel'],
-            'course_id' => $validatedData['selectedCourse'],
-            'semester' => $validatedData['semester'],
-        ]);
-
-        return response()->json(['message' => 'Profile setup successful'], 201);
-    
-    } catch (\Exception $e) {
-        \Log::error('Profile setup error: ' . $e->getMessage());
-
-        return response()->json(['message' => 'Server error, check logs'], 500);
-    }
+    return response()->json(['message' => 'Profile setup successful', 'profile' => $studentProfile], 201);
 }
+
 
 
 
@@ -120,5 +106,15 @@ public function setupProfile(Request $request)
             'instructors' => $instructors
         ]);
     }
+
+    public function getSetupOptions()
+{
+    return response()->json([
+        'educationLevels' => ["Higher Education", "Senior High", "Junior High", "Intermediate"],
+        'courses' => Course::all(),
+        'semesters' => ["1st Semester", "2nd Semester"]
+    ]);
+}
     
 }
+
