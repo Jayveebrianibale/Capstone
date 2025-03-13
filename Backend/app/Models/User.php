@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\StudentProfileController;
 
 class User extends Authenticatable
 {
@@ -47,5 +48,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(StudentCourse::class, 'student_id');
     }
+
+    public function studentProfile()
+{
+    return $this->hasOne(StudentProfile::class);
+}
+
 
 }

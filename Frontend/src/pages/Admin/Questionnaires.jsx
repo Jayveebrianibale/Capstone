@@ -3,7 +3,8 @@ import QuestionModal from "../../contents/Admin/QuestionModal";
 import ConfirmModal from "../../components/ConfirmModal";
 import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff } from "react-icons/fa";
 import { fetchQuestions, saveQuestions, updateQuestion, deleteQuestion } from "../../services/QuestionService";
-import toast from "react-hot-toast";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Questionnaires() {
   const [questions, setQuestions] = useState([]);
@@ -71,9 +72,9 @@ function Questionnaires() {
       } else {
         const savedQuestion = await saveQuestions(newQuestion);
         const isFirstQuestion = questions.length === 0;
-  
+
         setQuestions([...questions, savedQuestion]);
-  
+
         if (isFirstQuestion) {
           toast.success("Questions Created Successfully!");
         } else {
@@ -86,14 +87,15 @@ function Questionnaires() {
     }
     setShowModal(false);
   };
-  
 
   return (
     <main className="p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+
       <div className="flex flex-col md:flex-row md:justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Evaluation Questions</h1>
         <div className="flex items-center gap-2 mt-4 md:mt-0">
-        <button
+          <button
             onClick={() => {
               setIsEditing(false);
               setQuestionToEdit(null);
@@ -103,8 +105,7 @@ function Questionnaires() {
             title="Add Questions"
           >
             <FaPlus />
-        </button>
-
+          </button>
 
           <button
             onClick={toggleEnable}
@@ -113,7 +114,7 @@ function Questionnaires() {
             {isEnabled ? (
               <FaToggleOn size={26} className="text-[#1F3463] dark:text-indigo-600" />
             ) : (
-              <FaToggleOff size={26}  />
+              <FaToggleOff size={26} />
             )}
           </button>
         </div>

@@ -1,124 +1,142 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function StudentProfileSetup() {
   const navigate = useNavigate();
   const [educationLevel, setEducationLevel] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState("");
-  const [semester, setSemester] = useState("");
-  const [courses, setCourses] = useState([]); // Ensure it's always an array
-  const [loading, setLoading] = useState(true);
+  const [selectedOption, setSelectedOption] = useState("");
+  const [yearLevel, setYearLevel] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/courses")
-      .then((response) => {
-        setCourses(Array.isArray(response.data) ? response.data : []);
-        setLoading(false); 
-      })
-      .catch((error) => {
-        console.error("Error fetching courses:", error);
-        setCourses([]);
-        setLoading(false);
-      });
-  }, []);
-  
+  const educationOptions = {
+    "Higher Education": ["BS Information Systems", "BS Computer Science", "BS Business Administration"],
+    "Senior High": ["Grade 11", "Grade 12"],
+    "Junior High": ["Grade 7", "Grade 8", "Grade 9", "Grade 10"],
+    "Intermediate": ["Grade 4", "Grade 5", "Grade 6"]
+  };
 
+  const yearLevels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    if (!educationLevel || !selectedCourse || !semester) {
-      alert("Please fill in all fields.");
-      return;
-    }
-  
     const token = localStorage.getItem("authToken");
   
-    
     if (!token) {
-      console.error("No auth token found!");
       alert("Authentication failed. Please log in again.");
       return;
     }
-    
-    console.log("Sending token:", token);
   
-    axios
-      .post(
+    setLoading(true);
+  
+    try {
+      await axios.post(
         "http://127.0.0.1:8000/api/student/setup-profile",
-        { educationLevel, selectedCourse, semester },
+        { educationLevel, selectedOption, yearLevel },
         { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then((response) => {
-        console.log("Profile setup successful:", response.data);
-        navigate("/SDashboard");
-      })
-      .catch((error) => {
-        console.error("Error saving profile:", error);
-        alert("Failed to set up profile.");
+      );
+  
+      
+      const userResponse = await axios.get("http://127.0.0.1:8000/api/user", {
+        headers: { Authorization: `Bearer ${token}` },
       });
+  
+      if (userResponse.data.profile_completed) {
+       
+        localStorage.setItem("user", JSON.stringify(userResponse.data));
+  
+        navigate("/SDashboard");
+      } else {
+        alert("Profile update failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error saving profile:", error.response?.data || error.message);
+      alert(`Failed to set up profile: ${error.response?.data?.message || "Unknown error"}`);
+    } finally {
+      setLoading(false);
+    }
   };
   
+  
+
+  const isButtonDisabled = !educationLevel || !selectedOption || 
+    (educationLevel === "Higher Education" && !yearLevel);
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-white">
-      <div className="bg-white shadow-md rounded-lg p-6 w-96">
-        <h2 className="text-xl font-bold text-center">Set Up Your Evaluation</h2>
-        <p className="text-gray-600 text-center mb-4">
-          Please select your details to complete Evaluations.
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="bg-white shadow-lg rounded-lg p-8 w-96 border border-gray-200">
+        <h2 className="text-2xl font-bold text-center text-gray-800">Profile Setup</h2>
+        <p className="text-gray-500 text-center mb-6">
+          Select your details to complete your profile.
         </p>
-        {loading ? (
-          <p className="text-center text-gray-500">Loading...</p>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Education Level</label>
             <select
-              className="w-full p-2 border rounded"
+              className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
               value={educationLevel}
-              onChange={(e) => setEducationLevel(e.target.value)}
+              onChange={(e) => {
+                setEducationLevel(e.target.value);
+                setSelectedOption("");
+                setYearLevel("");
+              }}
               required
             >
               <option value="">Select Education Level</option>
-              <option value="Higher Education">Higher Education</option>
-              <option value="Senior High">Senior High</option>
-              <option value="Junior High">Junior High</option>
-              <option value="Intermediate">Intermediate</option>
+              {Object.keys(educationOptions).map((level) => (
+                <option key={level} value={level}>{level}</option>
+              ))}
             </select>
+          </div>
 
-            <select
-              className="w-full p-2 border rounded"
-              value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
-              required
-            >
-              <option value="">Select Course</option>
-              {Array.isArray(courses) &&
-                courses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.name}
-                  </option>
+          {educationLevel && (
+            <div>
+              <label className="block text-gray-700 font-medium mb-1">
+                {educationLevel === "Higher Education" ? "Program" : "Grade Level"}
+              </label>
+              <select
+                className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
+                value={selectedOption}
+                onChange={(e) => setSelectedOption(e.target.value)}
+                required
+              >
+                <option value="">Select {educationLevel === "Higher Education" ? "Program" : "Grade Level"}</option>
+                {educationOptions[educationLevel].map((option) => (
+                  <option key={option} value={option}>{option}</option>
                 ))}
-            </select>
+              </select>
+            </div>
+          )}
 
-            <select
-              className="w-full p-2 border rounded"
-              value={semester}
-              onChange={(e) => setSemester(e.target.value)}
-              required
-            >
-              <option value="">Select Semester</option>
-              <option value="1st Semester">1st Semester</option>
-              <option value="2nd Semester">2nd Semester</option>
-            </select>
-
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
-            >
-              Complete Setup
-            </button>
-          </form>
-        )}
+          {educationLevel === "Higher Education" && (
+            <div>
+              <label className="block text-gray-700 font-medium mb-1">Year Level</label>
+              <select
+                className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
+                value={yearLevel}
+                onChange={(e) => setYearLevel(e.target.value)}
+                required
+              >
+                <option value="">Select Year Level</option>
+                {yearLevels.map((year) => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <button
+            type="submit"
+            className={`w-full text-white font-semibold p-3 rounded-md transition-all ${
+              isButtonDisabled || loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 shadow-md"
+            }`}
+            disabled={isButtonDisabled || loading}
+          >
+            {loading ? "Processing..." : "Proceed to Dashboard"}
+          </button>
+        </form>
       </div>
     </div>
   );

@@ -7,7 +7,6 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
   const [user, setUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [displayTitle, setDisplayTitle] = useState(title);
 
   const abbreviationMap = {
     "Bachelor of Science in Accountancy": "BSA",
@@ -19,41 +18,34 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
   };
 
   useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
+    const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const displayTitle = windowWidth < 768 ? abbreviationMap[title] || title : title;
+
   useEffect(() => {
-    if (windowWidth < 768) {
-      setDisplayTitle(abbreviationMap[title] || title); 
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     } else {
-      setDisplayTitle(title); 
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      axios
+        .get("http://127.0.0.1:8000/api/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          setUser(response.data);
+          localStorage.setItem("user", JSON.stringify(response.data));
+        })
+        .catch(() => {
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("user");
+        });
     }
-  }, [windowWidth, title]);
-
-  // Fetch user data from API
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-
-    if (!token) return;
-
-    axios
-      .get("http://127.0.0.1:8000/api/user", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        const userData = response.data;
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
-      })
-      .catch(() => {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("user");
-      });
   }, []);
 
   return (
@@ -78,11 +70,12 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
         >
           {user && (
             <button className="flex items-center gap-2 focus:outline-none">
-             <img
-              src={user?.profile_picture || "https://api.dicebear.com/7.x/avataaars/svg?seed=random"}
-              alt="Profile"
-              className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600"
-            />
+              <img
+                src={user?.profile_picture || "https://api.dicebear.com/7.x/avataaars/svg?seed=random"}
+                alt="Profile"
+                className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600"
+                onError={(e) => (e.target.src = "/default-profile.png")} 
+              />
               <span className="hidden sm:block text-gray-700 dark:text-gray-200 font-normal text-sm">
                 {user.role}
               </span>
@@ -92,8 +85,12 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
           {showDropdown && user && (
             <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded-lg shadow-sm z-50">
               <div className="px-4 py-3">
-                <span className="block text-sm font-semibold text-gray-900 dark:text-white">{user.name}</span>
-                <span className="block text-sm text-gray-500 truncate dark:text-gray-400">{user.email}</span>
+                <span className="block text-sm font-semibold text-gray-900 dark:text-white">
+                  {user.name}
+                </span>
+                <span className="block text-sm text-gray-500 truncate dark:text-gray-400">
+                  {user.email}
+                </span>
               </div>
             </div>
           )}
