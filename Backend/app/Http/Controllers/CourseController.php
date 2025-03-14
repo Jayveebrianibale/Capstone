@@ -32,16 +32,15 @@ class CourseController extends Controller
         'semesters' => Semester::all()
     ]);
 }
-
-    // ✅ Get all courses created by the admin
+  
     public function getAllCourses()
     {
-        $courses = Course::all(); // Fetch all courses from the database
+        $courses = Course::all();
 
         return response()->json($courses);
     }
 
-    // ✅ Enroll student in a course
+  
     public function enrollStudent(Request $request, Student $student)
     {
         $request->validate([
@@ -64,7 +63,6 @@ class CourseController extends Controller
         return response()->json(['message' => 'Course enrolled successfully']);
     }
 
-    // ✅ Get all courses a student is enrolled in
     public function getEnrolledCourses(Student $student)
     {
         return response()->json($student->courses);

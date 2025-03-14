@@ -42,7 +42,7 @@ class StudentController extends Controller
     $student = Student::create([
         'name' => $request->name,
         'email' => $request->email,
-        'education_level' => $request->education_level,
+        'education_level' => $request->education_level, 
     ]);
 
 
@@ -75,8 +75,6 @@ public function setupProfile(Request $request)
 
     return response()->json(['message' => 'Profile setup successful', 'profile' => $studentProfile], 201);
 }
-
-
 
 
    
@@ -114,6 +112,15 @@ public function setupProfile(Request $request)
         'courses' => Course::all(),
         'semesters' => ["1st Semester", "2nd Semester"]
     ]);
+}
+
+public function getStudentCourses($userId)
+{
+    $courses = Course::join('course_student', 'courses.id', '=', 'course_student.course_id')
+    ->where('course_student.user_id', 1)
+    ->select('courses.id')
+    ->get();
+    return response()->json($courses);
 }
     
 }

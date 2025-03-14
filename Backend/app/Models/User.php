@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\StudentProfileController;
 
 class User extends Authenticatable
 {
@@ -20,7 +19,7 @@ class User extends Authenticatable
         'verification_code',
         'profile_picture',
         'google_id',
-        'email_verified_at', 
+        'email_verified_at',
         'role'
     ];
 
@@ -44,15 +43,17 @@ class User extends Authenticatable
         $this->two_factor_expires_at = null;
         $this->save();
     }
-    public function enrolledCourses()
+
+    // Relationship with courses (students only)
+    public function courses()
     {
-        return $this->hasMany(StudentCourse::class, 'student_id');
+        return $this->belongsToMany(Course::class, 'course_student', 'user_id', 'course_id')
+            ->withPivot('semester');
     }
 
+    // Relationship with student profile
     public function studentProfile()
-{
-    return $this->hasOne(StudentProfile::class);
-}
-
-
+    {
+        return $this->hasOne(StudentProfile::class)->where('role', 'Student');
+    }
 }

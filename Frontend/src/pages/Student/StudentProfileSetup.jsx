@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import FullScreenLoader from "../../components/FullScreenLoader";
 
 function StudentProfileSetup() {
   const navigate = useNavigate();
@@ -52,7 +55,7 @@ function StudentProfileSetup() {
     const token = localStorage.getItem("authToken");
 
     if (!token) {
-      alert("Authentication failed. Please log in again.");
+      toast.error("Authentication failed. Please log in again.");
       return;
     }
 
@@ -73,14 +76,15 @@ function StudentProfileSetup() {
         if (userResponse.data.profile_completed) {
           sessionStorage.setItem("user", JSON.stringify(userResponse.data));
           setProfileCompleted(true);
+          toast.success("Profile setup completed!");
           navigate("/SDashboard");
         } else {
-          alert("Profile update failed. Please try again.");
+          toast.error("Profile update failed. Please try again.");
         }
       }, 1000);
     } catch (error) {
       console.error("Error saving profile:", error.response?.data || error.message);
-      alert(`Failed to set up profile: ${error.response?.data?.message || "Unknown error"}`);
+      toast.error(`Failed to set up profile: ${error.response?.data?.message || "Unknown error"}`);
     } finally {
       setLoading(false);
     }
@@ -93,6 +97,7 @@ function StudentProfileSetup() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      {loading && <FullScreenLoader />}
       <div className="bg-white shadow-lg rounded-lg p-8 w-96 border border-gray-200">
         <h2 className="text-2xl font-bold text-center text-gray-800">Profile Setup</h2>
         <p className="text-gray-500 text-center mb-6">

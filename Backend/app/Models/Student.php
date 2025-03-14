@@ -11,10 +11,16 @@ class Student extends Model
 
     protected $fillable = ['name', 'email'];
 
-    public function courses() {
+    public function courses()
+    {
         return $this->belongsToMany(Course::class, 'course_student')->withPivot('semester');
     }
-    
+
+    public function instructors()
+    {
+        return $this->hasManyThrough(Instructor::class, Course::class, 'course_student', 'id', 'id', 'course_id');
+    }
 }
+
 
 

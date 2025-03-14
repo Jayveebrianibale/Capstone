@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Instructor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Student;
+use App\Models\User; 
 
 class InstructorController extends Controller
 {
-    // ✅ Assign an instructor to a course
     public function assignInstructor(Request $request)
     {
         $request->validate([
@@ -22,13 +24,12 @@ class InstructorController extends Controller
             return response()->json(['message' => 'Course not found'], 404);
         }
 
-        // Find or create the instructor
         $instructor = Instructor::firstOrCreate(
             ['email' => $request->instructor_email],
             ['name' => $request->instructor_name]
         );
 
-        // Attach instructor to course if not already assigned
+        
         if (!$course->instructors()->where('instructor_id', $instructor->id)->exists()) {
             $course->instructors()->attach($instructor->id);
         }
@@ -36,22 +37,38 @@ class InstructorController extends Controller
         return response()->json(['message' => 'Instructor assigned successfully']);
     }
 
-    // ✅ Get instructors assigned to a course
+
+    
     public function getInstructorsByCourse(Request $request)
     {
-        $request->validate([
-            'course_name' => 'required|string|max:255'
-        ]);
+        $user = auth()->user();
+        $userId = $user->id;
 
-        $course = Course::where('course_name', $request->course_name)->with('instructors')->first();
-
-        if (!$course) {
-            return response()->json(['message' => 'Course not found'], 404);
+    
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
         }
+    
+        if ($user->role !== 'Student') {
+            return response()->json(['message' => 'Access denied'], 403);
+        }
+    
+        $courses = Course::join('course_student', 'courses.id', '=', 'course_student.course_id')
+        ->where('course_student.student_id', $userId)
+        ->pluck('courses.id');
 
-        return response()->json([
-            'course' => $course->course_name,
-            'instructors' => $course->instructors
-        ]);
+    
+        if ($courses->isEmpty()) {
+            return response()->json(['message' => 'No courses found'], 404);
+        }
+    
+        $instructors = Instructor::whereHas('courses', function ($query) use ($courses) {
+            $query->whereIn('courses.id', $courses);
+        })->get();
+    
+        return response()->json($instructors);
     }
+    
+    
+
 }
