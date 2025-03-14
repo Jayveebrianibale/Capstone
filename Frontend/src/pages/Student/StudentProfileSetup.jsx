@@ -77,7 +77,7 @@ function StudentProfileSetup() {
         } else {
           alert("Profile update failed. Please try again.");
         }
-      }, 1000); // Small delay to ensure backend updates first
+      }, 1000);
     } catch (error) {
       console.error("Error saving profile:", error.response?.data || error.message);
       alert(`Failed to set up profile: ${error.response?.data?.message || "Unknown error"}`);

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import QuestionModal from "../../contents/Admin/QuestionModal";
 import ConfirmModal from "../../components/ConfirmModal";
 import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff } from "react-icons/fa";
 import { fetchQuestions, saveQuestions, updateQuestion, deleteQuestion } from "../../services/QuestionService";
 import { toast, ToastContainer } from "react-toastify";
+import { LoadingProvider, useLoading } from "../../components/LoadingContext";
+import FullScreenLoader from "../../components/FullScreenLoader";
 import "react-toastify/dist/ReactToastify.css";
 
 function Questionnaires() {
@@ -14,7 +16,8 @@ function Questionnaires() {
   const [questionToEdit, setQuestionToEdit] = useState(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [deleteQuestionId, setDeleteQuestionId] = useState(null);
-  const [loading, setLoading] = useState(false);
+
+  const { loading, setLoading } = useLoading();
 
   useEffect(() => {
     setLoading(true);
@@ -25,7 +28,7 @@ function Questionnaires() {
         toast.error("Failed to load questions.");
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [setLoading]);
 
   const handleAddClick = () => {
     setIsEditing(false);
@@ -53,7 +56,7 @@ function Questionnaires() {
     setLoading(true);
     try {
       await deleteQuestion(deleteQuestionId);
-      setQuestions(questions.filter(q => q.id !== deleteQuestionId));
+      setQuestions(questions.filter((q) => q.id !== deleteQuestionId));
       toast.success("Question deleted successfully!");
     } catch (error) {
       console.error("Error deleting question:", error);
@@ -64,10 +67,11 @@ function Questionnaires() {
   };
 
   const handleSave = async (newQuestion) => {
+    setLoading(true);
     try {
       if (isEditing) {
         await updateQuestion(questionToEdit.id, newQuestion);
-        setQuestions(questions.map(q => (q.id === questionToEdit.id ? { ...q, ...newQuestion } : q)));
+        setQuestions(questions.map((q) => (q.id === questionToEdit.id ? { ...q, ...newQuestion } : q)));
         toast.success("Question updated successfully!");
       } else {
         const savedQuestion = await saveQuestions(newQuestion);
@@ -86,21 +90,20 @@ function Questionnaires() {
       toast.error("Failed to save question.");
     }
     setShowModal(false);
+    setLoading(false);
   };
 
   return (
     <main className="p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
+      {loading && <FullScreenLoader />}
+
       <div className="flex flex-col md:flex-row md:justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Evaluation Questions</h1>
         <div className="flex items-center gap-2 mt-4 md:mt-0">
           <button
-            onClick={() => {
-              setIsEditing(false);
-              setQuestionToEdit(null);
-              setShowModal(true);
-            }}
+            onClick={handleAddClick}
             className="flex items-center gap-2 bg-[#1F3463] text-white px-2 py-2 rounded-lg shadow hover:bg-blue-700 transition"
             title="Add Questions"
           >
@@ -120,19 +123,11 @@ function Questionnaires() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <Spinner />
-        </div>
-      ) : questions.length === 0 ? (
+      {questions.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <p className="text-gray-500 dark:text-gray-400 text-lg">No questions available</p>
           <button
-            onClick={() => {
-              setIsEditing(false);
-              setQuestionToEdit(null);
-              setShowModal(true);
-            }}
+            onClick={handleAddClick}
             className="mt-4 bg-[#1F3463] text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
           >
             Create Question
@@ -160,7 +155,7 @@ function Questionnaires() {
                   <FaEdit />
                 </button>
                 <button onClick={() => confirmDelete(q.id)} className="text-red-600 hover:underline">
-                  {loading ? <Spinner size={16} /> : <FaTrash />}
+                  <FaTrash />
                 </button>
               </div>
             </div>
@@ -188,9 +183,5 @@ function Questionnaires() {
     </main>
   );
 }
-
-const Spinner = ({ size = 24 }) => (
-  <div className={`border-t-2 border-[#1F3463] border-solid rounded-full animate-spin`} style={{ width: size, height: size }}></div>
-);
 
 export default Questionnaires;

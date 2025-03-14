@@ -3,6 +3,11 @@ import React from "react";
 const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
   if (!isOpen) return null;
 
+  const handleConfirm = () => {
+    onConfirm(); 
+    onClose(); 
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
@@ -16,7 +21,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
             Cancel
           </button>
           <button
-            onClick={onConfirm}
+            onClick={handleConfirm}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
           >
             Confirm

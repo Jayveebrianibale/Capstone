@@ -43,7 +43,6 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
           </button>
         </div>
 
-        {/* Scrollable Content */}
         <div className="overflow-y-auto max-h-[65vh] pr-2">
           {questions.map((q, index) => (
             <div key={index} className="relative p-4 mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
