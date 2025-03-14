@@ -27,6 +27,7 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
+
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
@@ -70,12 +71,13 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
         >
           {user && (
             <button className="flex items-center gap-2 focus:outline-none">
-              <img
-                src={user?.profile_picture || "https://api.dicebear.com/7.x/avataaars/svg?seed=random"}
-                alt="Profile"
-                className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600"
-                onError={(e) => (e.target.src = "/default-profile.png")} 
-              />
+              {user.profile_picture && (
+                <img
+                  src={user.profile_picture}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600"
+                />
+              )}
               <span className="hidden sm:block text-gray-700 dark:text-gray-200 font-normal text-sm">
                 {user.role}
               </span>

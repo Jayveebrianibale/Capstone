@@ -15,9 +15,16 @@ function SEvaluations() {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         });
-        setInstructors(response.data);
+
+        if (Array.isArray(response.data)) {
+          setInstructors(response.data);
+        } else {
+          console.error("Unexpected API response:", response.data);
+          setInstructors([]); 
+        }
       } catch (error) {
         console.error('Error fetching instructors:', error);
+        setInstructors([]);
       } finally {
         setLoading(false);
       }
@@ -66,21 +73,20 @@ function SEvaluations() {
   const totalPages = Math.ceil(instructors.length / itemsPerPage);
   const handleChangePage = (page) => setCurrentPage(page);
 
-  const currentInstructors = instructors.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const currentInstructors = Array.isArray(instructors)
+    ? instructors.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+    : [];
 
   return (
-    <main className='p-4 dark:text-white bg-white dark:bg-gray-900 min-h-screen'>
-      <div className='bg-white text-center dark:bg-gray-800 p-6 shadow-lg rounded-lg'>
+    <main className='p-4 dark:text-white dark:bg-gray-900 min-h-screen'>
+      <div className='bg-white text-center dark:bg-gray-800 p-6 rounded-lg'>
         <h1 className='text-3xl font-bold text-gray-800 dark:text-white'>Instructor Evaluation</h1>
         <p className='text-gray-600 dark:text-gray-300 mt-2'>Please evaluate each instructor based on the listed criteria. Your responses are confidential and will help improve teaching quality.</p>
       </div>
       <div className='mt-6'>
         {loading ? (
           <p className='text-center'>Loading instructors...</p>
-        ) : instructors.length > 0 ? (
+        ) : currentInstructors.length > 0 ? (
           currentInstructors.map((instructor, index) => (
             <div key={index} className='bg-white dark:bg-gray-800 p-6 shadow-md rounded-lg mb-6'>
               <h2 className='text-2xl font-semibold text-gray-800 dark:text-white'>Name: {instructor.name}</h2>

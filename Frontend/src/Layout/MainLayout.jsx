@@ -31,21 +31,28 @@ function MainLayout() {
       navigate("/login");
       return;
     }
-
+  
     axios
       .get("http://127.0.0.1:8000/api/user", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
         const { role, has_profile } = response.data;
-
+  
         if (role === "Student" && !has_profile) {
-          navigate("/Student-profile-setup");
-        } else {
-          setRole(role);
+          setTimeout(async () => {
+            const checkResponse = await axios.get("http://127.0.0.1:8000/api/user", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+  
+            if (checkResponse.data.has_profile) {
+              sessionStorage.setItem("user", JSON.stringify(checkResponse.data));
+              navigate("/SDashboard");
+            }
+          }, 1500);
         }
-
-        localStorage.setItem("role", role);
+  
+        setRole(role);
         setLoading(false);
       })
       .catch(() => {
@@ -54,6 +61,7 @@ function MainLayout() {
         navigate("/login");
       });
   }, [navigate]);
+  
 
   if (loading) return null;
 

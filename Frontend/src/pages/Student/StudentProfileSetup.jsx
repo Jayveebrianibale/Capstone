@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -8,6 +8,7 @@ function StudentProfileSetup() {
   const [selectedOption, setSelectedOption] = useState("");
   const [yearLevel, setYearLevel] = useState("");
   const [loading, setLoading] = useState(false);
+  const [profileCompleted, setProfileCompleted] = useState(false);
 
   const educationOptions = {
     "Higher Education": ["BS Information Systems", "BS Computer Science", "BS Business Administration"],
@@ -18,37 +19,65 @@ function StudentProfileSetup() {
 
   const yearLevels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 
+  useEffect(() => {
+    const storedUser = sessionStorage.getItem("user");
+
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      if (user.profile_completed) {
+        navigate("/SDashboard");
+        return;
+      }
+    }
+
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+
+    axios
+      .get("http://127.0.0.1:8000/api/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        sessionStorage.setItem("user", JSON.stringify(response.data));
+        if (response.data.profile_completed) {
+          setProfileCompleted(true);
+          navigate("/SDashboard");
+        }
+      })
+      .catch((error) => console.error("Error fetching user:", error));
+  }, [navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("authToken");
-  
+
     if (!token) {
       alert("Authentication failed. Please log in again.");
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
       await axios.post(
         "http://127.0.0.1:8000/api/student/setup-profile",
         { educationLevel, selectedOption, yearLevel },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
-      
-      const userResponse = await axios.get("http://127.0.0.1:8000/api/user", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-  
-      if (userResponse.data.profile_completed) {
-       
-        localStorage.setItem("user", JSON.stringify(userResponse.data));
-  
-        navigate("/SDashboard");
-      } else {
-        alert("Profile update failed. Please try again.");
-      }
+
+      setTimeout(async () => {
+        const userResponse = await axios.get("http://127.0.0.1:8000/api/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (userResponse.data.profile_completed) {
+          sessionStorage.setItem("user", JSON.stringify(userResponse.data));
+          setProfileCompleted(true);
+          navigate("/SDashboard");
+        } else {
+          alert("Profile update failed. Please try again.");
+        }
+      }, 1000); // Small delay to ensure backend updates first
     } catch (error) {
       console.error("Error saving profile:", error.response?.data || error.message);
       alert(`Failed to set up profile: ${error.response?.data?.message || "Unknown error"}`);
@@ -56,10 +85,10 @@ function StudentProfileSetup() {
       setLoading(false);
     }
   };
-  
-  
 
-  const isButtonDisabled = !educationLevel || !selectedOption || 
+  const isButtonDisabled =
+    !educationLevel ||
+    !selectedOption ||
     (educationLevel === "Higher Education" && !yearLevel);
 
   return (
