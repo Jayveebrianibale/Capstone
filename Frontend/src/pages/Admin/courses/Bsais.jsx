@@ -22,47 +22,65 @@ function Bsais() {
     };
 
     const instructorsByYear = [
+
       [
-        { name: "Prof. A", ratings: { five: 20, four: 15, three: 5, two: 3, one: 2 }, comments: "Great!", overallRating: 90 },
-        { name: "Prof. B", ratings: { five: 18, four: 10, three: 8, two: 5, one: 1 }, comments: "Good!", overallRating: 85 },
-        { name: "Prof. A", ratings: { five: 20, four: 15, three: 5, two: 3, one: 2 }, comments: "Great!", overallRating: 90 },
-        { name: "Prof. B", ratings: { five: 18, four: 10, three: 8, two: 5, one: 1 }, comments: "Good!", overallRating: 85 },
-        { name: "Prof. A", ratings: { five: 20, four: 15, three: 5, two: 3, one: 2 }, comments: "Great!", overallRating: 90 },
-        { name: "Prof. B", ratings: { five: 18, four: 10, three: 8, two: 5, one: 1 }, comments: "Good!", overallRating: 85 },
-        { name: "Prof. A", ratings: { five: 20, four: 15, three: 5, two: 3, one: 2 }, comments: "Great!", overallRating: 90 },
-        { name: "Prof. B", ratings: { five: 18, four: 10, three: 8, two: 5, one: 1 }, comments: "Good!", overallRating: 85 },
-      
+        { 
+          name: "Prof. A", 
+          ratings: { q1: 5, q2: 4.8, q3: 4.7, q4: 4.5, q5: 4.6, q6: 4.4, q7: 4.9, q8: 4.3, q9: 4.2 }, 
+          comments: "Great!", 
+          overallRating: 90 
+        },
+        { 
+          name: "Prof. B", 
+          ratings: { q1: 4.9, q2: 4.7, q3: 4.6, q4: 4.8, q5: 4.5, q6: 4.2, q7: 4.6, q8: 4.3, q9: 4.1 }, 
+          comments: "Good!", 
+          overallRating: 85 
+        },
       ],
+      // 2nd Year
       [
-        { name: "Prof. C", ratings: { five: 22, four: 18, three: 6, two: 2, one: 1 }, comments: "Excellent!", overallRating: 92 },
-        { name: "Prof. D", ratings: { five: 15, four: 12, three: 10, two: 6, one: 2 }, comments: "Nice!", overallRating: 80 },
-        { name: "Prof. C", ratings: { five: 22, four: 18, three: 6, two: 2, one: 1 }, comments: "Excellent!", overallRating: 92 },
-        { name: "Prof. D", ratings: { five: 15, four: 12, three: 10, two: 6, one: 2 }, comments: "Nice!", overallRating: 80 },
-        { name: "Prof. C", ratings: { five: 22, four: 18, three: 6, two: 2, one: 1 }, comments: "Excellent!", overallRating: 92 },
-        { name: "Prof. D", ratings: { five: 15, four: 12, three: 10, two: 6, one: 2 }, comments: "Nice!", overallRating: 80 },
-        { name: "Prof. C", ratings: { five: 22, four: 18, three: 6, two: 2, one: 1 }, comments: "Excellent!", overallRating: 92 },
-        { name: "Prof. D", ratings: { five: 15, four: 12, three: 10, two: 6, one: 2 }, comments: "Nice!", overallRating: 80 },
+        { 
+          name: "Prof. C", 
+          ratings: { q1: 4.5, q2: 4.3, q3: 4.6, q4: 4.2, q5: 4.8, q6: 4.7, q7: 4.6, q8: 4.9, q9: 4.5 }, 
+          comments: "Very informative!", 
+          overallRating: 88 
+        },
+        { 
+          name: "Prof. D", 
+          ratings: { q1: 4.8, q2: 4.6, q3: 4.7, q4: 4.9, q5: 4.5, q6: 4.3, q7: 4.2, q8: 4.4, q9: 4.1 }, 
+          comments: "Helpful!", 
+          overallRating: 86 
+        },
       ],
+      // 3rd Year
       [
-        { name: "Prof. E", ratings: { five: 25, four: 10, three: 8, two: 4, one: 3 }, comments: "Amazing!", overallRating: 95 },
-        { name: "Prof. F", ratings: { five: 16, four: 14, three: 9, two: 7, one: 1 }, comments: "Fair!", overallRating: 78 },
-        { name: "Prof. E", ratings: { five: 25, four: 10, three: 8, two: 4, one: 3 }, comments: "Amazing!", overallRating: 95 },
-        { name: "Prof. F", ratings: { five: 16, four: 14, three: 9, two: 7, one: 1 }, comments: "Fair!", overallRating: 78 },
-        { name: "Prof. E", ratings: { five: 25, four: 10, three: 8, two: 4, one: 3 }, comments: "Amazing!", overallRating: 95 },
-        { name: "Prof. F", ratings: { five: 16, four: 14, three: 9, two: 7, one: 1 }, comments: "Fair!", overallRating: 78 },
-        { name: "Prof. E", ratings: { five: 25, four: 10, three: 8, two: 4, one: 3 }, comments: "Amazing!", overallRating: 95 },
-        { name: "Prof. F", ratings: { five: 16, four: 14, three: 9, two: 7, one: 1 }, comments: "Fair!", overallRating: 78 },
+        { 
+          name: "Prof. E", 
+          ratings: { q1: 4.9, q2: 4.8, q3: 4.7, q4: 4.6, q5: 4.5, q6: 4.4, q7: 4.3, q8: 4.2, q9: 4.1 }, 
+          comments: "Challenging but rewarding!", 
+          overallRating: 89 
+        },
+        { 
+          name: "Prof. F", 
+          ratings: { q1: 4.7, q2: 4.6, q3: 4.5, q4: 4.4, q5: 4.3, q6: 4.2, q7: 4.1, q8: 4.9, q9: 4.8 }, 
+          comments: "Engaging lessons!", 
+          overallRating: 87 
+        },
       ],
+      // 4th Year
       [
-        { name: "Prof. G", ratings: { five: 19, four: 17, three: 6, two: 3, one: 1 }, comments: "Very Good!", overallRating: 88 },
-        { name: "Prof. H", ratings: { five: 21, four: 14, three: 8, two: 4, one: 2 }, comments: "Satisfactory!", overallRating: 82 },
-        { name: "Prof. G", ratings: { five: 19, four: 17, three: 6, two: 3, one: 1 }, comments: "Very Good!", overallRating: 88 },
-        { name: "Prof. H", ratings: { five: 21, four: 14, three: 8, two: 4, one: 2 }, comments: "Satisfactory!", overallRating: 82 },
-        { name: "Prof. G", ratings: { five: 19, four: 17, three: 6, two: 3, one: 1 }, comments: "Very Good!", overallRating: 88 },
-        { name: "Prof. H", ratings: { five: 21, four: 14, three: 8, two: 4, one: 2 }, comments: "Satisfactory!", overallRating: 82 },
-        { name: "Prof. G", ratings: { five: 19, four: 17, three: 6, two: 3, one: 1 }, comments: "Very Good!", overallRating: 88 },
-        { name: "Prof. H", ratings: { five: 21, four: 14, three: 8, two: 4, one: 2 }, comments: "Satisfactory!", overallRating: 82 },
-  
+        { 
+          name: "Prof. G", 
+          ratings: { q1: 4.6, q2: 4.5, q3: 4.4, q4: 4.3, q5: 4.2, q6: 4.1, q7: 4.9, q8: 4.8, q9: 4.7 }, 
+          comments: "Excellent guidance!", 
+          overallRating: 91 
+        },
+        { 
+          name: "Prof. H", 
+          ratings: { q1: 4.5, q2: 4.4, q3: 4.3, q4: 4.2, q5: 4.1, q6: 4.9, q7: 4.8, q8: 4.7, q9: 4.6 }, 
+          comments: "Well-prepared lectures!", 
+          overallRating: 90 
+        },
       ],
     ];
     

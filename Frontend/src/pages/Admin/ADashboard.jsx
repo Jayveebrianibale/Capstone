@@ -23,30 +23,30 @@ function ADashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:col-span-2">
           <div className="bg-gray-50 h-32 dark:bg-gray-800 shadow-lg rounded-lg p-6">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Total Number of Students
+              Number of Students
             </h3>
-            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">800</p>
+            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">0</p>
           </div>
 
           <div className="bg-gray-50 h-32 dark:bg-gray-800 shadow-lg rounded-lg p-6">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Total Number of Instructors
+              Number of Instructors
             </h3>
-            <p className="text-3xl font-bold text-green-600 dark:text-green-400">45</p>
+            <p className="text-3xl font-bold text-green-600 dark:text-green-400">0</p>
           </div>
 
           <div className="bg-gray-50 h-32 dark:bg-gray-800 shadow-lg rounded-lg p-6">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Total Evaluation Submitted
+              Evaluation Submitted
             </h3>
-            <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">12</p>
+            <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">0</p>
           </div>
 
           <div className="bg-gray-50 h-32 dark:bg-gray-800 shadow-lg rounded-lg p-6">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Total Evaluation Not Submitted
+              Evaluation Not Submitted
             </h3>
-            <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">788</p>
+            <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">0</p>
           </div>
         </div>
       </div>

@@ -94,12 +94,12 @@ function Questionnaires() {
   };
 
   return (
-    <main className="p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
+    <main className="p-4 min-h-screen bg-gray-50 dark:bg-gray-900">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
       {loading && <FullScreenLoader />}
 
-      <div className="flex flex-col md:flex-row md:justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row md:justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Evaluation Questions</h1>
         <div className="flex items-center gap-2 mt-4 md:mt-0">
           <button

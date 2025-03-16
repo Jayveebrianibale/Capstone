@@ -7,10 +7,11 @@ import { LiaChildSolid } from "react-icons/lia";
 import { MdExpandMore, MdExpandLess, MdOutlineManageAccounts } from "react-icons/md";
 import { VscPerson } from "react-icons/vsc";
 import { TbMessageQuestion } from "react-icons/tb";
+import { SlPeople } from "react-icons/sl";
 
 function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role, isMobile }) {
   const navigate = useNavigate();
-  const [openDropdowns, setOpenDropdowns] = useState({});
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   const menus = {
     Student: [
@@ -60,6 +61,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
       },
       { name: "Accounts", icon: MdOutlineManageAccounts, path: "/Accounts" },
       { name: "Questionnaires", icon: TbMessageQuestion, path: "/Questions" },
+      { name: "Instructors", icon: SlPeople, path: "/Instructors" },
     ],
     Instructor: [{ name: "Dashboard", icon: CiHome, path: "/InstructorDashboard" }],
   };
@@ -71,12 +73,8 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
   };
 
   const handleDropdownToggle = (name) => {
-    setOpenDropdowns((prev) => ({
-      [name]: !prev[name],
-    }));
+    setOpenDropdown((prev) => (prev === name ? null : name));
   };
-  
-  
 
   const handleNavigation = (path, name, fullName = null) => {
     setActivePage(fullName || name);
@@ -92,21 +90,20 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
 
   return (
     <div
-      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-[#1F3463] dark:bg-gray-800 border-r border-gray-700 ${
+      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-[#1F3463] dark:bg-gray-800 border-r border-gray-700 overflow-y-auto h-screen $ {
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       } md:translate-x-0`}
     >
       <nav className="flex flex-col h-full p-4 space-y-2 text-white dark:text-gray-200">
-       
         <div className="flex items-center justify-center pb-6 pt-5 gap-2">
           <img className="h-20 w-20" src={Logo} alt="Updated logo" />
         </div>
-        <div className="flex flex-col gap-2 flex-grow">
+        <div className="flex flex-col gap-2 flex-grow overflow-y-auto max-h-[80vh]">
           {menuItems.map((item) => (
             <div key={item.name}>
               {!item.submenu ? (
                 <button
-                  className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                  className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 $ {
                     activePage === item.name ? "bg-indigo-700 dark:bg-gray-800" : ""
                   }`}
                   onClick={() => handleNavigation(item.path, item.name)}
@@ -122,15 +119,14 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
                   >
                     <item.icon className="w-5 h-5" />
                     <span>{item.name}</span>
-                    {openDropdowns[item.name] ? <MdExpandLess className="ml-auto" /> : <MdExpandMore className="ml-auto" />}
+                    {openDropdown === item.name ? <MdExpandLess className="ml-auto" /> : <MdExpandMore className="ml-auto" />}
                   </button>
-
-                  {openDropdowns[item.name] && (
+                  {openDropdown === item.name && (
                     <div className="ml-6 max-h-[300px] overflow-y-auto">
                       {item.submenu.map((sub) => (
                         <button
                           key={sub.name}
-                          className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                          className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 $ {
                             activePage === sub.fullName ? "bg-indigo-600 dark:bg-gray-800" : ""
                           }`}
                           onClick={() => handleNavigation(sub.path, sub.name, sub.fullName)}
@@ -145,16 +141,10 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
             </div>
           ))}
         </div>
-        
-        <div className="flex">
-          <button
-            className="flex w-full items-center gap-2 p-2 rounded-lg text-sm hover:bg-red-600 dark:hover:bg-red-700 transition-colors duration-200"
-            onClick={handleLogout}
-          >
-            <CiLogout className="w-6 h-6" />
-            <span>Logout</span>
-          </button>
-        </div>
+        <button className="flex w-full items-center gap-2 p-2 rounded-lg text-sm hover:bg-red-600 dark:hover:bg-red-700 transition-colors duration-200" onClick={handleLogout}>
+          <CiLogout className="w-6 h-6" />
+          <span>Logout</span>
+        </button>
       </nav>
     </div>
   );
