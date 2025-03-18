@@ -8,6 +8,7 @@ import { MdExpandMore, MdExpandLess, MdOutlineManageAccounts } from "react-icons
 import { VscPerson } from "react-icons/vsc";
 import { TbMessageQuestion } from "react-icons/tb";
 import { SlPeople } from "react-icons/sl";
+import axios from "axios";
 
 function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role, isMobile }) {
   const navigate = useNavigate();
@@ -82,12 +83,23 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
     closeSidebar();
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("role");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+  
+      if (token) {
+        await axios.post("http://localhost:8000/api/logout", {}, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+  
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("role");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
-
   return (
     <div
       className={`fixed inset-0 z-40 transition-transform transform w-56 bg-[#1F3463] dark:bg-gray-800 border-r border-gray-700 overflow-y-auto h-screen $ {

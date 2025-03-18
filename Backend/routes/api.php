@@ -15,6 +15,7 @@ use App\Http\Controllers\StudentProfileController;
 
 // Authentication Routes
 Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'getUser']);
+Route::middleware('auth:sanctum')->post('/logout', [GoogleAuthController::class, 'logout']);
 Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
 
@@ -38,6 +39,10 @@ Route::get('/students/{student}/courses', [CourseController::class, 'getEnrolled
 // Instructor Routes
 Route::post('/instructors/assign', [InstructorController::class, 'assignInstructor']);
 Route::middleware(['auth:sanctum'])->get('/instructors/by-course', [InstructorController::class, 'getInstructorsByCourse']);
+Route::get('/instructors', [InstructorController::class, 'index']);
+Route::post('/instructors', [InstructorController::class, 'store']);
+Route::put('/instructors/{id}', [InstructorController::class, 'update']);
+Route::delete('/instructors/{id}', [InstructorController::class, 'destroy']);
 
 
 // Question Management Routes

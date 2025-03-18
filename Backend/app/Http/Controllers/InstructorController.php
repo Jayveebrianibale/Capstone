@@ -11,6 +11,66 @@ use App\Models\User;
 
 class InstructorController extends Controller
 {
+
+    public function index()
+    {
+        $instructors = Instructor::all();
+        return response()->json($instructors);
+    }
+
+    // ✅ Store a new instructor
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|unique:instructors,email|max:255',
+        ]);
+
+        $instructor = Instructor::create([
+            'name'  => $request->name,
+            'email' => $request->email,
+        ]);
+
+        return response()->json($instructor, 201);
+    }
+
+    // ✅ Update an existing instructor
+    public function update(Request $request, $id)
+    {
+        $instructor = Instructor::find($id);
+
+        if (!$instructor) {
+            return response()->json(['message' => 'Instructor not found'], 404);
+        }
+
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:instructors,email,' . $id,
+        ]);
+
+        $instructor->update([
+            'name'  => $request->name,
+            'email' => $request->email,
+        ]);
+
+        return response()->json(['message' => 'Instructor updated successfully']);
+    }
+
+    // ✅ Delete an instructor
+    public function destroy($id)
+    {
+        $instructor = Instructor::find($id);
+
+        if (!$instructor) {
+            return response()->json(['message' => 'Instructor not found'], 404);
+        }
+
+        $instructor->delete();
+
+        return response()->json(['message' => 'Instructor deleted successfully']);
+    }
+
+    
     public function assignInstructor(Request $request)
     {
         $request->validate([
