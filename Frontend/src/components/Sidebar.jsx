@@ -102,7 +102,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
   };
   return (
     <div
-      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-[#1F3463] dark:bg-gray-800 border-r border-gray-700 overflow-y-auto h-screen $ {
+      className={`fixed inset-0 z-40 transition-transform transform w-56 bg-[#1F3463] dark:bg-gray-800 border-r border-gray-700 overflow-y-auto h-screen ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       } md:translate-x-0`}
     >
@@ -115,7 +115,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
             <div key={item.name}>
               {!item.submenu ? (
                 <button
-                  className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 $ {
+                  className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 ${
                     activePage === item.name ? "bg-indigo-700 dark:bg-gray-800" : ""
                   }`}
                   onClick={() => handleNavigation(item.path, item.name)}
@@ -138,7 +138,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
                       {item.submenu.map((sub) => (
                         <button
                           key={sub.name}
-                          className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 $ {
+                          className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 ${
                             activePage === sub.fullName ? "bg-indigo-600 dark:bg-gray-800" : ""
                           }`}
                           onClick={() => handleNavigation(sub.path, sub.name, sub.fullName)}

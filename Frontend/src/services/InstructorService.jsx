@@ -12,16 +12,20 @@ export const fetchInstructors = async () => {
   }
 };
 
-export const saveInstructor = async (instructor) => {
+export const saveInstructor = async (instructorData) => {
   try {
-    console.log("Saving instructor:", instructor);
-    const response = await axios.post(API_URL, instructor);
+    console.log("Sending data to API:", instructorData);
+    const response = await axios.post(API_URL, instructorData, {
+      headers: { "Content-Type": "application/json" },
+    });
     return response.data;
   } catch (error) {
     console.error("Error saving instructor:", error.response?.data);
     throw error;
   }
 };
+
+
 
 export const updateInstructor = async (id, instructor) => {
   try {

@@ -17,24 +17,21 @@ class InstructorController extends Controller
         $instructors = Instructor::all();
         return response()->json($instructors);
     }
+    
 
-    // ✅ Store a new instructor
     public function store(Request $request)
     {
-        $request->validate([
-            'name'  => 'required|string|max:255',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:instructors,email|max:255',
         ]);
-
-        $instructor = Instructor::create([
-            'name'  => $request->name,
-            'email' => $request->email,
-        ]);
-
+    
+        $instructor = Instructor::create($validated);
+    
         return response()->json($instructor, 201);
     }
 
-    // ✅ Update an existing instructor
+    
     public function update(Request $request, $id)
     {
         $instructor = Instructor::find($id);
@@ -56,7 +53,6 @@ class InstructorController extends Controller
         return response()->json(['message' => 'Instructor updated successfully']);
     }
 
-    // ✅ Delete an instructor
     public function destroy($id)
     {
         $instructor = Instructor::find($id);

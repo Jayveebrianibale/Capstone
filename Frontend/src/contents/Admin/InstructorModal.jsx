@@ -1,20 +1,21 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 export default function InstructorModal({ isOpen, onClose, onSave, isEditing, instructorToEdit }) {
   const [instructors, setInstructors] = useState([{ name: "", email: "" }]);
+  const [isSaving, setIsSaving] = useState(false); 
 
   useEffect(() => {
     if (isEditing && instructorToEdit) {
       setInstructors([{ name: instructorToEdit.name || "", email: instructorToEdit.email || "" }]);
     }
   }, [isEditing, instructorToEdit]);
-  
-  
 
   const handleChange = (index, field, value) => {
     const updatedInstructors = [...instructors];
-    updatedInstructors[index][field] = value;
+    updatedInstructors[index][field] = value.trimStart();
     setInstructors(updatedInstructors);
   };
 
@@ -22,15 +23,37 @@ export default function InstructorModal({ isOpen, onClose, onSave, isEditing, in
     setInstructors([...instructors, { name: "", email: "" }]);
   };
 
-  const handleSave = () => {
-    if (instructors.every(i => i.name.trim() === "" || i.email.trim() === "")) {
-      alert("Please enter valid instructor details.");
-      return;
-    }
 
-    onSave(isEditing ? instructors[0] : instructors);
+const handleSave = async () => {
+  if (isSaving) return; // Prevent duplicate requests
+
+  if (instructors.some((i) => !i.name.trim() || !i.email.trim())) {
+    toast.warn("Please fill out all fields.");
+    return;
+  }
+
+  setIsSaving(true); // Disable button to prevent multiple requests
+
+  const payload = instructors.map(i => ({
+    name: i.name.trim(),
+    email: i.email.trim(),
+  }))[0];
+
+  try {
+    await axios.post("http://localhost:8000/api/instructors", payload);
+
+    toast.success("Instructor(s) saved successfully!");
+    setInstructors([{ name: "", email: "" }]); // ✅ Clear input fields
+    onSave(payload);
     onClose();
-  };
+  } catch (error) {
+    toast.error("Failed to save instructor.");
+  } finally {
+    setIsSaving(false); // Re-enable the button
+  }
+};
+
+  const isSaveDisabled = instructors.some((i) => !i.name.trim() || !i.email.trim());
 
   return isOpen ? (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-6">
@@ -76,7 +99,7 @@ export default function InstructorModal({ isOpen, onClose, onSave, isEditing, in
             </div>
           ))}
         </div>
-        
+
         {!isEditing && (
           <div className="flex justify-center mt-4">
             <button
@@ -96,11 +119,15 @@ export default function InstructorModal({ isOpen, onClose, onSave, isEditing, in
             Cancel
           </button>
           <button
-            onClick={handleSave}
-            className="bg-[#1F3463] hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm"
-          >
-            {isEditing ? "Update" : instructors.length > 1 ? "Save All" : "Save"}
-          </button>
+  onClick={handleSave}
+  className={`px-4 py-2 rounded-md text-sm ${
+    isSaving || isSaveDisabled ? "bg-gray-300 cursor-not-allowed" : "bg-[#1F3463] hover:bg-indigo-700 text-white"
+  }`}
+  disabled={isSaving || isSaveDisabled}
+>
+  {isSaving ? "Saving..." : isEditing ? "Update" : instructors.length > 1 ? "Save All" : "Save"}
+</button>
+
         </div>
       </div>
     </div>

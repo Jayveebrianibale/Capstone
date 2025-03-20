@@ -13,7 +13,7 @@ class Course extends Model
 
     public function instructors()
     {
-        return $this->belongsToMany(Instructor::class, 'course_instructors');
+        return $this->belongsToMany(Instructor::class, 'course_instructor', 'course_id', 'instructor_id');
     }
 
     public function students()
