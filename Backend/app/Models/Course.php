@@ -22,6 +22,8 @@ class Course extends Model
                     ->withPivot('semester')
                     ->withTimestamps();
     }
+
+    
     
 }
 

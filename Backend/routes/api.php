@@ -12,6 +12,8 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\StudentProfileController;
+use App\Http\Controllers\LevelController;
+use App\Http\Controllers\ProgramController;
 
 // Authentication Routes
 Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'getUser']);
@@ -31,7 +33,7 @@ Route::post('/students/{student}/enrollment-check', [StudentController::class, '
 Route::get('/students/{student}/instructors', [StudentController::class, 'getStudentInstructors']);
 
 // Course Routes
-Route::post('/courses', [CourseController::class, 'createCourse']);
+Route::post('/courses', [CourseController::class, 'createCourse']); 
 Route::get('/courses', [CourseController::class, 'getAllCourses']);
 Route::post('/students/{student}/enroll', [CourseController::class, 'enrollStudent']);
 Route::get('/students/{student}/courses', [CourseController::class, 'getEnrolledCourses']);
@@ -44,6 +46,15 @@ Route::post('/instructors', [InstructorController::class, 'store']);
 Route::put('/instructors/{id}', [InstructorController::class, 'update']);
 Route::delete('/instructors/{id}', [InstructorController::class, 'destroy']);
 
+//Programs Routes
+Route::get('/programs', [ProgramController::class, 'index']);
+Route::post('/programs', [ProgramController::class, 'store']);
+Route::delete('/programs/{id}', [ProgramController::class, 'destroy']);
+
+// Level Routes
+Route::post('/levels', [LevelController::class, 'store']);
+Route::get('/levels', [LevelController::class, 'index']);
+Route::delete('/levels/{level}', [LevelController::class, 'destroy']);
 
 // Question Management Routes
 Route::post('/questions', [QuestionController::class, 'store']); // Create

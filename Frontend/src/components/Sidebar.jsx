@@ -5,6 +5,7 @@ import { CiHome, CiCreditCard2, CiLogout } from "react-icons/ci";
 import { PiStudent } from "react-icons/pi";
 import { LiaChildSolid } from "react-icons/lia";
 import { MdExpandMore, MdExpandLess, MdOutlineManageAccounts } from "react-icons/md";
+import { MdOutlineCastForEducation } from "react-icons/md";
 import { VscPerson } from "react-icons/vsc";
 import { TbMessageQuestion } from "react-icons/tb";
 import { SlPeople } from "react-icons/sl";
@@ -63,6 +64,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
       { name: "Accounts", icon: MdOutlineManageAccounts, path: "/Accounts" },
       { name: "Questionnaires", icon: TbMessageQuestion, path: "/Questions" },
       { name: "Instructors", icon: SlPeople, path: "/Instructors" },
+      { name: "Programs/Levels", icon: MdOutlineCastForEducation, path: "/Programs" },
     ],
     Instructor: [{ name: "Dashboard", icon: CiHome, path: "/InstructorDashboard" }],
   };

@@ -26,6 +26,7 @@ import Accounts from "./pages/Admin/Accounts";
 import Questionnaires from "./pages/Admin/Questionnaires";
 import Instructors from "./pages/Admin/Instructors";
 import StudentProfileSetup from "./pages/Student/StudentProfileSetup";
+import Programs from "./pages/Admin/Programs";
 
 
 const PrivateRoute = ({ children }) => {
@@ -59,7 +60,8 @@ function App() {
             <Route path="Accounts" element={<Accounts />} />
             <Route path="Questions" element={<Questionnaires />} />
             <Route path="Instructors" element={<Instructors/>} />
-
+            <Route path="Programs" element={<Programs/>} />
+            
             {/* Courses */}
             <Route path="BSA" element={<Bsa />} />
             <Route path="BSAIS" element={<Bsais />} />

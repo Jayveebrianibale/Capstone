@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FaPlus, FaEdit, FaTrash, FaBookOpen, FaSearch } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import InstructorModal from "../../contents/Admin/InstructorModal";
-import ConfirmModal from "../../components/InstructorConfirmModal";
+import ConfirmModal from "../../contents/Admin/InstructorConfirmModal";
 import InstructorService from "../../services/InstructorService";
 import { LoadingProvider, useLoading } from "../../components/LoadingContext";
 import FullScreenLoader from "../../components/FullScreenLoader"; 
@@ -103,17 +103,15 @@ function Instructors() {
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
-          {/* Table Header */}
-          <div className="hidden md:grid grid-cols-4 gap-4 bg-gray-100 dark:bg-gray-700 p-4 font-semibold">
+          <div className="hidden md:grid grid-cols-4 gap-4 bg-gray-100 dark:bg-gray-700 p-4 font-semibold dark:text-white dark:rounded-lg">
             <div className="px-4 py-3">Instructor Name</div>
-            <div className="px-4 py-3">Email</div>
+            <div className="px-4 py-3">Email</div>  
             <div className="px-4 py-3 text-center">Actions</div>
             <div className="px-4 py-3 text-center">Assign</div>
           </div>
 
-          {/* Table Rows (For large screens) */}
           {filteredInstructors.map((inst) => (
-            <div key={inst.id} className="hidden md:grid grid-cols-4 gap-4 p-4 border-b hover:bg-gray-50 dark:hover:bg-gray-700">
+            <div key={inst.id} className="hidden md:grid grid-cols-4 gap-4 p-4 border-b rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
               <div className="px-4 py-2 dark:text-gray-200">{inst.name}</div>
               <div className="px-4 py-2 dark:text-gray-200">{inst.email}</div>
               <div className="px-4 py-2 flex justify-center gap-3">
@@ -132,13 +130,10 @@ function Instructors() {
             </div>
           ))}
 
-            {/* Mobile View (Card View) */}
             <div className="md:hidden grid grid-cols-1 gap-4">
               {filteredInstructors.map((inst) => (
                 <div key={inst.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition">
                   <div className="text-xl font-semibold dark:text-gray-100">{inst.name}</div>
-              
-                  {/* Email section */}
                   <div className="text-gray-500 dark:text-gray-400 text-sm break-words">{inst.email}</div>
               
                   <div className="flex justify-between items-center mt-4">

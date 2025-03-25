@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\Student;
-use Illuminate\Http\Request;
+use App\Models\Level;
 use App\Models\EducationLevel;
 use App\Models\Semester;
+use Illuminate\Http\Request;
 
 class CourseController extends Controller
 {
@@ -16,7 +17,7 @@ class CourseController extends Controller
             'course_name' => 'required|string|max:255|unique:courses,course_name',
         ]);
 
-        $course = Course::create($request->only(['course_name']));
+        $course = Course::create(['course_name' => $request->course_name]);
 
         return response()->json([
             'message' => 'Course created successfully',
@@ -24,23 +25,19 @@ class CourseController extends Controller
         ], 201);
     }
 
-
     public function getAllData() {
-    return response()->json([
-        'education_levels' => EducationLevel::all(),
-        'courses' => Course::all(),
-        'semesters' => Semester::all()
-    ]);
-}
-  
-    public function getAllCourses()
-    {
-        $courses = Course::all();
-
-        return response()->json($courses);
+        return response()->json([
+            'education_levels' => EducationLevel::all(),
+            'courses' => Course::all(),
+            'semesters' => Semester::all()
+        ]);
     }
 
-  
+    public function getAllCourses()
+    {
+        return response()->json(Course::all());
+    }
+
     public function enrollStudent(Request $request, Student $student)
     {
         $request->validate([
@@ -60,7 +57,7 @@ class CourseController extends Controller
 
         $student->courses()->attach($course->id, ['semester' => $request->semester]);
 
-        return response()->json(['message' => 'Course enrolled successfully']);
+        return response()->json(['message' => 'Student enrolled successfully']);
     }
 
     public function getEnrolledCourses(Student $student)
