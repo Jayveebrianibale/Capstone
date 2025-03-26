@@ -10,6 +10,7 @@ export default function ProgramModal({ isOpen, onClose, onSave, isEditing, progr
     educationLevel: "",
     yearOrGrade: "",
   });
+
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function ProgramModal({ isOpen, onClose, onSave, isEditing, progr
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!formData.name.trim() || !formData.code.trim() || !formData.educationLevel.trim() || !formData.yearOrGrade.trim()) {
       toast.warn("Please fill out all fields.");
       return;
@@ -39,19 +41,27 @@ export default function ProgramModal({ isOpen, onClose, onSave, isEditing, progr
 
     setIsSaving(true);
 
+    // Format data to match backend requirements
+    const payload = {
+      name: formData.name,
+      category: formData.educationLevel, // Matches backend field
+      levels: formData.educationLevel === "Higher_Education" ? [{ name: formData.yearOrGrade }] : [],
+    };
+
     try {
       let response;
       if (isEditing && program?.id) {
-        response = await axios.put(`http://localhost:8000/api/programs/${program.id}`, formData);
+        response = await axios.put(`http://localhost:8000/api/programs/${program.id}`, payload);
         toast.success("Program updated successfully!");
       } else {
-        response = await axios.post("http://localhost:8000/api/programs", formData);
+        response = await axios.post("http://localhost:8000/api/programs", payload);
         toast.success("Program added successfully!");
       }
 
       onSave(response.data);
       onClose();
     } catch (error) {
+      console.error("Error saving program:", error.response?.data); // Debugging line
       toast.error(error.response?.data?.message || "Failed to save program.");
     } finally {
       setIsSaving(false);
@@ -73,10 +83,9 @@ export default function ProgramModal({ isOpen, onClose, onSave, isEditing, progr
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Program Name */}
           <div className="mb-4">
             <label htmlFor="name" className="block font-semibold text-gray-700 dark:text-gray-300">
-              Program Name
+              Program Name / Grade Name
             </label>
             <input
               type="text"
@@ -90,7 +99,6 @@ export default function ProgramModal({ isOpen, onClose, onSave, isEditing, progr
             />
           </div>
 
-          {/* Program Code */}
           <div className="mb-4">
             <label htmlFor="code" className="block font-semibold text-gray-700 dark:text-gray-300">
               Program Code
@@ -107,7 +115,7 @@ export default function ProgramModal({ isOpen, onClose, onSave, isEditing, progr
             />
           </div>
 
-          {/* Education Level */}
+          {/* Fixed Education Level Dropdown */}
           <div className="mb-4">
             <label htmlFor="educationLevel" className="block font-semibold text-gray-700 dark:text-gray-300">
               Education Level
@@ -121,17 +129,17 @@ export default function ProgramModal({ isOpen, onClose, onSave, isEditing, progr
               required
             >
               <option value="">Select Education Level</option>
-              <option value="Higher Ed">Higher Education</option>
-              <option value="Senior High">Senior High School</option>
-              <option value="Junior High">Junior High School</option>
+              <option value="Higher_Education">Higher Education</option>
+              <option value="Senior_High">Senior High</option>
+              <option value="Junior_High">Junior High</option>
               <option value="Intermediate">Intermediate</option>
             </select>
           </div>
 
-          {/* Year Level or Grade Level */}
+          {/* Fixed Year or Grade Level Dropdown */}
           <div className="mb-6">
             <label htmlFor="yearOrGrade" className="block font-semibold text-gray-700 dark:text-gray-300">
-              {formData.educationLevel === "Higher Ed" ? "Year Level" : "Grade Level"}
+              {formData.educationLevel === "Higher_Education" ? "Year Level" : "Grade Level"}
             </label>
             <select
               id="yearOrGrade"
@@ -141,27 +149,32 @@ export default function ProgramModal({ isOpen, onClose, onSave, isEditing, progr
               className="w-full border dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
-              <option value="">Select {formData.educationLevel === "Higher Ed" ? "Year" : "Grade"} Level</option>
-              {formData.educationLevel === "Higher Ed" &&
-                ["1st Year", "2nd Year", "3rd Year", "4th Year"].map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              {formData.educationLevel !== "Higher Ed" &&
-                ["Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"].map(
-                  (grade) => (
-                    <option key={grade} value={grade}>
-                      {grade}
+              <option value="">
+                Select {formData.educationLevel === "Higher_Education" ? "Year" : "Grade"} Level
+              </option>
+              {formData.educationLevel === "Higher_Education"
+                ? ["1st Year", "2nd Year", "3rd Year", "4th Year"].map((level) => (
+                    <option key={level} value={level}>
+                      {level}
                     </option>
-                  )
-                )}
+                  ))
+                : ["Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"].map(
+                    (grade) => (
+                      <option key={grade} value={grade}>
+                        {grade}
+                      </option>
+                    )
+                  )}
             </select>
           </div>
 
           {/* Buttons */}
           <div className="flex justify-end space-x-4">
-            <button type="button" onClick={onClose} className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-md text-sm font-semibold">
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-md text-sm font-semibold"
+            >
               Cancel
             </button>
             <button
@@ -179,4 +192,3 @@ export default function ProgramModal({ isOpen, onClose, onSave, isEditing, progr
     </div>
   );
 }
- 

@@ -4,7 +4,7 @@ import ProgramService from "../../services/ProgramService";
 import { toast, ToastContainer } from "react-toastify";
 import FullScreenLoader from "../../components/FullScreenLoader";
 import { useLoading } from "../../components/LoadingContext";
-import ProgramModal from "../../contents/Admin/ProgramModal"
+import ProgramModal from "../../contents/Admin/ProgramModal";
 import ProgramConfirmModal from "../../contents/Admin/ProgramConfirmModal";
 
 function Programs() {
@@ -25,7 +25,7 @@ function Programs() {
     try {
       const response = await ProgramService.getAll();
       console.log("Fetched Programs:", response);
-      setPrograms(Array.isArray(response) ? response : []);
+      setPrograms(Array.isArray(response.programs) ? response.programs : []);
     } catch (error) {
       console.error("Failed to fetch programs:", error);
       toast.error("Failed to load programs.");
@@ -62,24 +62,34 @@ function Programs() {
 
   const handleSave = async (programData) => {
     setLoading(true);
-    try {
-      if (selectedProgram) {
-        await ProgramService.update(selectedProgram.id, programData);
-        toast.success("Program updated successfully.");
-      } else {
-        await ProgramService.create(programData);
-        toast.success("Program added successfully.");
-      }
-      fetchPrograms();
-      setIsModalOpen(false);
-      setSelectedProgram(null);
-    } catch (error) {
-      console.error("Error saving program:", error);
-      toast.error("Failed to save program.");
-    } finally {
-      setLoading(false);
+
+
+    if (!programData.name || !programData.category) {
+        toast.error("Program name and category are required.");
+        setLoading(false);
+        return;
     }
-  };
+
+    try {
+        if (selectedProgram) {
+            await ProgramService.update(selectedProgram.id, programData);
+            toast.success("Program updated successfully.");
+        } else {
+            await ProgramService.create(programData);
+            toast.success("Program added successfully.");
+        }
+
+        fetchPrograms();
+        setIsModalOpen(false);
+        setSelectedProgram(null);
+    } catch (error) {
+        console.error("Error saving program:", error.response?.data);
+        toast.error(error.response?.data?.message || "Failed to save program.");
+    } finally {
+        setLoading(false);
+    }
+};
+
 
   const filteredPrograms = programs.filter((prog) =>
     prog.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -127,10 +137,12 @@ function Programs() {
               key={prog.id}
               className="hidden md:grid grid-cols-5 gap-4 p-4 border-b rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
             >
-              <div className="px-4 py-2 dark:text-gray-200">{prog.educationLevel}</div>
+              <div className="px-4 py-2 dark:text-gray-200">{prog.category}</div>
               <div className="px-4 py-2 dark:text-gray-200">{prog.name}</div>
-              <div className="px-4 py-2 dark:text-gray-200">{prog.code}</div>
-              <div className="px-4 py-2 text-center dark:text-gray-200">{prog.yearLevel}</div>
+              <div className="px-4 py-2 dark:text-gray-200">{prog.code || "N/A"}</div>
+              <div className="px-4 py-2 text-center dark:text-gray-200">
+                {prog.levels?.length > 0 ? prog.levels.map(level => level.name).join(", ") : "N/A"}
+              </div>
               <div className="px-4 py-2 flex justify-center gap-3">
                 <button onClick={() => handleEdit(prog)} className="text-blue-600 hover:underline">
                   <FaEdit />
@@ -157,23 +169,8 @@ function Programs() {
         <FaPlus size={12} />
       </button>
 
-      <ProgramModal
-           isOpen={isModalOpen}
-           onClose={() => {
-             setIsModalOpen(false);
-             setSelectedProgram(null);
-           }}
-           onSave={handleSave}
-           program={selectedProgram}
-            />
-
-          <ProgramConfirmModal
-           isOpen={confirmModalOpen}
-           onClose={() => setConfirmModalOpen(false)}
-           onConfirm={handleDelete}
-           message="Are you sure you want to delete this program?"
-        />
-
+      <ProgramModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} program={selectedProgram} />
+      <ProgramConfirmModal isOpen={confirmModalOpen} onClose={() => setConfirmModalOpen(false)} onConfirm={handleDelete} message="Are you sure you want to delete this program?" />
     </main>
   );
 }

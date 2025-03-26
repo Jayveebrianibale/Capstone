@@ -16,13 +16,18 @@ const ProgramService = {
   
   create: async (data) => {
     try {
+      console.log("Sending Data:", data);
       const response = await axios.post(API_URL, data);
       return response.data;
     } catch (error) {
+      if (error.response) {
+        console.error("Server Response:", error.response.data);
+      }
       console.error("Error creating program:", error);
       throw error;
     }
   },
+
 
   
   delete: async (id) => {
