@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import QuestionModal from "../../contents/Admin/QuestionModal";
+import QuestionModal from "../../contents/Admin/Modals/QuestionModal";
 import ConfirmModal from "../../components/ConfirmModal";
 import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff } from "react-icons/fa";
 import { fetchQuestions, saveQuestions, updateQuestion, deleteQuestion } from "../../services/QuestionService";

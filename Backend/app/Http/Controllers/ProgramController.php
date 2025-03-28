@@ -8,73 +8,50 @@ use App\Models\GradeLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class ProgramController extends Controller
-{
-    public function index()
-    {
-        return response()->json([
-            'programs' => Program::with('levels')->get(),
-            'grade_levels' => GradeLevel::all()
-        ]);
+class ProgramController extends Controller {
+    // Get all programs with levels
+    public function index() {
+        $programs = Program::with('levels')->get();
+        return response()->json(['programs' => $programs]);
     }
 
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|unique:programs,name',
-            'category' => 'required|in:Higher_Education,Senior_Hgh,Junior_High,Intermediate',
-            'levels' => 'nullable|array',
-            'levels.*.name' => 'nullable|string|max:255'
+    // Create a new program
+    public function store(Request $request) {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:10|unique:programs,code',
+            'yearLevel' => 'required|string|in:1st Year,2nd Year,3rd Year,4th Year',
         ]);
-    
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-    
-        if ($request->category === 'Higher_Education') {
-            // Save as Program (Higher Education)
-            $program = Program::create([
-                'name' => $request->name,
-                'category' => $request->category
-            ]);
-    
-            // Attach levels if provided
-            if ($request->levels) {
-                foreach ($request->levels as $level) {
-                    $program->levels()->create(['name' => $level['name']]);
-                }
-            }
-    
-            return response()->json(['message' => 'Higher Education Program created', 'program' => $program->load('levels')], 201);
-        } else {
-            // Save as Grade Level (Basic Ed)
-            $gradeLevel = GradeLevel::create([
-                'name' => $request->name,
-                'category' => $request->category
-            ]);
-    
-            return response()->json(['message' => 'Grade Level created', 'grade_level' => $gradeLevel], 201);
-        }
+
+        $program = Program::create($validated);
+        return response()->json(['message' => 'Program created successfully', 'program' => $program], 201);
     }
-    
 
-    public function destroy($id)
-    {
-        $program = Program::find($id);
-        if ($program) {
-            $program->delete();
-            return response()->json(['message' => 'Program deleted'], 200);
-        }
+    // Get a single program
+    public function show($id) {
+        $program = Program::with('levels')->findOrFail($id);
+        return response()->json($program);
+    }
 
-        $gradeLevel = GradeLevel::find($id);
-        if ($gradeLevel) {
-            $gradeLevel->delete();
-            return response()->json(['message' => 'Grade Level deleted'], 200);
-        }
+    // Update a program
+    public function update(Request $request, $id) {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:255',
+            'category' => 'required|string'
+        ]);
 
-        return response()->json(['message' => 'Not Found'], 404);
+        $program = Program::findOrFail($id);
+        $program->update($validated);
+
+        return response()->json(['message' => 'Program updated successfully']);
+    }
+
+    // Delete a program
+    public function destroy($id) {
+        $program = Program::findOrFail($id);
+        $program->delete();
+
+        return response()->json(['message' => 'Program deleted successfully']);
     }
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FaPlus, FaEdit, FaTrash, FaBookOpen, FaSearch } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import InstructorModal from "../../contents/Admin/InstructorModal";
-import ConfirmModal from "../../contents/Admin/InstructorConfirmModal";
+import ConfirmModal from "../../contents/Admin/Modals/InstructorConfirmModal";
 import InstructorService from "../../services/InstructorService";
 import { LoadingProvider, useLoading } from "../../components/LoadingContext";
 import FullScreenLoader from "../../components/FullScreenLoader"; 

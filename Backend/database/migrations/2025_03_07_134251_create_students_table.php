@@ -9,12 +9,14 @@ return new class extends Migration {
     {
         Schema::create('students', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); 
+            $table->string('name');
             $table->string('email')->unique();
-            $table->foreignId('course_id')->constrained()->onDelete('cascade');
-            $table->foreignId('level_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('course_id');
+            $table->unsignedBigInteger('level_id');
             $table->timestamps();
         });
+        
+        
     }
 
     public function down()

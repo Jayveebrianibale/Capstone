@@ -4,20 +4,20 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up()
-{
-    Schema::create('grade_levels', function (Blueprint $table) {
-        $table->id();
-        $table->string('name')->unique();
-        $table->enum('category', ['Senior_High', 'Junior_High', 'Intermediate']);
-        $table->timestamps();
-    });
-}
+    {
+        Schema::create('grade_levels', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('program_id')->constrained()->onDelete('cascade');
+            $table->string('name'); // Example: Grade 11 - STEM, Grade 12 - ABM, etc.
+            $table->timestamps();
+        });
+    }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('grade_levels');
     }
 };
+    

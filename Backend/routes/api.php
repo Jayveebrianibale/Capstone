@@ -49,12 +49,16 @@ Route::delete('/instructors/{id}', [InstructorController::class, 'destroy']);
 //Programs Routes
 Route::get('/programs', [ProgramController::class, 'index']);
 Route::post('/programs', [ProgramController::class, 'store']);
+Route::get('/programs/{id}', [ProgramController::class, 'show']);
+Route::put('/programs/{id}', [ProgramController::class, 'update']);
 Route::delete('/programs/{id}', [ProgramController::class, 'destroy']);
 
+
 // Level Routes
-Route::post('/levels', [LevelController::class, 'store']);
-Route::get('/levels', [LevelController::class, 'index']);
-Route::delete('/levels/{level}', [LevelController::class, 'destroy']);
+Route::get('/grade-levels', [GradeLevelController::class, 'index']);
+Route::post('/grade-levels', [GradeLevelController::class, 'store']);
+Route::put('/grade-levels/{id}', [GradeLevelController::class, 'update']);
+Route::delete('/grade-levels/{id}', [GradeLevelController::class, 'destroy']);
 
 // Question Management Routes
 Route::post('/questions', [QuestionController::class, 'store']); // Create

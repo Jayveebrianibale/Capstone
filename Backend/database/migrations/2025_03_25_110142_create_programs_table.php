@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('programs', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->enum('category', ['Higher_education', 'Senior_High', 'Junior_High', 'Intermediate']);
+            $table->string('category')->nullable();
             $table->timestamps();
         });
     }

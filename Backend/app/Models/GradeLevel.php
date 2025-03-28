@@ -9,5 +9,10 @@ class GradeLevel extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'category'];
+    protected $fillable = ['program_id', 'name'];
+
+    public function program()
+    {
+        return $this->belongsTo(Program::class);
+    }
 }
