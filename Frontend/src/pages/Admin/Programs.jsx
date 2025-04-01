@@ -4,6 +4,7 @@ import ProgramService from "../../services/ProgramService";
 import { toast, ToastContainer } from "react-toastify";
 import FullScreenLoader from "../../components/FullScreenLoader";
 import { useLoading } from "../../components/LoadingContext";
+import ProgramConfirmModal from "../../contents/Admin/Modals/ProgramConfirmModal";
 import HigherEducationModal from "../../contents/Admin/Modals/HigherEducationModal";
 import SeniorHighModal from "../../contents/Admin/Modals/SeniorHighModal";
 import JuniorHighModal from "../../contents/Admin/Modals/JuniorHighModal";
@@ -16,6 +17,9 @@ function Programs() {
   const [activeTab, setActiveTab] = useState("Higher Education");
   const [activeModal, setActiveModal] = useState(null);
   const [selectedProgram, setSelectedProgram] = useState(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [deleteProgramId, setDeleteProgramId] = useState(null);
+
 
   useEffect(() => {
     fetchPrograms();
@@ -24,23 +28,24 @@ function Programs() {
   const fetchPrograms = async () => {
     setLoading(true);
     try {
-      const response = await ProgramService.getAll();
-      console.log("Fetched programs:", response); // ✅ Debugging
-      setPrograms(Array.isArray(response.programs) ? response.programs : []);
+        const response = await ProgramService.getAll();
+        console.log("Fetched programs:", response); // Log the response
+        setPrograms(Array.isArray(response.programs) ? response.programs : []);
     } catch (error) {
-      console.error("Error fetching programs:", error);
-      toast.error("Failed to load programs.");
-      setPrograms([]);
+        console.error("Error fetching programs:", error);
+        toast.error("Failed to load programs.");
+        setPrograms([]);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
   const filteredPrograms = programs
-    .filter((prog) => prog.category === activeTab)
-    .filter((prog) =>
+  .filter((prog) => prog.category.toLowerCase() === activeTab.toLowerCase())
+  .filter((prog) =>
       prog.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  );
+      console.log("Filtered programs:", filteredPrograms);
 
   const openAddProgramModal = () => {
     setSelectedProgram(null);
@@ -54,22 +59,38 @@ function Programs() {
 
   const handleSaveProgram = async (programData, isEditing, programId) => {
     try {
-      if (isEditing) {
-        console.log("Updating program:", programId, programData); // ✅ Debugging
-        await ProgramService.update(programId, programData);
-        toast.success("Program updated successfully!");
-      } else {
-        await ProgramService.create(programData);
-        toast.success("Program added successfully!");
-      }
+        if (isEditing) {
+            const updatedProgram = await ProgramService.update(programId, programData);
+            console.log("Updated program:", updatedProgram);
+            toast.success("Program updated successfully!");
+        } else {
+            await ProgramService.create(programData);
+            toast.success("Program added successfully!");
+        }
 
-      fetchPrograms(); // ✅ Always fetch updated data
-      setActiveModal(null);
+        await fetchPrograms(); 
+        setActiveModal(null); 
     } catch (error) {
-      console.error("Error saving program:", error);
-      toast.error("Error saving program.");
+        console.error("Error saving program:", error);
+        toast.error("Error saving program.");
     }
-  };
+};
+
+const handleDeleteProgram = async () => {
+  if (!deleteProgramId) return;
+
+  try {
+    await ProgramService.delete(deleteProgramId);
+    toast.success("Program deleted successfully!");
+    await fetchPrograms();
+  } catch (error) {
+    console.error("Error deleting program:", error);
+    toast.error("Failed to delete program.");
+  } finally {
+    setIsConfirmModalOpen(false);
+    setDeleteProgramId(null);
+  }
+};
 
   return (
     <main className="p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -146,10 +167,17 @@ function Programs() {
                 >
                   <FaEdit />
                 </button>
-                <button className="text-red-600 hover:text-red-700 ml-3 transition-colors duration-200">
+                <button
+                  className="text-red-600 hover:text-red-700 ml-3 transition-colors duration-200"
+                  onClick={() => {
+                    setDeleteProgramId(prog.id);
+                    setIsConfirmModalOpen(true);
+                  }}
+                >
                   <FaTrash />
                 </button>
               </div>
+
             </div>
           ))}
         </div>
@@ -163,14 +191,52 @@ function Programs() {
       </button>
 
       {activeModal && (
-        <HigherEducationModal
-          isOpen={true}
-          onClose={() => setActiveModal(null)}
-          onSave={handleSaveProgram}
-          isEditing={!!selectedProgram}
-          program={selectedProgram}
-        />
-      )}
+  <>
+    {activeTab === "Higher Education" && (
+      <HigherEducationModal
+        isOpen={true}
+        onClose={() => setActiveModal(null)}
+        onSave={handleSaveProgram}
+        isEditing={!!selectedProgram}
+        program={selectedProgram}
+      />
+    )}
+    {activeTab === "Senior High" && (
+      <SeniorHighModal
+        isOpen={true}
+        onClose={() => setActiveModal(null)}
+        onSave={handleSaveProgram}
+        isEditing={!!selectedProgram}
+        program={selectedProgram}
+      />
+    )}
+    {activeTab === "Junior High" && (
+      <JuniorHighModal
+        isOpen={true}
+        onClose={() => setActiveModal(null)}
+        onSave={handleSaveProgram}
+        isEditing={!!selectedProgram}
+        program={selectedProgram}
+      />
+    )}
+    {activeTab === "Intermediate" && (
+      <IntermediateModal
+        isOpen={true}
+        onClose={() => setActiveModal(null)}
+        onSave={handleSaveProgram}
+        isEditing={!!selectedProgram}
+        program={selectedProgram}
+      />
+    )}
+  </>
+)}
+      <ProgramConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleDeleteProgram}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this program?"
+      />
     </main>
   );
 }

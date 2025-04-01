@@ -15,24 +15,36 @@ class ProgramController extends Controller {
     // Create a new program
     public function store(Request $request) {
         $request->validate([
-            'name' => 'required|string|unique:programs',
-            'code' => 'required|string|unique:programs',
+            'name' => 'required|string',
+            'code' => 'required|string',
             'yearLevel' => 'nullable|string',
             'category' => 'nullable|string',
         ]);
-
+    
+        $existingProgram = Program::where('name', $request->name)
+                                ->where('code', $request->code)
+                                ->where('yearLevel', $request->yearLevel)
+                                ->first();
+    
+        if ($existingProgram) {
+            return response()->json([
+                'message' => 'Program with the same name, code, and year level already exists'
+            ], 422);
+        }
+    
         $program = Program::create([
             'name' => $request->name,
             'code' => $request->code,
             'yearLevel' => $request->yearLevel,
             'category' => ucwords(str_replace('_', ' ', $request->category)),
         ]);
-
+    
         return response()->json([
             'message' => 'Program created successfully',
             'program' => $program
         ], 201);
     }
+    
 
     // Get a single program
     public function show($id) {

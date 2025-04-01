@@ -23,19 +23,15 @@ export default function HigherEducationModal({ isOpen, onClose, onSave, isEditin
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Prepare the program data
     const programData = {
-      name: formData.name,
-      code: formData.code,
-      yearLevel: formData.yearLevel, 
-      category: "higher_education",
+        name: formData.name,
+        code: formData.code,
+        yearLevel: formData.yearLevel, 
+        category: "Higher Education",
     };
 
-    // Call the onSave function for both adding and editing
-    onSave(programData, isEditing, program?.id); // Pass the ID for editing
-    onClose();
-  };
+    onSave(programData, isEditing, program?.id);
+};
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} title={isEditing ? "Edit Higher Education Program" : "Add Higher Education Program"}>

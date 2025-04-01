@@ -15,22 +15,23 @@ const ProgramService = {
 
   create: async (data) => {
     try {
-      console.log("Sending Data:", JSON.stringify(data, null, 2));
-      const response = await axios.post(API_URL, data);
-      console.log("Program Created:", response.data);
-      return response.data;
+        console.log("Sending Data:", JSON.stringify(data, null, 2));
+        const response = await axios.post(API_URL, data);
+        console.log("Program Created:", response.data);
+        return response.data;
     } catch (error) {
-      console.error("Error creating program:", error.response?.data || error.message);
-      throw error;
+        console.error("Error creating program:", error.response?.data || error.message);
+        throw error;
     }
-  },
+},
 
   async update(id, programData) {
     try {
-      return axios.put(`${API_URL}/${id}`, programData);
+        const response = await axios.put(`${API_URL}/${id}`, programData);
+        return response.data; // Ensure this returns the updated data
     } catch (error) {
-      console.error("Error updating program:", error);
-      throw error;
+        console.error("Error updating program:", error);
+        throw error;
     }
   },
 
