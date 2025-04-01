@@ -10,6 +10,8 @@ return new class extends Migration {
         Schema::create('programs', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->string('code')->nullable()->change();
+            $table->string('yearLevel')->nullable();
             $table->string('category')->nullable();
             $table->timestamps();
         });

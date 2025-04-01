@@ -13,8 +13,9 @@ function Programs() {
   const [programs, setPrograms] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const { loading, setLoading } = useLoading();
-  const [activeTab, setActiveTab] = useState("Higher_Education");
+  const [activeTab, setActiveTab] = useState("Higher Education");
   const [activeModal, setActiveModal] = useState(null);
+  const [selectedProgram, setSelectedProgram] = useState(null);
 
   useEffect(() => {
     fetchPrograms();
@@ -24,8 +25,10 @@ function Programs() {
     setLoading(true);
     try {
       const response = await ProgramService.getAll();
+      console.log("Fetched programs:", response); // ✅ Debugging
       setPrograms(Array.isArray(response.programs) ? response.programs : []);
     } catch (error) {
+      console.error("Error fetching programs:", error);
       toast.error("Failed to load programs.");
       setPrograms([]);
     } finally {
@@ -33,21 +36,38 @@ function Programs() {
     }
   };
 
-  const filteredPrograms = programs.filter((prog) => prog.category === activeTab);
+  const filteredPrograms = programs
+    .filter((prog) => prog.category === activeTab)
+    .filter((prog) =>
+      prog.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   const openAddProgramModal = () => {
+    setSelectedProgram(null);
     setActiveModal(activeTab);
   };
 
-  // ✅ Handle Saving a Program
-  const handleSaveProgram = async (programData) => {
+  const openEditProgramModal = (program) => {
+    setSelectedProgram(program);
+    setActiveModal(activeTab);
+  };
+
+  const handleSaveProgram = async (programData, isEditing, programId) => {
     try {
-      await ProgramService.create(programData);
-      toast.success("Program added successfully!");
-      fetchPrograms(); // Refresh the list
-      setActiveModal(null); // Close modal after saving
+      if (isEditing) {
+        console.log("Updating program:", programId, programData); // ✅ Debugging
+        await ProgramService.update(programId, programData);
+        toast.success("Program updated successfully!");
+      } else {
+        await ProgramService.create(programData);
+        toast.success("Program added successfully!");
+      }
+
+      fetchPrograms(); // ✅ Always fetch updated data
+      setActiveModal(null);
     } catch (error) {
-      toast.error("Error adding program.");
+      console.error("Error saving program:", error);
+      toast.error("Error saving program.");
     }
   };
 
@@ -57,7 +77,7 @@ function Programs() {
       {loading && <FullScreenLoader />}
 
       <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-        <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
           Academic Programs and Grade Levels
         </h1>
         <div className="relative w-full md:w-auto">
@@ -73,41 +93,60 @@ function Programs() {
       </div>
 
       <div className="flex border-b mb-4 dark:bg-gray-800">
-        {["Higher_Education", "Senior_High", "Junior_High", "Intermediate"].map((category) => (
-          <button
-            key={category}
-            onClick={() => setActiveTab(category)}
-            className={`py-2 px-4 text-lg font-semibold transition ${
-              activeTab === category
-                ? "border-b-4 border-[#1F3463] text-[#1F3463] dark:text-white dark:border-white"
-                : "text-gray-500 dark:text-gray-400"
-            }`}
-          >
-            {category.replace("_", " ")}
-          </button>
-        ))}
+        {["Higher Education", "Senior High", "Junior High", "Intermediate"].map(
+          (category) => (
+            <button
+              key={category}
+              onClick={() => setActiveTab(category)}
+              className={`py-2 px-4 text-lg font-semibold transition ${
+                activeTab === category
+                  ? "border-b-4 border-[#1F3463] text-[#1F3463] dark:text-white dark:border-white"
+                  : "text-gray-500 dark:text-gray-400"
+              }`}
+            >
+              {category}
+            </button>
+          )
+        )}
       </div>
 
       {filteredPrograms.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <p className="text-gray-500 dark:text-gray-400 text-lg">
-            No Programs Available for {activeTab.replace("_", " ")}
+            No Programs Available for {activeTab}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow-md">
+          <div className="hidden md:grid grid-cols-4 gap-4 border-b bg-gray-100 dark:bg-gray-700 p-4 font-semibold text-sm text-gray-700 dark:text-gray-300 rounded-t-lg">
+            <div className="px-4 py-3">Program Name</div>
+            <div className="px-4 py-3">Program Code</div>
+            <div className="px-4 py-3">Year Level</div>
+            <div className="px-4 py-3 text-center">Actions</div>
+          </div>
+
           {filteredPrograms.map((prog) => (
-            <div key={prog.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-              <h2 className="text-lg font-semibold dark:text-gray-200">{prog.name}</h2>
-              <p className="text-gray-500 dark:text-gray-400">{prog.code || "N/A"}</p>
-              <p className="text-gray-500 dark:text-gray-400">
-                {prog.levels?.length > 0 ? prog.levels.map(level => level.name).join(", ") : "N/A"}
-              </p>
-              <div className="flex justify-end gap-3 mt-3">
-                <button className="text-blue-600 hover:underline">
+            <div
+              key={prog.id}
+              className="grid grid-cols-4 gap-4 p-4 border-b dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-b-lg transition-all duration-200"
+            >
+              <div className="px-4 py-3 text-sm text-gray-800 dark:text-gray-200">
+                {prog.name}
+              </div>
+              <div className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                {prog.code || "N/A"}
+              </div>
+              <div className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                {prog.yearLevel || "N/A"}
+              </div>
+              <div className="px-4 py-3 text-center">
+                <button
+                  className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+                  onClick={() => openEditProgramModal(prog)}
+                >
                   <FaEdit />
                 </button>
-                <button className="text-red-600 hover:underline">
+                <button className="text-red-600 hover:text-red-700 ml-3 transition-colors duration-200">
                   <FaTrash />
                 </button>
               </div>
@@ -123,13 +162,13 @@ function Programs() {
         <FaPlus size={12} />
       </button>
 
-      {activeModal === "Higher_Education" && (
+      {activeModal && (
         <HigherEducationModal
           isOpen={true}
           onClose={() => setActiveModal(null)}
-          onSave={handleSaveProgram} // ✅ Pass function
-          isEditing={false}
-          program={null}
+          onSave={handleSaveProgram}
+          isEditing={!!selectedProgram}
+          program={selectedProgram}
         />
       )}
     </main>

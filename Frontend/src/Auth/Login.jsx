@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import LoginPic from "../assets/Login.jpg";
-import Logo from "../assets/lvcc-logo.png";
+import Logo from "../assets/Updated-logo.png";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -102,7 +102,7 @@ function Login() {
             <main className="lg:col-span-7 xl:col-span-6 p-10">
               <div className="text-center">
                 <div className="flex justify-center mb-4">
-                  <img src={Logo} alt="LVCC Logo" className="w-16 h-16" />
+                  <img src={Logo} alt="LVCC Logo" className="w-20 h-20" />
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Welcome to Sign In!</h1>
                 <p className="mt-2 text-gray-600 text-sm">Please sign in using your La Verdad Email.</p>
@@ -135,7 +135,7 @@ function Login() {
                   />
                 </div>
 
-                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md text-sm">
+                <button type="submit" className="w-full bg-[#1F3463] hover:bg-blue-700 text-white font-semibold py-3 rounded-md text-sm">
                   Sign In
                 </button>
 

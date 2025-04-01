@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Program extends Model {
     use HasFactory;
 
-    protected $fillable = ['name', 'code', 'year_level', 'category'];
+    protected $fillable = ['name', 'code', 'yearLevel', 'category'];
 
     public function levels() {
         return $this->hasMany(Level::class);
     }
-}
+}   
 

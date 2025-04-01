@@ -3,10 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Program;
-use App\Models\ProgramLevel;
-use App\Models\GradeLevel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class ProgramController extends Controller {
     // Get all programs with levels
@@ -17,14 +14,24 @@ class ProgramController extends Controller {
 
     // Create a new program
     public function store(Request $request) {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'required|string|max:10|unique:programs,code',
-            'yearLevel' => 'required|string|in:1st Year,2nd Year,3rd Year,4th Year',
+        $request->validate([
+            'name' => 'required|string|unique:programs',
+            'code' => 'required|string|unique:programs',
+            'yearLevel' => 'nullable|string',
+            'category' => 'nullable|string',
         ]);
 
-        $program = Program::create($validated);
-        return response()->json(['message' => 'Program created successfully', 'program' => $program], 201);
+        $program = Program::create([
+            'name' => $request->name,
+            'code' => $request->code,
+            'yearLevel' => $request->yearLevel,
+            'category' => ucwords(str_replace('_', ' ', $request->category)),
+        ]);
+
+        return response()->json([
+            'message' => 'Program created successfully',
+            'program' => $program
+        ], 201);
     }
 
     // Get a single program
@@ -38,15 +45,20 @@ class ProgramController extends Controller {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:255',
+            'yearLevel' => 'nullable|string',
             'category' => 'required|string'
         ]);
-
+    
         $program = Program::findOrFail($id);
         $program->update($validated);
-
-        return response()->json(['message' => 'Program updated successfully']);
+    
+        
+        return response()->json([
+            'message' => 'Program updated successfully',
+            'program' => $program 
+        ]);
     }
-
+    
     // Delete a program
     public function destroy($id) {
         $program = Program::findOrFail($id);
