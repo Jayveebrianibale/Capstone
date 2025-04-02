@@ -149,7 +149,7 @@ const handleDeleteProgram = async () => {
           {filteredPrograms.map((prog) => (
             <div
               key={prog.id}
-              className="grid grid-cols-4 gap-4 p-4 border-b dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-b-lg transition-all duration-200"
+              className="grid grid-cols-4 gap-4 p-4 border-b hover:bg-gray-50 dark:hover:bg-gray-600 rounded-b-lg transition-all duration-200"
             >
               <div className="px-4 py-3 text-sm text-gray-800 dark:text-gray-200">
                 {prog.name}
