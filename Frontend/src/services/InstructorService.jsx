@@ -21,6 +21,13 @@ const InstructorService = {
   delete: async (id) => {
     await axios.delete(`${API_URL}/${id}`);
   },
+
+  assignPrograms: async (instructorId, programIds) => {
+    const res = await axios.post(`${BASE_URL}/${instructorId}/assign-programs`, {
+      program_ids: programIds,
+    });
+    return res.data;
+  },
 };
 
 export default InstructorService;

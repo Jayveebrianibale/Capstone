@@ -39,7 +39,7 @@ Route::post('/students/{student}/enroll', [CourseController::class, 'enrollStude
 Route::get('/students/{student}/courses', [CourseController::class, 'getEnrolledCourses']);
 
 // Instructor Routes
-Route::post('/instructors/assign', [InstructorController::class, 'assignInstructor']);
+Route::post('/instructors/{id}/assign-programs', [InstructorController::class, 'assignProgram']);
 Route::middleware(['auth:sanctum'])->get('/instructors/by-course', [InstructorController::class, 'getInstructorsByCourse']);
 Route::get('/instructors', [InstructorController::class, 'index']);
 Route::post('/instructors', [InstructorController::class, 'store']);

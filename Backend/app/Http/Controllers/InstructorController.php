@@ -45,4 +45,22 @@ class InstructorController extends Controller
 
         return response()->json(['message' => 'Instructor deleted successfully']);
     }
+
+    public function assignProgram(Request $request, $id)
+    {
+    $instructor = Instructor::findOrFail($id);
+
+    $request->validate([
+        'program_ids' => 'required|array',
+        'program_ids.*' => 'exists:programs,id',
+    ]);
+
+    $instructor->programs()->sync($request->program_ids);
+
+    return response()->json([
+        'message' => 'Programs assigned successfully',
+        'instructor' => $instructor->load('programs')
+    ]);
+    }
+
 }

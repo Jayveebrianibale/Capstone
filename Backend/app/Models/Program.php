@@ -13,5 +13,11 @@ class Program extends Model {
     public function levels() {
         return $this->hasMany(Level::class);
     }
+
+    public function instructors()
+    {
+        return $this->belongsToMany(Instructor::class);
+    }
+
 }   
 

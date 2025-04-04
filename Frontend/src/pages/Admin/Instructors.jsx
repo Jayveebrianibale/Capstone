@@ -7,6 +7,7 @@ import InstructorService from "../../services/InstructorService";
 import { LoadingProvider, useLoading } from "../../components/LoadingContext";
 import FullScreenLoader from "../../components/FullScreenLoader";
 import "react-toastify/dist/ReactToastify.css";
+import AssignProgramModal from "../../contents/Admin/Modals/AssignProgramModal";
 
 function Instructors() {
   const [instructors, setInstructors] = useState([]);
@@ -19,6 +20,9 @@ function Instructors() {
   const [deleteInstructorId, setDeleteInstructorId] = useState(null);
   const [schoolYear, setSchoolYear] = useState("");
   const { loading, setLoading } = useLoading();
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedInstructor, setSelectedInstructor] = useState(null);
+
 
   useEffect(() => {
     fetchInstructors();
@@ -137,9 +141,16 @@ function Instructors() {
               </div>
                 
               <div className="px-4 py-3 flex justify-center items-center">
-                <button className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition flex items-center gap-2">
-                  <FaBookOpen /> Assign
-                </button>
+              <button
+                className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition flex items-center gap-2"
+                onClick={() => {
+                  setSelectedInstructor(inst);
+                  setAssignModalOpen(true);
+                }}
+              >
+                <FaBookOpen /> Assign
+            </button>
+
               </div>
             </div>
           ))}
@@ -155,6 +166,11 @@ function Instructors() {
 
       <InstructorModal isOpen={showModal} onClose={() => setShowModal(false)} onSave={fetchInstructors} isEditing={isEditing} instructor={currentInstructor} />
       <ConfirmModal isOpen={confirmModalOpen} onClose={() => setConfirmModalOpen(false)} onConfirm={handleDelete} title="Delete Confirmation" message="Are you sure you want to delete this instructor?" />
+      <AssignProgramModal
+        isOpen={assignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        instructor={selectedInstructor}
+        />
     </main>
   );
 }
