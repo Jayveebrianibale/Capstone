@@ -23,7 +23,7 @@ const InstructorService = {
   },
 
   assignPrograms: async (instructorId, programIds) => {
-    const res = await axios.post(`${BASE_URL}/${instructorId}/assign-programs`, {
+    const res = await axios.post(`${API_URL}/${instructorId}/assign-programs`, {
       program_ids: programIds,
     });
     return res.data;

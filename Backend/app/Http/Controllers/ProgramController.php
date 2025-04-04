@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Program;
 use Illuminate\Http\Request;
+use App\Models\Instructor;
 
 class ProgramController extends Controller {
 
@@ -74,4 +75,16 @@ class ProgramController extends Controller {
 
         return response()->json(['message' => 'Program deleted successfully']);
     }
+
+    public function getInstructorsByProgram($id)
+    {
+        $program = Program::with(['instructors.yearLevel'])->findOrFail($id);
+
+    return response()->json([
+        'instructors' => $program->instructors,
+    ]);
+    }
+
+
+
 }

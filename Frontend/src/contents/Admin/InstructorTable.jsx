@@ -21,66 +21,81 @@ function InstructorTable({ instructors }) {
             </tr>
           </thead>
           <tbody>
-            {instructors.map((instructor, index) => (
-              <tr
-                key={index}
-                className={`${
-                  index % 2 === 0 ? "bg-white dark:bg-gray-900" : "dark:bg-gray-800"
-                } hover:bg-gray-200 dark:hover:bg-gray-700`}
-              >
-                <td className="px-6 py-3 font-medium">{instructor.name}</td>
-                {[...Array(9)].map((_, i) => (
-                  <td key={i} className="px-6 py-3 text-center">
-                    {instructor.ratings[`q${i + 1}`]?.toFixed(2)}
-                  </td>
-                ))}
-                <td className="px-6 py-3 italic text-gray-600 dark:text-gray-400 w-1/4 max-w-xs whitespace-normal break-words">
-                  {instructor.comments}
-                </td>
-                <td
-                  className={`px-6 py-3 text-center font-bold ${
-                    instructor.overallRating >= 85
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
-                  }`}
+            {instructors.map((instructor, index) => {
+              const ratings = instructor.ratings || {};
+              const comments = instructor.comments || "No comments";
+              const percentage = instructor.overallRating ?? 0;
+
+              return (
+                <tr
+                  key={index}
+                  className={`${
+                    index % 2 === 0
+                      ? "bg-white dark:bg-gray-900"
+                      : "dark:bg-gray-800"
+                  } hover:bg-gray-200 dark:hover:bg-gray-700`}
                 >
-                  {instructor.overallRating.toFixed(2)}%
-                </td>
-              </tr>
-            ))}
+                  <td className="px-6 py-3 font-medium">{instructor.name}</td>
+                  {[...Array(9)].map((_, i) => (
+                    <td key={i} className="px-6 py-3 text-center">
+                      {ratings[`q${i + 1}`]?.toFixed(2) || "-"}
+                    </td>
+                  ))}
+                  <td className="px-6 py-3 italic text-gray-600 dark:text-gray-400 w-1/4 max-w-xs whitespace-normal break-words">
+                    {comments}
+                  </td>
+                  <td
+                    className={`px-6 py-3 text-center font-bold ${
+                      percentage >= 85
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-red-600 dark:text-red-400"
+                    }`}
+                  >
+                    {percentage.toFixed(2)}%
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+
       <div className="grid gap-6 p-6 lg:hidden">
-        {instructors.map((instructor, index) => (
-          <div
-            key={index}
-            className="p-6 border rounded-lg shadow-md bg-white dark:bg-gray-900"
-          >
-            <h3 className="font-bold text-lg text-[#1F3463] dark:text-white">
-              {instructor.name}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm italic">
-              {instructor.comments}
-            </p>
-            <div className="grid grid-cols-3 gap-4 mt-3">
-              {[...Array(9)].map((_, i) => (
-                <span key={i} className="text-gray-700 dark:text-gray-300">
-                  Q{i + 1} : {instructor.ratings[`q${i + 1}`]?.toFixed(2)}
-                </span>
-              ))}
-            </div>
+        {instructors.map((instructor, index) => {
+          const ratings = instructor.ratings || {};
+          const comments = instructor.comments || "No comments";
+          const percentage = instructor.overallRating ?? 0;
+
+          return (
             <div
-              className={`mt-3 font-bold text-center ${
-                instructor.overallRating >= 85
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
-              }`}
+              key={index}
+              className="p-6 border rounded-lg shadow-md bg-white dark:bg-gray-900"
             >
-              {instructor.overallRating.toFixed(2)}%
+              <h3 className="font-bold text-lg text-[#1F3463] dark:text-white">
+                {instructor.name}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm italic">
+                {comments}
+              </p>
+              <div className="grid grid-cols-3 gap-4 mt-3">
+                {[...Array(9)].map((_, i) => (
+                  <span key={i} className="text-gray-700 dark:text-gray-300">
+                    Q{i + 1} : {ratings[`q${i + 1}`]?.toFixed(2) || "-"}
+                  </span>
+                ))}
+              </div>
+              <div
+                className={`mt-3 font-bold text-center ${
+                  percentage >= 85
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-red-600 dark:text-red-400"
+                }`}
+              >
+                {percentage.toFixed(2)}%
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

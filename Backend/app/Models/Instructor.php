@@ -21,6 +21,11 @@ class Instructor extends Model
     return $this->belongsToMany(Program::class);
     }
 
+    public function yearLevel()
+    {
+    return $this->belongsTo(YearLevel::class);
+    }
+
 
 }
 

@@ -52,6 +52,7 @@ Route::post('/programs', [ProgramController::class, 'store']);
 Route::get('/programs/{id}', [ProgramController::class, 'show']);
 Route::put('/programs/{id}', [ProgramController::class, 'update']);
 Route::delete('/programs/{id}', [ProgramController::class, 'destroy']);
+Route::get('/programs/{id}/instructors', [ProgramController::class, 'getInstructors']);
 
 
 // Level Routes

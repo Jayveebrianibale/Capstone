@@ -15,23 +15,23 @@ const ProgramService = {
 
   create: async (data) => {
     try {
-        console.log("Sending Data:", JSON.stringify(data, null, 2));
-        const response = await axios.post(API_URL, data);
-        console.log("Program Created:", response.data);
-        return response.data;
+      console.log("Sending Data:", JSON.stringify(data, null, 2));
+      const response = await axios.post(API_URL, data);
+      console.log("Program Created:", response.data);
+      return response.data;
     } catch (error) {
-        console.error("Error creating program:", error.response?.data || error.message);
-        throw error;
+      console.error("Error creating program:", error.response?.data || error.message);
+      throw error;
     }
-},
+  },
 
   async update(id, programData) {
     try {
-        const response = await axios.put(`${API_URL}/${id}`, programData);
-        return response.data; // Ensure this returns the updated data
+      const response = await axios.put(`${API_URL}/${id}`, programData);
+      return response.data;
     } catch (error) {
-        console.error("Error updating program:", error);
-        throw error;
+      console.error("Error updating program:", error);
+      throw error;
     }
   },
 
@@ -43,6 +43,16 @@ const ProgramService = {
       return response.data;
     } catch (error) {
       console.error("Error deleting program:", error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  async getInstructorsByProgram(programId) {
+    try {
+      const response = await axios.get(`${API_URL}/${programId}/instructors`);
+      return response.data.instructors;
+    } catch (error) {
+      console.error(`Error fetching instructors for program ${programId}:`, error);
       throw error;
     }
   }

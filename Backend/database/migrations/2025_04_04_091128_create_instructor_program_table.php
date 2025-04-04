@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('instructor_id')->constrained()->onDelete('cascade');
             $table->foreignId('program_id')->constrained()->onDelete('cascade');
+            $table->unsignedTinyInteger('yearLevel')->nullable();
             $table->timestamps();
         });
     }
