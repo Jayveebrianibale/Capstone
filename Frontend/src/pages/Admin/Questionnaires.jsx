@@ -126,33 +126,46 @@ function Questionnaires() {
           </button>
         </div>
       ) : (
-        <div className="overflow-auto bg-white dark:bg-gray-800 rounded-lg shadow-md">
-          <div className="grid grid-cols-[1fr_1fr_3fr_auto] bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 p-3 font-semibold">
-            <div className="px-4 py-3">Category</div>
-            <div className="px-4 py-3">Type</div>
-            <div className="px-4 py-3">Question</div>
-            <div className="px-4 py-3 text-center">Actions</div>
-          </div>
+        <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow-md">
+  <div className="hidden md:grid grid-cols-[1fr_1fr_3fr_auto] gap-4 border-b bg-gray-100 dark:bg-gray-700 p-4 font-semibold text-sm text-gray-700 dark:text-gray-300 rounded-t-lg">
+    <div className="px-4 py-3">Category</div>
+    <div className="px-4 py-3">Type</div>
+    <div className="px-4 py-3">Question</div>
+    <div className="px-4 py-3 text-center">Actions</div>
+  </div>
 
-          {questions.map((q, index) => (
-            <div
-              key={`${q.id}-${index}`}
-              className="grid grid-cols-[1fr_1fr_3fr_auto] p-3 items-center border-b hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              <div className="px-4 py-3 dark:text-gray-200">{q.category}</div>
-              <div className="px-4 py-3 dark:text-gray-200">{q.type}</div>
-              <div className="px-4 py-3 break-words overflow-hidden dark:text-gray-200">{q.question}</div>
-              <div className="px-4 py-3 flex justify-center gap-4">
-                <button onClick={() => handleEditClick(q)} className="text-blue-600 hover:underline">
-                  <FaEdit />
-                </button>
-                <button onClick={() => confirmDelete(q.id)} className="text-red-600 hover:underline">
-                  <FaTrash />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+  {questions.map((q, index) => (
+    <div
+      key={`${q.id}-${index}`}
+      className="grid grid-cols-[1fr_1fr_3fr_auto] gap-4 p-4 border-b hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200"
+    >
+      <div className="px-4 py-3 text-sm text-gray-800 dark:text-gray-200">
+        {q.category}
+      </div>
+      <div className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+        {q.type}
+      </div>
+      <div className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 break-words">
+        {q.question}
+      </div>
+      <div className="px-4 py-3 text-center flex justify-center gap-3">
+        <button
+          onClick={() => handleEditClick(q)}
+          className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+        >
+          <FaEdit />
+        </button>
+        <button
+          onClick={() => confirmDelete(q.id)}
+          className="text-red-600 hover:text-red-700 transition-colors duration-200"
+        >
+          <FaTrash />
+        </button>
+      </div>
+    </div>
+  ))}
+</div>
+
       )}
 
       {showModal && (
