@@ -18,12 +18,13 @@ class Instructor extends Model
 
     public function programs()
     {
-    return $this->belongsToMany(Program::class);
+        return $this->belongsToMany(Program::class, 'instructor_program', 'instructor_id', 'program_id')
+                    ->withPivot('yearLevel');
     }
 
     public function yearLevel()
     {
-    return $this->belongsTo(YearLevel::class);
+        return $this->belongsTo(YearLevel::class);
     }
 
 

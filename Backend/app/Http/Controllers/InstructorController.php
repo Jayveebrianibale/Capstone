@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Instructor;
+use App\Models\Program;
 
 class InstructorController extends Controller
 {
@@ -62,5 +63,24 @@ class InstructorController extends Controller
         'instructor' => $instructor->load('programs')
     ]);
     }
+
+
+    public function getInstructorsByProgram($programId)
+    {
+        try {
+            $program = Program::with(['instructors' => function($query) {
+                $query->withPivot('yearLevel');
+            }])->findOrFail($programId);
+    
+            return response()->json($program->instructors);
+        } catch (\Exception $e) {
+            // Log error
+            \Log::error("Error fetching instructors for program ID $programId: " . $e->getMessage());
+    
+            // Return error response
+            return response()->json(['error' => 'Failed to load instructors.'], 500);
+        }
+    }
+    
 
 }

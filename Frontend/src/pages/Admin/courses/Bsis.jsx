@@ -10,6 +10,7 @@ function Bsis() {
   const [instructorsByYear, setInstructorsByYear] = useState([[], [], [], []]);
   const tabLabels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 
+  // Optional: Add search, export, and add functionalities
   const handleSearch = (query) => {
     console.log("Search:", query);
   };
@@ -20,20 +21,21 @@ function Bsis() {
 
   const handleAddInstructor = () => {
     console.log("Add Instructor");
+    // If you're opening a modal to assign an instructor, trigger it here
   };
 
   useEffect(() => {
     const fetchInstructors = async () => {
       try {
-        const programId = 1;
+        const programId = 1; // BSIS program ID
         const data = await ProgramService.getInstructorsByProgram(programId);
+
         console.log("Fetched instructors:", data);
 
-        const grouped = [[], [], [], []];
+        const grouped = [[], [], [], []]; // Year levels: 1 to 4
 
         data.forEach((instructor) => {
           const year = instructor?.pivot?.yearLevel;
-          console.log("Instructor year:", year);
 
           if (year && year >= 1 && year <= 4) {
             grouped[year - 1].push(instructor);
@@ -62,12 +64,11 @@ function Bsis() {
         onAdd={handleAddInstructor}
       />
 
-      <div className="flex flex-col">
+      <div className="flex flex-col mt-4">
         <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
-      </div>
-
-      <div className="mt-4">
-        <InstructorTable instructors={instructorsByYear[activeTab] || []} />
+        <div className="mt-4">
+          <InstructorTable instructors={instructorsByYear[activeTab] || []} />
+        </div>
       </div>
     </main>
   );
