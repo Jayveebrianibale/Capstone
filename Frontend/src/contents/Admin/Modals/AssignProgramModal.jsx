@@ -13,7 +13,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       setSelectedPrograms(
         instructor?.programs?.map((p) => ({
           id: p.id,
-          yearLevel: p.pivot?.yearLevel || 1,
+          yearLevel: p.pivot?.yearLevel || 1, // Default to 1 if no year level is set
         })) || []
       );
     }
@@ -61,25 +61,30 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
 
   const handleSave = async () => {
     try {
+      // Ensure yearLevel is a valid integer and filter out invalid programs
       const invalidPrograms = selectedPrograms.filter(
-        (program) => !Number.isInteger(program.yearLevel)
+        (program) => {
+          const intYearLevel = parseInt(program.yearLevel, 10);
+          return isNaN(intYearLevel) || intYearLevel < 1 || intYearLevel > 4;
+        }
       );
       if (invalidPrograms.length > 0) {
-        toast.error("Year level must be an integer.");
+        toast.error("Year level must be a number between 1 and 4.");
         return;
       }
-
+  
+      // Convert all year levels to integers and prepare the payload
       const payload = {
         programs: selectedPrograms.map((program) => ({
           id: program.id,
-          yearLevel: program.yearLevel,
+          yearLevel: parseInt(program.yearLevel, 10), // Ensure year level is an integer
         })),
       };
-
+  
       console.log("Payload being sent:", payload);
-
+  
       await InstructorService.assignPrograms(instructor.id, payload.programs);
-
+  
       toast.success("Programs assigned successfully!");
       onClose();
     } catch (error) {
@@ -92,6 +97,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       }
     }
   };
+  
 
   if (!isOpen) return null;
 
@@ -148,10 +154,6 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
                       </select>
                     )}
                   </div>
-
-                  <div className="ml-7 text-sm text-gray-500 dark:text-gray-400">
-                    Default Year Level: {program.yearLevel}
-                  </div>
                 </label>
               );
             })
@@ -165,13 +167,14 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
         <div className="flex justify-end mt-6 gap-3">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition text-gray-800 dark:text-white"
+            className="px-5 py-2.5 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white text-sm"
           >
-            Cancel
+            Close
           </button>
+
           <button
             onClick={handleSave}
-            className="px-5 py-2.5 rounded-lg bg-[#1F3463] hover:bg-blue-700 transition text-white font-medium"
+            className="px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm"
           >
             Save
           </button>

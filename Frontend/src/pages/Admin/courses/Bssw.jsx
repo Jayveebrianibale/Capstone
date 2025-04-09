@@ -10,7 +10,9 @@ function Bssw() {
   const [instructorsByYear, setInstructorsByYear] = useState([[], [], [], []]);
   const [loading, setLoading] = useState(true); 
   const [noInstructors, setNoInstructors] = useState(false);
+
   const tabLabels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+  const programCode = "BSSW";
 
   const handleSearch = (query) => {
     console.log("Search:", query);
@@ -27,43 +29,48 @@ function Bssw() {
   useEffect(() => {
     const fetchInstructors = async () => {
       try {
-        const programId = 2;
-        const data = await ProgramService.getInstructorsByProgram(programId);
+        const data = await ProgramService.getInstructorsByProgramCode(programCode);
 
-        if (data.length === 0) {
-          setNoInstructors(true);
+        if (data && typeof data === "string" && data.includes("<!doctype html>")) {
+          throw new Error("Received an HTML response. Possible backend error.");
+        }
+
+        if (Array.isArray(data)) {
+          if (data.length === 0) {
+            setNoInstructors(true);
+          } else {
+            const grouped = [[], [], [], []];
+
+            data.forEach((instructor) => {
+              const year = instructor?.pivot?.yearLevel;
+              if (year && year >= 1 && year <= 4) {
+                grouped[year - 1].push(instructor);
+              } else {
+                console.warn("Instructor has an invalid or missing yearLevel:", instructor);
+              }
+            });
+
+            setInstructorsByYear(grouped);
+          }
         } else {
-          const grouped = [[], [], [], []];
-
-          data.forEach((instructor) => {
-            const year = instructor?.pivot?.yearLevel;
-
-            if (year && year >= 1 && year <= 4) {
-              grouped[year - 1].push(instructor);
-            } else {
-              console.warn("Instructor has an invalid or missing yearLevel:", instructor);
-            }
-          });
-
-          setInstructorsByYear(grouped);
+          console.error("Response is not an array:", data);
+          toast.error("Failed to load instructors. Invalid response format.");
         }
       } catch (error) {
         console.error("Failed to load instructors:", error);
-        toast.error("Failed to load instructors for BSSW.");
+        toast.error(`Failed to load instructors for ${programCode}.`);
       } finally {
         setLoading(false);
       }
     };
 
     fetchInstructors();
-  }, []);
+  }, [programCode]);
 
-  // Check if there are instructors for the selected year (tab)
   const hasInstructorsForYear = (year) => {
     return instructorsByYear[year]?.length > 0;
   };
 
-  // Check if there are instructors assigned for any year
   const hasInstructorsAssigned = () => {
     return instructorsByYear.some((yearGroup) => yearGroup.length > 0);
   };
@@ -71,7 +78,7 @@ function Bssw() {
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
       <ContentHeader
-        title="BSSW Instructors" // Updated title for BSSW
+        title="BSSW Instructors"
         stats={["Students: 0", "Submitted: 0"]}
         onSearch={handleSearch}
         onExport={handleExport}

@@ -72,22 +72,12 @@ class InstructorController extends Controller
     }
 
 
-    public function getInstructorsByProgram($programId)
-    {
-        try {
-            $program = Program::with(['instructors' => function($query) {
-                $query->withPivot('yearLevel');
-            }])->findOrFail($programId);
-    
-            return response()->json($program->instructors);
-        } catch (\Exception $e) {
-            // Log error
-            \Log::error("Error fetching instructors for program ID $programId: " . $e->getMessage());
-    
-            // Return error response
-            return response()->json(['error' => 'Failed to load instructors.'], 500);
-        }
-    }
-    
+    public function getInstructorsByProgramCode($programCode)
+{
+    $program = Program::where('code', $programCode)->firstOrFail();
+
+    $instructors = $program->instructors()->withPivot('yearLevel')->get();
+    return response()->json($instructors);
+}
 
 }

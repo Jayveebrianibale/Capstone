@@ -49,12 +49,14 @@ const ProgramService = {
 
   getInstructorsByProgramCode: async (programCode) => {
     try {
-      const response = await axios.get(`/api/programs/${programCode}/instructors`);
+      const response = await axios.get(`${API_URL}/${programCode}/instructors`);
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to fetch instructors for ${programCode}`);
+      console.error(`Failed to fetch instructors for ${programCode}:`, error.response?.data || error.message);
+      throw error;
     }
-}
+  }
+  
 }
 
 export default ProgramService;

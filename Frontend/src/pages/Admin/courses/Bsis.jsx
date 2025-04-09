@@ -8,11 +8,10 @@ import { toast } from "react-toastify";
 function Bsis() {
   const [activeTab, setActiveTab] = useState(0);
   const [instructorsByYear, setInstructorsByYear] = useState([[], [], [], []]);
-  const [loading, setLoading] = useState(true); 
-  const [noInstructors, setNoInstructors] = useState(false); 
+  const [loading, setLoading] = useState(true);
+  const [noInstructors, setNoInstructors] = useState(false);
   const tabLabels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
-  const programCode = "BSIS"; // Using BSIS as the program code
-
+  const programCode = "BSIS";
   const handleSearch = (query) => {
     console.log("Search:", query);
   };
@@ -29,59 +28,53 @@ function Bsis() {
     const fetchInstructors = async () => {
       try {
         const data = await ProgramService.getInstructorsByProgramCode(programCode);
-    
-        // Check if the response is HTML (e.g., by checking for a doctype in the response)
-        if (data && data.includes("<!doctype html>")) {
-          throw new Error("Received an HTML response, possibly due to an error in the backend.");
-        }
-    
+        console.log("Fetched data:", data);
         if (Array.isArray(data)) {
           if (data.length === 0) {
             setNoInstructors(true);
           } else {
             const grouped = [[], [], [], []];
-    
+
             data.forEach((instructor) => {
               const year = instructor?.pivot?.yearLevel;
-    
+
               if (year && year >= 1 && year <= 4) {
                 grouped[year - 1].push(instructor);
               } else {
-                console.warn("Instructor has an invalid or missing yearLevel:", instructor);
+                console.warn("Invalid or missing yearLevel in:", instructor);
               }
             });
-    
+
+            console.log("Assigned instructors grouped by year:", grouped);
+
             setInstructorsByYear(grouped);
           }
         } else {
-          console.error("Response is not an array:", data);
-          toast.error("Failed to load instructors. Invalid response format.");
+          toast.error("Invalid response format: expected an array.");
         }
       } catch (error) {
-        console.error("Failed to load instructors:", error);
-        toast.error(`Failed to load instructors for ${programCode}.`);
+        console.error("Error fetching instructors:", error);
+        toast.error(`Failed to load instructors for ${programCode}`);
       } finally {
         setLoading(false);
       }
     };
 
-    // Call the function to fetch instructors when the component mounts
     fetchInstructors();
-
-  }, [programCode]); // Re-run if programCode changes
+  }, [programCode]);
 
   const hasInstructorsForYear = (year) => {
     return instructorsByYear[year]?.length > 0;
   };
 
   const hasInstructorsAssigned = () => {
-    return instructorsByYear.some((yearGroup) => yearGroup.length > 0);
+    return instructorsByYear.some((group) => group.length > 0);
   };
 
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
       <ContentHeader
-        title={"Instructors"}
+        title="BSIS Instructors"
         stats={["Students: 0", "Submitted: 0"]}
         onSearch={handleSearch}
         onExport={handleExport}
@@ -90,17 +83,19 @@ function Bsis() {
 
       <div className="flex flex-col mt-4">
         {loading ? (
-          <p>Loading instructors...</p>
+          <p className="text-center">Loading instructors...</p>
         ) : noInstructors || !hasInstructorsAssigned() ? (
           <p className="text-red-500 text-center">
-            No instructors assigned yet to any year.
+            No instructors assigned yet to any year for BSIS.
           </p>
         ) : (
           <>
             <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
             <div className="mt-4 text-center">
               {hasInstructorsForYear(activeTab) ? (
-                <InstructorTable instructors={instructorsByYear[activeTab] || []} />
+                <InstructorTable
+                  instructors={instructorsByYear[activeTab] || []}
+                />
               ) : (
                 <p className="text-red-500">No instructors assigned for this year.</p>
               )}
