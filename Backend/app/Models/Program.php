@@ -14,8 +14,6 @@ class Program extends Model {
         return $this->hasMany(Level::class);
     }
 
-    // App\Models\Program.php
-
     public function instructors()
     {   
         return $this->belongsToMany(Instructor::class, 'instructor_program', 'program_id', 'instructor_id')

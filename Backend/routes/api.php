@@ -14,6 +14,7 @@ use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\StudentProfileController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\ProgramController;
+use App\Models\Program;
 
 // Authentication Routes
 Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'getUser']);
@@ -52,10 +53,8 @@ Route::post('/programs', [ProgramController::class, 'store']);
 Route::get('/programs/{id}', [ProgramController::class, 'show']);
 Route::put('/programs/{id}', [ProgramController::class, 'update']);
 Route::delete('/programs/{id}', [ProgramController::class, 'destroy']);
-Route::get('/programs/{id}/instructors', [ProgramController::class, 'getInstructors']);
 Route::get('/instructors/program/{id}', [InstructorController::class, 'getByProgram']);
-Route::get('programs/{programId}/instructors', [ProgramController::class, 'getInstructors']);
-
+Route::get('/program/{programCode}/instructors', [ProgramController::class, 'getInstructorsByProgramCode']);
 
 // Level Routes
 Route::get('/grade-levels', [GradeLevelController::class, 'index']);

@@ -76,17 +76,21 @@ class ProgramController extends Controller {
         return response()->json(['message' => 'Program deleted successfully']);
     }
 
-    public function getInstructors($programId)
+    public function getInstructorsByProgramCode($programCode)
     {
-        try {
-            $program = Program::with('instructors')->findOrFail($programId);
-            return response()->json($program->instructors);
-        } catch (\Exception $e) {
-            \Log::error("Error fetching instructors for program ID $programId: " . $e->getMessage());
-            return response()->json(['error' => 'Failed to load instructors.'], 500);
+        $program = Program::where('code', $programCode)->first();
+
+        if (!$program) {
+            return response()->json(['error' => 'Program not found'], 404);
         }
+
+        $instructors = $program->instructors; 
+
+        if ($instructors->isEmpty()) {
+            return response()->json(['message' => 'No instructors assigned'], 200);
+        }
+
+        return response()->json($instructors);
     }
-
-
 
 }

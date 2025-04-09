@@ -23,7 +23,6 @@ function Instructors() {
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
 
-
   useEffect(() => {
     fetchInstructors();
     const currentYear = new Date().getFullYear();
@@ -99,7 +98,12 @@ function Instructors() {
         </div>
       </div>
 
-
+      {/* No Instructors Message */}
+      {instructors.length === 0 ? (
+        <div className="text-center text-red-500 font-semibold">
+          No instructors have been created yet.
+        </div>
+      ) : (
         <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow-md">
           <div className="hidden md:grid grid-cols-4 gap-4 border-b bg-gray-100 dark:bg-gray-700 p-4 font-semibold text-sm text-gray-700 dark:text-gray-300 rounded-t-lg">
             <div className="px-4 py-3">Instructor Name</div>
@@ -107,7 +111,6 @@ function Instructors() {
             <div className="px-4 py-3 text-center">Actions</div>
             <div className="px-4 py-3 text-center">Assign</div>
           </div>
-
 
           {filteredInstructors.map((inst) => (
             <div
@@ -117,11 +120,11 @@ function Instructors() {
               <div className="px-4 py-3 text-sm text-gray-800 dark:text-gray-200">
                 <span className="font-semibold md:hidden">Instructor: </span>{inst.name}
               </div>
-          
+              
               <div className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 break-words">
                 <span className="font-semibold md:hidden">Email: </span>{inst.email}
               </div>
-          
+              
               <div className="px-4 py-3 flex justify-center items-center gap-3">
                 <button
                   className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
@@ -139,22 +142,22 @@ function Instructors() {
                   <FaTrash />
                 </button>
               </div>
-                
+              
               <div className="px-4 py-3 flex justify-center items-center">
-              <button
-                className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition flex items-center gap-2"
-                onClick={() => {
-                  setSelectedInstructor(inst);
-                  setAssignModalOpen(true);
-                }}
-              >
-                <FaBookOpen /> Assign
-            </button>
-
+                <button
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition flex items-center gap-2"
+                  onClick={() => {
+                    setSelectedInstructor(inst);
+                    setAssignModalOpen(true);
+                  }}
+                >
+                  <FaBookOpen /> Assign
+                </button>
               </div>
             </div>
           ))}
         </div>
+      )}
 
       <button
         onClick={handleAddInstructor}
@@ -164,13 +167,25 @@ function Instructors() {
         <FaPlus size={12} />
       </button>
 
-      <InstructorModal isOpen={showModal} onClose={() => setShowModal(false)} onSave={fetchInstructors} isEditing={isEditing} instructor={currentInstructor} />
-      <ConfirmModal isOpen={confirmModalOpen} onClose={() => setConfirmModalOpen(false)} onConfirm={handleDelete} title="Delete Confirmation" message="Are you sure you want to delete this instructor?" />
+      <InstructorModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSave={fetchInstructors}
+        isEditing={isEditing}
+        instructor={currentInstructor}
+      />
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Confirmation"
+        message="Are you sure you want to delete this instructor?"
+      />
       <AssignProgramModal
         isOpen={assignModalOpen}
         onClose={() => setAssignModalOpen(false)}
         instructor={selectedInstructor}
-        />
+      />
     </main>
   );
 }

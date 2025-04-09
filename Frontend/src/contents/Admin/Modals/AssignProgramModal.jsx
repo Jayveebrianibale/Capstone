@@ -10,21 +10,24 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
   useEffect(() => {
     if (isOpen) {
       fetchPrograms();
-      setSelectedPrograms(instructor?.programs?.map(p => p.id) || []);
+      setSelectedPrograms(
+        instructor?.programs?.map((p) => ({
+          id: p.id,
+          yearLevel: p.pivot?.yearLevel || 1,
+        })) || []
+      );
     }
   }, [isOpen, instructor]);
 
   const fetchPrograms = async () => {
     try {
       const data = await ProgramService.getAll();
-      const extracted = Array.isArray(data)
-        ? data
-        : data?.programs || [];
+      const extracted = Array.isArray(data) ? data : data?.programs || [];
 
-      const normalized = extracted.map(p => ({
+      const normalized = extracted.map((p) => ({
         id: p.id,
         name: p.name,
-        yearLevel: p.year_level || p.yearLevel || "N/A",
+        yearLevel: p.year_level || p.yearLevel || 1,
       }));
 
       setPrograms(normalized);
@@ -34,19 +37,59 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
     }
   };
 
-  const handleToggle = (id) => {
-    setSelectedPrograms((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
-    );
+  const handleToggle = (program) => {
+    setSelectedPrograms((prev) => {
+      const exists = prev.find((p) => p.id === program.id);
+      if (exists) {
+        return prev.filter((p) => p.id !== program.id);
+      } else {
+        return [...prev, { id: program.id, yearLevel: program.yearLevel || 1 }];
+      }
+    });
+  };
+
+  const handleYearLevelChange = (programId, newYearLevel) => {
+    const intYearLevel = parseInt(newYearLevel, 10);
+    if (!isNaN(intYearLevel)) {
+      setSelectedPrograms((prev) =>
+        prev.map((p) =>
+          p.id === programId ? { ...p, yearLevel: intYearLevel } : p
+        )
+      );
+    }
   };
 
   const handleSave = async () => {
     try {
-      await InstructorService.assignPrograms(instructor.id, selectedPrograms);
+      const invalidPrograms = selectedPrograms.filter(
+        (program) => !Number.isInteger(program.yearLevel)
+      );
+      if (invalidPrograms.length > 0) {
+        toast.error("Year level must be an integer.");
+        return;
+      }
+
+      const payload = {
+        programs: selectedPrograms.map((program) => ({
+          id: program.id,
+          yearLevel: program.yearLevel,
+        })),
+      };
+
+      console.log("Payload being sent:", payload);
+
+      await InstructorService.assignPrograms(instructor.id, payload.programs);
+
       toast.success("Programs assigned successfully!");
       onClose();
-    } catch {
-      toast.error("Failed to assign programs.");
+    } catch (error) {
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        toast.error(error.response.data.message || "Failed to assign programs.");
+      } else {
+        console.error("Network error:", error);
+        toast.error("Failed to assign programs.");
+      }
     }
   };
 
@@ -56,32 +99,66 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 px-4">
       <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-2xl w-full max-w-lg transition-all">
         <h2 className="text-xl font-semibold mb-5 text-gray-800 dark:text-white">
-          Assign Programs to <span className="text-[#1F3463] dark:text-blue-400">{instructor?.name}</span>
+          Assign Programs to{" "}
+          <span className="text-[#1F3463] dark:text-blue-400">
+            {instructor?.name}
+          </span>
         </h2>
 
         <div className="max-h-64 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
           {programs.length > 0 ? (
-            programs.map((program) => (
-              <label
-                key={program.id}
-                className="flex items-start gap-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md transition"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedPrograms.includes(program.id)}
-                  onChange={() => handleToggle(program.id)}
-                  className="mt-1 accent-[#1F3463] w-4 h-4"
-                />
-                <div className="text-gray-700 dark:text-gray-200">
-                  <div className="font-medium">{program.name}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    Year Level: {program.yearLevel}
+            programs.map((program) => {
+              const isChecked = selectedPrograms.some(
+                (p) => p.id === program.id
+              );
+              const selectedYearLevel = selectedPrograms.find(
+                (p) => p.id === program.id
+              )?.yearLevel;
+
+              return (
+                <label
+                  key={program.id}
+                  className="flex flex-col gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md transition"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleToggle(program)}
+                        className="accent-[#1F3463] w-4 h-4"
+                      />
+                      <div className="text-gray-700 dark:text-gray-200 font-medium">
+                        {program.name}
+                      </div>
+                    </div>
+
+                    {isChecked && (
+                      <select
+                        value={selectedYearLevel || 1}
+                        onChange={(e) =>
+                          handleYearLevelChange(program.id, e.target.value)
+                        }
+                        className="ml-2 p-1 rounded-md border text-sm dark:bg-gray-700 dark:text-white"
+                      >
+                        <option value={1}>1st Year</option>
+                        <option value={2}>2nd Year</option>
+                        <option value={3}>3rd Year</option>
+                        <option value={4}>4th Year</option>
+                      </select>
+                    )}
                   </div>
-                </div>
-              </label>
-            ))
+
+                  <div className="ml-7 text-sm text-gray-500 dark:text-gray-400">
+                    Default Year Level: {program.yearLevel}
+                  </div>
+                </label>
+              );
+            })
           ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400">No programs found.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              No programs found.
+            </p>
           )}
         </div>
 

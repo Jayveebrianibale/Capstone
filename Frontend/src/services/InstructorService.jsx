@@ -22,12 +22,13 @@ const InstructorService = {
     await axios.delete(`${API_URL}/${id}`);
   },
 
-  assignPrograms: async (instructorId, programIds) => {
+  assignPrograms: async (instructorId, programs) => {
     const res = await axios.post(`${API_URL}/${instructorId}/assign-programs`, {
-      program_ids: programIds,
+      programs: programs,
     });
     return res.data;
-  },
+  }
+  
 };
 
 export default InstructorService;
