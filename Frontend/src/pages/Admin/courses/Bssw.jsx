@@ -4,15 +4,17 @@ import Tabs from "../../../components/Tabs";
 import ContentHeader from "../../../contents/Admin/ContentHeader";
 import ProgramService from "../../../services/ProgramService";
 import { toast } from "react-toastify";
+import FullScreenLoader from "../../../components/FullScreenLoader";
+import { useLoading } from "../../../components/LoadingContext"; // import LoadingContext
 
 function Bssw() {
   const [activeTab, setActiveTab] = useState(0);
   const [instructorsByYear, setInstructorsByYear] = useState([[], [], [], []]);
-  const [loading, setLoading] = useState(true); 
   const [noInstructors, setNoInstructors] = useState(false);
 
   const tabLabels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
   const programCode = "BSSW";
+  const { loading, setLoading } = useLoading(); // use loading state from context
 
   const handleSearch = (query) => {
     console.log("Search:", query);
@@ -28,6 +30,7 @@ function Bssw() {
 
   useEffect(() => {
     const fetchInstructors = async () => {
+      setLoading(true); // start loading
       try {
         const data = await ProgramService.getInstructorsByProgramCode(programCode);
 
@@ -40,7 +43,6 @@ function Bssw() {
             setNoInstructors(true);
           } else {
             const grouped = [[], [], [], []];
-
             data.forEach((instructor) => {
               const year = instructor?.pivot?.yearLevel;
               if (year && year >= 1 && year <= 4) {
@@ -49,7 +51,6 @@ function Bssw() {
                 console.warn("Instructor has an invalid or missing yearLevel:", instructor);
               }
             });
-
             setInstructorsByYear(grouped);
           }
         } else {
@@ -60,12 +61,12 @@ function Bssw() {
         console.error("Failed to load instructors:", error);
         toast.error(`Failed to load instructors for ${programCode}.`);
       } finally {
-        setLoading(false);
+        setLoading(false); // stop loading
       }
     };
 
     fetchInstructors();
-  }, [programCode]);
+  }, [programCode, setLoading]);
 
   const hasInstructorsForYear = (year) => {
     return instructorsByYear[year]?.length > 0;
@@ -87,7 +88,7 @@ function Bssw() {
 
       <div className="flex flex-col mt-4">
         {loading ? (
-          <p>Loading instructors...</p>
+          <FullScreenLoader />
         ) : noInstructors || !hasInstructorsAssigned() ? (
           <p className="text-red-500 text-center">
             No instructors assigned yet to any year for BSSW.

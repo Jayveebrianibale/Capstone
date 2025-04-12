@@ -98,7 +98,6 @@ function Instructors() {
         </div>
       </div>
 
-      {/* No Instructors Message */}
       {instructors.length === 0 ? (
         <div className="text-center text-red-500 font-semibold">
           No instructors have been created yet.

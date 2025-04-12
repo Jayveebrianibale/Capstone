@@ -1,17 +1,21 @@
 import React from "react";
-import { CircularProgress, Typography, Box } from "@mui/material";
+import { CircularProgress, Box } from "@mui/material";
 
-const CompletionIndicator = ({ value, size = 180 }) => {
+const CompletionIndicator = ({ value, size = 200 }) => {
   return (
-    <div className="flex flex-col items-center" style={{ width: size, height: size }}>
+    <div
+      className="flex flex-col items-center"
+      style={{ width: size, height: size }}
+    >
       <Box position="relative" display="inline-flex" width={size} height={size}>
         <CircularProgress
           variant="determinate"
           value={value}
-          size={size} 
-          thickness={5}
+          size={size}
+          thickness={6}
           sx={{
-            color: value === 100 ? "green" : "blue",
+            color: "#1F3463",
+            backgroundColor: "transparent",
           }}
         />
         <Box
@@ -24,18 +28,13 @@ const CompletionIndicator = ({ value, size = 180 }) => {
           alignItems="center"
           justifyContent="center"
         >
-          <Typography
-            variant="h6"
-            component="div"
-            className="text-gray-900 dark:text-gray-100 font-bold"
+          <div
+            className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100"
           >
             {`${value}%`}
-          </Typography>
+          </div>
         </Box>
       </Box>
-      <p className="mt-4 mb-6 text-gray-900 dark:text-gray-100 font-medium">
-        Completion Rate
-      </p>
     </div>
   );
 };

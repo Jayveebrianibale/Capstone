@@ -13,7 +13,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       setSelectedPrograms(
         instructor?.programs?.map((p) => ({
           id: p.id,
-          yearLevel: p.pivot?.yearLevel || 1, // Default to 1 if no year level is set
+          yearLevel: p.pivot?.yearLevel || 1,
         })) || []
       );
     }
@@ -61,7 +61,6 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
 
   const handleSave = async () => {
     try {
-      // Ensure yearLevel is a valid integer and filter out invalid programs
       const invalidPrograms = selectedPrograms.filter(
         (program) => {
           const intYearLevel = parseInt(program.yearLevel, 10);
@@ -73,11 +72,10 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
         return;
       }
   
-      // Convert all year levels to integers and prepare the payload
       const payload = {
         programs: selectedPrograms.map((program) => ({
           id: program.id,
-          yearLevel: parseInt(program.yearLevel, 10), // Ensure year level is an integer
+          yearLevel: parseInt(program.yearLevel, 10),
         })),
       };
   

@@ -18,7 +18,6 @@ const FullScreenLoader = () => {
     >
       <div className="flex flex-col items-center">
         <Player autoplay loop src={loaderAnimation} className="w-[100%]" />
-        {/* <p className="text-gray-700 text-lg font-medium mt-2">Loading, please wait...</p> */}
       </div>
     </motion.div>
   );
