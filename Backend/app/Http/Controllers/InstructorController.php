@@ -47,27 +47,30 @@ class InstructorController extends Controller
         return response()->json(['message' => 'Instructor deleted successfully']);
     }
 
-        public function assignProgram(Request $request, $id)
+    public function assignProgram(Request $request, $id)
     {
         $instructor = Instructor::findOrFail($id);
 
         $request->validate([
-        'programs' => 'required|array',
-        'programs.*.id' => 'required|exists:programs,id',
-        'programs.*.yearLevel' => 'nullable|integer|between:1,4',
+            'programs' => 'required|array',
+            'programs.*.id' => 'required|exists:programs,id',
+            'programs.*.yearLevel' => 'required|integer|between:1,4',
         ]);
 
-        $syncData = [];
-
         foreach ($request->programs as $program) {
-        $syncData[$program['id']] = ['yearLevel' => $program['yearLevel']];
+            $exists = $instructor->programs()
+                ->wherePivot('program_id', $program['id'])
+                ->wherePivot('yearLevel', $program['yearLevel'])
+                ->exists();
+
+            if (!$exists) {
+                $instructor->programs()->attach($program['id'], ['yearLevel' => $program['yearLevel']]);
+            }
         }
 
-        $instructor->programs()->sync($syncData);
-
         return response()->json([
-        'message' => 'Programs assigned successfully',
-        'instructor' => $instructor->load('programs')
+            'message' => 'Programs assigned successfully',
+            'instructor' => $instructor->load('programs')
         ]);
     }
 

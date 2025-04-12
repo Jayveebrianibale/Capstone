@@ -17,6 +17,8 @@ return new class extends Migration
             $table->foreignId('program_id')->constrained()->onDelete('cascade');
             $table->unsignedTinyInteger('yearLevel')->nullable();
             $table->timestamps();
+
+            $table->unique(['instructor_id', 'program_id', 'yearLevel']);
         });
     }
 

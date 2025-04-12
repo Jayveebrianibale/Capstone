@@ -17,7 +17,7 @@ class Program extends Model {
     public function instructors()
     {   
         return $this->belongsToMany(Instructor::class, 'instructor_program', 'program_id', 'instructor_id')
-                ->withPivot('yearLevel');
+                ->withPivot('yearLevel')->withTimestamps();
     }
 
 
