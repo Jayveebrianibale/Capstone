@@ -1,8 +1,18 @@
 import BaseModal from "./BaseModal";
 import { useState, useEffect } from "react";
 
-export default function HigherEducationModal({ isOpen, onClose, onSave, isEditing, program }) {
-  const [formData, setFormData] = useState({ name: "", code: "", yearLevel: "" });
+export default function HigherEducationModal({
+  isOpen,
+  onClose,
+  onSave,
+  isEditing,
+  program,
+}) {
+  const [formData, setFormData] = useState({
+    name: "",
+    code: "",
+    yearLevel: "",
+  });
 
   useEffect(() => {
     if (isEditing && program) {
@@ -23,21 +33,28 @@ export default function HigherEducationModal({ isOpen, onClose, onSave, isEditin
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     const programData = {
-        name: formData.name,
-        code: formData.code,
-        yearLevel: formData.yearLevel, 
-        category: "Higher Education",
+      name: formData.name,
+      code: formData.code,
+      yearLevel: formData.yearLevel,
+      category: "Higher Education",
     };
 
     onSave(programData, isEditing, program?.id);
-};
+  };
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} title={isEditing ? "Edit Higher Education Program" : "Add Higher Education Program"}>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEditing ? "Edit Higher Education Program" : "Add Higher Education Program"}
+    >
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block font-semibold text-gray-700 dark:text-gray-300">Program Name</label>
+          <label className="block font-semibold text-gray-700 dark:text-gray-300">
+            Program Name
+          </label>
           <input
             type="text"
             name="name"
@@ -47,8 +64,11 @@ export default function HigherEducationModal({ isOpen, onClose, onSave, isEditin
             required
           />
         </div>
+
         <div className="mb-4">
-          <label className="block font-semibold text-gray-700 dark:text-gray-300">Program Code</label>
+          <label className="block font-semibold text-gray-700 dark:text-gray-300">
+            Program Code
+          </label>
           <input
             type="text"
             name="code"
@@ -58,8 +78,11 @@ export default function HigherEducationModal({ isOpen, onClose, onSave, isEditin
             required
           />
         </div>
+
         <div className="mb-6">
-          <label className="block font-semibold text-gray-700 dark:text-gray-300">Year Level</label>
+          <label className="block font-semibold text-gray-700 dark:text-gray-300">
+            Year Level
+          </label>
           <select
             name="yearLevel"
             value={formData.yearLevel}
@@ -68,12 +91,18 @@ export default function HigherEducationModal({ isOpen, onClose, onSave, isEditin
             required
           >
             <option value="">Select Level</option>
-            {["1st Year", "2nd Year", "3rd Year", "4th Year"].map((year) => (
-              <option key={year} value={year}>{year}</option>
-            ))}
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
+            <option value="All Years">All Years (1st–4th)</option>
           </select>
         </div>
-        <button type="submit" className="bg-[#1F3463] text-white p-3 rounded w-full">
+
+        <button
+          type="submit"
+          className="bg-[#1F3463] text-white p-3 rounded w-full"
+        >
           {isEditing ? "Update" : "Save"}
         </button>
       </form>

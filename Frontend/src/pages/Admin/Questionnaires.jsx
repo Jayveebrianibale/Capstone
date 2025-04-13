@@ -127,12 +127,12 @@ function Questionnaires() {
         </div>
       ) : (
         <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow-md">
-  <div className="hidden md:grid grid-cols-[1fr_1fr_3fr_auto] gap-4 border-b bg-gray-100 dark:bg-gray-700 p-4 font-semibold text-sm text-gray-700 dark:text-gray-300 rounded-t-lg">
-    <div className="px-4 py-3">Category</div>
-    <div className="px-4 py-3">Type</div>
-    <div className="px-4 py-3">Question</div>
-    <div className="px-4 py-3 text-center">Actions</div>
-  </div>
+          <div className="hidden md:grid grid-cols-[1fr_1fr_3fr_auto] gap-4 border-b bg-gray-100 dark:bg-gray-700 p-4 font-semibold text-sm text-gray-700 dark:text-gray-300 rounded-t-lg">
+            <div className="px-4 py-3">Category</div>
+            <div className="px-4 py-3">Type</div>
+            <div className="px-4 py-3">Question</div>
+            <div className="px-4 py-3 text-center">Actions</div>
+          </div>
 
   {questions.map((q, index) => (
     <div

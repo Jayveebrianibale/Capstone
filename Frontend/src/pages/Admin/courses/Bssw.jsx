@@ -14,7 +14,7 @@ function Bssw() {
 
   const tabLabels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
   const programCode = "BSSW";
-  const { loading, setLoading } = useLoading(); // use loading state from context
+  const { loading, setLoading } = useLoading();
 
   const handleSearch = (query) => {
     console.log("Search:", query);
@@ -30,7 +30,7 @@ function Bssw() {
 
   useEffect(() => {
     const fetchInstructors = async () => {
-      setLoading(true); // start loading
+      setLoading(true);
       try {
         const data = await ProgramService.getInstructorsByProgramCode(programCode);
 
@@ -61,7 +61,7 @@ function Bssw() {
         console.error("Failed to load instructors:", error);
         toast.error(`Failed to load instructors for ${programCode}.`);
       } finally {
-        setLoading(false); // stop loading
+        setLoading(false);
       }
     };
 
@@ -79,7 +79,7 @@ function Bssw() {
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
       <ContentHeader
-        title="BSSW Instructors"
+        title="Instructors"
         stats={["Students: 0", "Submitted: 0"]}
         onSearch={handleSearch}
         onExport={handleExport}

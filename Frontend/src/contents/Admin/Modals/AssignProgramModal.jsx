@@ -61,28 +61,27 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
 
   const handleSave = async () => {
     try {
-      const invalidPrograms = selectedPrograms.filter(
-        (program) => {
-          const intYearLevel = parseInt(program.yearLevel, 10);
-          return isNaN(intYearLevel) || intYearLevel < 1 || intYearLevel > 4;
-        }
-      );
+      const invalidPrograms = selectedPrograms.filter((program) => {
+        const intYearLevel = parseInt(program.yearLevel, 10);
+        return isNaN(intYearLevel) || intYearLevel < 1 || intYearLevel > 4;
+      });
+
       if (invalidPrograms.length > 0) {
         toast.error("Year level must be a number between 1 and 4.");
         return;
       }
-  
+
       const payload = {
         programs: selectedPrograms.map((program) => ({
           id: program.id,
           yearLevel: parseInt(program.yearLevel, 10),
         })),
       };
-  
+
       console.log("Payload being sent:", payload);
-  
+
       await InstructorService.assignPrograms(instructor.id, payload.programs);
-  
+
       toast.success("Programs assigned successfully!");
       onClose();
     } catch (error) {
@@ -95,7 +94,23 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       }
     }
   };
-  
+
+  // Generate year level options based on program name
+  const getYearLevelOptions = (programName) => {
+    if (programName.toLowerCase() === "associate in computer technology") {
+      return [
+        { value: 1, label: "1st Year" },
+        { value: 2, label: "2nd Year" },
+      ];
+    } else {
+      return [
+        { value: 1, label: "1st Year" },
+        { value: 2, label: "2nd Year" },
+        { value: 3, label: "3rd Year" },
+        { value: 4, label: "4th Year" },
+      ];
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -112,12 +127,8 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
         <div className="max-h-64 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
           {programs.length > 0 ? (
             programs.map((program) => {
-              const isChecked = selectedPrograms.some(
-                (p) => p.id === program.id
-              );
-              const selectedYearLevel = selectedPrograms.find(
-                (p) => p.id === program.id
-              )?.yearLevel;
+              const isChecked = selectedPrograms.some((p) => p.id === program.id);
+              const selectedYearLevel = selectedPrograms.find((p) => p.id === program.id)?.yearLevel;
 
               return (
                 <label
@@ -140,15 +151,14 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
                     {isChecked && (
                       <select
                         value={selectedYearLevel || 1}
-                        onChange={(e) =>
-                          handleYearLevelChange(program.id, e.target.value)
-                        }
+                        onChange={(e) => handleYearLevelChange(program.id, e.target.value)}
                         className="ml-2 p-1 rounded-md border text-sm dark:bg-gray-700 dark:text-white"
                       >
-                        <option value={1}>1st Year</option>
-                        <option value={2}>2nd Year</option>
-                        <option value={3}>3rd Year</option>
-                        <option value={4}>4th Year</option>
+                        {getYearLevelOptions(program.name).map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
                       </select>
                     )}
                   </div>
@@ -172,9 +182,9 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
 
           <button
             onClick={handleSave}
-            className="px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm"
+            className="px-5 py-2.5 rounded-lg bg-[#1F3463] text-white text-sm"
           >
-            Save
+            Assign
           </button>
         </div>
       </div>
