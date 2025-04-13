@@ -2,35 +2,35 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import FullScreenLoader from "../../components/FullScreenLoader";
+import "react-toastify/dist/ReactToastify.css";
+import BackgroundPic from "../../assets/Login.jpg";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, ArrowLeft } from "lucide-react";
 
 function StudentProfileSetup() {
   const navigate = useNavigate();
+  const [step, setStep] = useState(1);
   const [educationLevel, setEducationLevel] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
   const [yearLevel, setYearLevel] = useState("");
   const [loading, setLoading] = useState(false);
-  const [profileCompleted, setProfileCompleted] = useState(false);
 
   const educationOptions = {
     "Higher Education": ["BS Information Systems", "BS Computer Science", "BS Business Administration"],
     "Senior High": ["Grade 11", "Grade 12"],
     "Junior High": ["Grade 7", "Grade 8", "Grade 9", "Grade 10"],
-    "Intermediate": ["Grade 4", "Grade 5", "Grade 6"]
+    "Intermediate": ["Grade 4", "Grade 5", "Grade 6"],
   };
 
   const yearLevels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+  const totalSteps = educationLevel === "Higher Education" ? 3 : 2;
 
   useEffect(() => {
     const storedUser = sessionStorage.getItem("user");
-
     if (storedUser) {
       const user = JSON.parse(storedUser);
-      if (user.profile_completed) {
-        navigate("/SDashboard");
-        return;
-      }
+      if (user.profile_completed) navigate("/SDashboard");
     }
 
     const token = localStorage.getItem("authToken");
@@ -42,18 +42,13 @@ function StudentProfileSetup() {
       })
       .then((response) => {
         sessionStorage.setItem("user", JSON.stringify(response.data));
-        if (response.data.profile_completed) {
-          setProfileCompleted(true);
-          navigate("/SDashboard");
-        }
+        if (response.data.profile_completed) navigate("/SDashboard");
       })
       .catch((error) => console.error("Error fetching user:", error));
   }, [navigate]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     const token = localStorage.getItem("authToken");
-
     if (!token) {
       toast.error("Authentication failed. Please log in again.");
       return;
@@ -68,20 +63,17 @@ function StudentProfileSetup() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setTimeout(async () => {
-        const userResponse = await axios.get("http://127.0.0.1:8000/api/user", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      const userResponse = await axios.get("http://127.0.0.1:8000/api/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        if (userResponse.data.profile_completed) {
-          sessionStorage.setItem("user", JSON.stringify(userResponse.data));
-          setProfileCompleted(true);
-          toast.success("Profile setup completed!");
-          navigate("/SDashboard");
-        } else {
-          toast.error("Profile update failed. Please try again.");
-        }
-      }, 1000);
+      if (userResponse.data.profile_completed) {
+        sessionStorage.setItem("user", JSON.stringify(userResponse.data));
+        toast.success("Profile setup completed!");
+        navigate("/SDashboard");
+      } else {
+        toast.error("Profile update failed. Please try again.");
+      }
     } catch (error) {
       console.error("Error saving profile:", error.response?.data || error.message);
       toast.error(`Failed to set up profile: ${error.response?.data?.message || "Unknown error"}`);
@@ -90,87 +82,152 @@ function StudentProfileSetup() {
     }
   };
 
-  const isButtonDisabled =
-    !educationLevel ||
-    !selectedOption ||
-    (educationLevel === "Higher Education" && !yearLevel);
+  const isNextDisabled = () => {
+    if (step === 1) return !educationLevel;
+    if (step === 2) return !selectedOption;
+    if (step === 3) return !yearLevel;
+    return false;
+  };
+
+  const stepVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 },
+  };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="relative flex justify-center items-center min-h-screen p-4 overflow-hidden">
       {loading && <FullScreenLoader />}
-      <div className="bg-white shadow-lg rounded-lg p-8 w-96 border border-gray-200">
-        <h2 className="text-2xl font-bold text-center text-gray-800">Profile Setup</h2>
-        <p className="text-gray-500 text-center mb-6">
-          Select your details to complete your profile.
-        </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Education Level</label>
-            <select
-              className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
-              value={educationLevel}
-              onChange={(e) => {
-                setEducationLevel(e.target.value);
-                setSelectedOption("");
-                setYearLevel("");
-              }}
-              required
-            >
-              <option value="">Select Education Level</option>
-              {Object.keys(educationOptions).map((level) => (
-                <option key={level} value={level}>{level}</option>
-              ))}
-            </select>
-          </div>
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-20"
+        style={{ backgroundImage: `url(${BackgroundPic})` }}
+      ></div>
+      <div className="absolute inset-0 bg-black opacity-20"></div>
 
-          {educationLevel && (
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
+      <div className="relative w-full max-w-xl bg-white shadow-2xl rounded-3xl p-10 transition-all z-10">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Profile Setup</h1>
+          <p className="text-gray-500 mt-2">Let's complete your student profile</p>
+        </div>
+
+        <div className="flex justify-center gap-2 mb-8">
+          {Array.from({ length: totalSteps }).map((_, index) => (
+            <div
+              key={index}
+              className={`h-3 w-12 rounded-full transition-all ${
+                index + 1 <= step ? "bg-[#1F3463]" : "bg-gray-300"
+              }`}
+            />
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {step === 1 && (
+            <motion.div key="step1" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="mb-8">
+              <label className="block font-semibold text-gray-700 mb-3 text-lg">Education Level</label>
+              <select
+                className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
+                value={educationLevel}
+                onChange={(e) => {
+                  setEducationLevel(e.target.value);
+                  setSelectedOption("");
+                  setYearLevel("");
+                }}
+              >
+                <option value="">Select Education Level</option>
+                {Object.keys(educationOptions).map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+            </motion.div>
+          )}
+
+          {step === 2 && (
+            <motion.div key="step2" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="mb-8">
+              <label className="block font-semibold text-gray-700 mb-3 text-lg">
                 {educationLevel === "Higher Education" ? "Program" : "Grade Level"}
               </label>
               <select
-                className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
                 value={selectedOption}
                 onChange={(e) => setSelectedOption(e.target.value)}
-                required
               >
-                <option value="">Select {educationLevel === "Higher Education" ? "Program" : "Grade Level"}</option>
-                {educationOptions[educationLevel].map((option) => (
-                  <option key={option} value={option}>{option}</option>
+                <option value="">Select</option>
+                {educationOptions[educationLevel]?.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
                 ))}
               </select>
-            </div>
+            </motion.div>
           )}
 
-          {educationLevel === "Higher Education" && (
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Year Level</label>
+          {step === 3 && educationLevel === "Higher Education" && (
+            <motion.div key="step3" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="mb-8">
+              <label className="block font-semibold text-gray-700 mb-3 text-lg">Year Level</label>
               <select
-                className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
                 value={yearLevel}
                 onChange={(e) => setYearLevel(e.target.value)}
-                required
               >
                 <option value="">Select Year Level</option>
                 {yearLevels.map((year) => (
-                  <option key={year} value={year}>{year}</option>
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
                 ))}
               </select>
-            </div>
+            </motion.div>
           )}
-          <button
-            type="submit"
-            className={`w-full text-white font-semibold p-3 rounded-md transition-all ${
-              isButtonDisabled || loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 shadow-md"
-            }`}
-            disabled={isButtonDisabled || loading}
-          >
-            {loading ? "Processing..." : "Proceed to Dashboard"}
-          </button>
-        </form>
+        </AnimatePresence>
+
+        <div className="flex justify-between items-center mt-6">
+          {step > 1 ? (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setStep((prev) => prev - 1)}
+              className="px-6 py-3 rounded-xl border text-gray-600 hover:bg-gray-100 transition flex items-center gap-2"
+            >
+              <ArrowLeft size={18} /> Back
+            </motion.button>
+          ) : (
+            <div></div>
+          )}
+
+          {step < totalSteps ? (
+            <motion.button
+              whileHover={{ scale: isNextDisabled() ? 1 : 1.05 }}
+              whileTap={{ scale: isNextDisabled() ? 1 : 0.95 }}
+              disabled={isNextDisabled()}
+              onClick={() => setStep((prev) => prev + 1)}
+              className={`px-6 py-3 rounded-xl text-white transition flex items-center gap-2 ${
+                isNextDisabled()
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-[#1F3463] hover:bg-[#1c2f59]"
+              }`}
+            >
+              Next <ArrowRight size={20} />
+            </motion.button>
+          ) : (
+            <motion.button
+              whileHover={{ scale: isNextDisabled() ? 1 : 1.05 }}
+              whileTap={{ scale: isNextDisabled() ? 1 : 0.95 }}
+              disabled={isNextDisabled()}
+              onClick={handleSubmit}
+              className={`px-6 py-3 rounded-xl text-white transition flex items-center gap-2 ${
+                isNextDisabled()
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-[#1F3463] hover:bg-[#1c2f59]"
+              }`}
+            >
+              Finish <ArrowRight size={20} />
+            </motion.button>
+          )}
+        </div>
       </div>
     </div>
   );

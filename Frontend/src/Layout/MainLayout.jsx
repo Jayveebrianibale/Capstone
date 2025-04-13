@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
-import axios from "axios"; 
+import axios from "axios";
 
 function MainLayout() {
   const navigate = useNavigate();
@@ -31,29 +31,26 @@ function MainLayout() {
       navigate("/login");
       return;
     }
-  
+
     axios
       .get("http://127.0.0.1:8000/api/user", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
         const { role, has_profile } = response.data;
-  
-        if (role === "Student" && !has_profile) {
-          setTimeout(async () => {
-            const checkResponse = await axios.get("http://127.0.0.1:8000/api/user", {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-  
-            if (checkResponse.data.has_profile) {
-              sessionStorage.setItem("user", JSON.stringify(checkResponse.data));
-              navigate("/SDashboard");
-            }
-          }, 1500);
-        }
-  
+
         setRole(role);
         setLoading(false);
+
+        if (role === "Student") {
+          if (has_profile) {
+            sessionStorage.setItem("user", JSON.stringify(response.data));
+            navigate("/SDashboard");
+          } else {
+            navigate("/Student-profile-setup");
+          }
+        }
+
       })
       .catch(() => {
         localStorage.removeItem("authToken");
@@ -61,7 +58,6 @@ function MainLayout() {
         navigate("/login");
       });
   }, [navigate]);
-  
 
   if (loading) return null;
 
@@ -80,7 +76,9 @@ function MainLayout() {
         />
       )}
       <div
-        className={`flex-grow ${!isProfileSetupPage && sidebarOpen ? "ml-56" : "ml-0"} transition-all duration-300`}
+        className={`flex-grow ${
+          !isProfileSetupPage && sidebarOpen ? "ml-56" : "ml-0"
+        } transition-all duration-300`}
       >
         {!isProfileSetupPage && (
           <Navbar
