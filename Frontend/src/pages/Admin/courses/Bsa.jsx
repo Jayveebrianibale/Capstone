@@ -5,13 +5,14 @@ import ContentHeader from "../../../contents/Admin/ContentHeader";
 import ProgramService from "../../../services/ProgramService";
 import { toast } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
-import { useLoading } from "../../../components/LoadingContext"; // Import LoadingContext
+import { useLoading } from "../../../components/LoadingContext";
+import { Users } from "lucide-react";
 
 function Bsa() {
   const [activeTab, setActiveTab] = useState(0);
   const [instructorsByYear, setInstructorsByYear] = useState([[], [], [], []]);
   const [noInstructors, setNoInstructors] = useState(false);
-  const { loading, setLoading } = useLoading(); // Use loading state from context
+  const { loading, setLoading } = useLoading();
 
   const tabLabels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
   const programCode = "BSA";
@@ -30,11 +31,10 @@ function Bsa() {
 
   useEffect(() => {
     const fetchInstructors = async () => {
-      setLoading(true); // start loading indicator
+      setLoading(true);
       try {
         const data = await ProgramService.getInstructorsByProgramCode(programCode);
 
-        // Check for an HTML response indicating a backend error
         if (data && typeof data === "string" && data.includes("<!doctype html>")) {
           throw new Error("Received an HTML response. Possible backend error.");
         }
@@ -62,7 +62,7 @@ function Bsa() {
         console.error("Failed to load instructors:", error);
         toast.error(`Failed to load instructors for ${programCode}.`);
       } finally {
-        setLoading(false); // stop loading indicator
+        setLoading(false);
       }
     };
 
@@ -74,23 +74,30 @@ function Bsa() {
 
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
-      <ContentHeader
-        title="Instructors"
-        stats={["Students: 0", "Submitted: 0"]}
-        onSearch={handleSearch}
-        onExport={handleExport}
-        onAdd={handleAddInstructor}
-      />
+      {loading ? (
+        <FullScreenLoader />
+      ) : noInstructors || !hasInstructorsAssigned() ? (
+        <div className="flex flex-col items-center justify-center h-[70vh]">
+        <Users className="w-16 h-16 text-gray-400 mb-4" />
+        <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+          No Instructors Found
+        </h2>
+        <p className="text-red-500 text-center">
+          There are currently no instructors assigned to any year level for BSA.
+        </p>
+      </div>      
+      
+      ) : (
+        <>
+          <ContentHeader
+            title="Instructors"
+            stats={["Students: 0", "Submitted: 0"]}
+            onSearch={handleSearch}
+            onExport={handleExport}
+            onAdd={handleAddInstructor}
+          />
 
-      <div className="flex flex-col mt-4">
-        {loading ? (
-          <FullScreenLoader />
-        ) : noInstructors || !hasInstructorsAssigned() ? (
-          <p className="text-red-500 text-center">
-            No instructors assigned yet to any year for BSA.
-          </p>
-        ) : (
-          <>
+          <div className="flex flex-col mt-4">
             <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
             <div className="mt-4 text-center">
               {hasInstructorsForYear(activeTab) ? (
@@ -99,9 +106,9 @@ function Bsa() {
                 <p className="text-red-500">No instructors assigned for this year.</p>
               )}
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </main>
   );
 }

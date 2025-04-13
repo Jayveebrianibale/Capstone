@@ -29,7 +29,7 @@ function Programs() {
     setLoading(true);
     try {
         const response = await ProgramService.getAll();
-        console.log("Fetched programs:", response); // Log the response
+        console.log("Fetched programs:", response);
         setPrograms(Array.isArray(response.programs) ? response.programs : []);
     } catch (error) {
         console.error("Error fetching programs:", error);

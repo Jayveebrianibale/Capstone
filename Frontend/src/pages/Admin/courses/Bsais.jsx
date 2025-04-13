@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
+import { Users } from "lucide-react";
 import InstructorTable from "../../../contents/Admin/InstructorTable";
 import Tabs from "../../../components/Tabs";
 import ContentHeader from "../../../contents/Admin/ContentHeader";
@@ -53,42 +54,51 @@ function Bsais() {
     console.log("Add Instructor");
   };
 
+  const hasInstructorsForYear = (year) => instructors[year]?.length > 0;
+  const hasInstructorsAssigned = () => instructors.some((group) => group.length > 0);
+
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
-      <ContentHeader
-        title="Instructors"
-        stats={["Students: 0", "Submitted: 0"]}
-        onSearch={() => console.log("Search")}
-        onExport={() => console.log("Export to PDF")}
-        onAdd={handleAddInstructor}
-      />
-
       {loading ? (
         <FullScreenLoader />
-      ) : noInstructors ? (
-        <p className="text-red-500 text-center">
-          No instructors assigned yet to any year for BSIS.
-        </p>
+      ) : noInstructors || !hasInstructorsAssigned() ? (
+        <div className="flex flex-col items-center justify-center h-[70vh]">
+          <Users className="w-16 h-16 text-gray-400 mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+            No Instructors Found
+          </h2>
+          <p className="text-red-500 text-center">
+            There are currently no instructors assigned to any year level for BSAIS.
+          </p>
+        </div>
       ) : (
         <>
+          <ContentHeader
+            title="Instructors"
+            stats={["Students: 0", "Submitted: 0"]}
+            onSearch={() => console.log("Search")}
+            onExport={() => console.log("Export to PDF")}
+            onAdd={handleAddInstructor}
+          />
+
           <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
           <div className="mt-4 text-center">
-            {instructors[activeTab]?.length > 0 ? (
+            {hasInstructorsForYear(activeTab) ? (
               <InstructorTable instructors={instructors[activeTab]} />
             ) : (
               <p className="text-red-500">No instructors assigned for this year.</p>
             )}
           </div>
+
+          <button
+            onClick={handleAddInstructor}
+            className="fixed bottom-4 right-4 bg-[#1F3463] text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition"
+            title="Add Instructor"
+          >
+            <FaPlus size={12} />
+          </button>
         </>
       )}
-
-      <button
-        onClick={handleAddInstructor}
-        className="fixed bottom-4 right-4 bg-[#1F3463] text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition"
-        title="Add Instructor"
-      >
-        <FaPlus size={12} />
-      </button>
     </main>
   );
 }

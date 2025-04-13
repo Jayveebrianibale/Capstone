@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus } from "react-icons/fa";
 import InstructorTable from "../../../contents/Admin/InstructorTable";
 import Tabs from "../../../components/Tabs";
 import ContentHeader from "../../../contents/Admin/ContentHeader";
@@ -7,20 +6,39 @@ import ProgramService from "../../../services/ProgramService";
 import { toast } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
+import { Users } from "lucide-react"; // To display an icon when no instructors are found
 
 function Bsis() {
-  const [instructors, setInstructors] = useState([[], [], [], []]);
-  const [noInstructors, setNoInstructors] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const [instructorsByYear, setInstructorsByYear] = useState([[], [], [], []]);
+  const [noInstructors, setNoInstructors] = useState(false);
+
   const tabLabels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
   const programCode = "BSIS";
   const { loading, setLoading } = useLoading();
+
+  const handleSearch = (query) => {
+    console.log("Search:", query);
+  };
+
+  const handleExport = () => {
+    console.log("Export to PDF");
+  };
+
+  const handleAddInstructor = () => {
+    console.log("Add Instructor");
+  };
 
   useEffect(() => {
     const fetchInstructors = async () => {
       setLoading(true);
       try {
         const data = await ProgramService.getInstructorsByProgramCode(programCode);
+
+        if (data && typeof data === "string" && data.includes("<!doctype html>")) {
+          throw new Error("Received an HTML response. Possible backend error.");
+        }
+
         if (Array.isArray(data)) {
           if (data.length === 0) {
             setNoInstructors(true);
@@ -31,62 +49,68 @@ function Bsis() {
               if (year && year >= 1 && year <= 4) {
                 grouped[year - 1].push(instructor);
               } else {
-                console.warn("Invalid or missing yearLevel:", instructor);
+                console.warn("Instructor has an invalid or missing yearLevel:", instructor);
               }
             });
-            setInstructors(grouped);
+            setInstructorsByYear(grouped);
           }
         } else {
-          toast.error("Invalid response format: expected an array.");
+          console.error("Response is not an array:", data);
+          toast.error("Failed to load instructors. Invalid response format.");
         }
       } catch (error) {
-        console.error("Error fetching instructors:", error);
-        toast.error(`Failed to load instructors for ${programCode}`);
+        console.error("Failed to load instructors:", error);
+        toast.error(`Failed to load instructors for ${programCode}.`);
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     };
+
     fetchInstructors();
   }, [programCode, setLoading]);
 
-  const handleAddInstructor = () => {
-    console.log("Add Instructor");
+  const hasInstructorsForYear = (year) => {
+    return instructorsByYear[year]?.length > 0;
+  };
+
+  const hasInstructorsAssigned = () => {
+    return instructorsByYear.some((yearGroup) => yearGroup.length > 0);
   };
 
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
-      <ContentHeader
-        title="Instructors"
-        stats={["Students: 0", "Submitted: 0"]}
-        onSearch={() => console.log("Search")}
-        onExport={() => console.log("Export to PDF")}
-        onAdd={handleAddInstructor}
-      />
-
       {loading ? (
         <FullScreenLoader />
-      ) : noInstructors ? (
-        <p className="text-red-500 text-center">No instructors assigned yet to any year for BSIS.</p>
+      ) : noInstructors || !hasInstructorsAssigned() ? (
+        <div className="flex flex-col items-center justify-center h-[70vh]">
+          <Users className="w-16 h-16 text-gray-400 mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+            No Instructors Found
+          </h2>
+          <p className="text-red-500 text-center">
+            There are currently no instructors assigned to any year level for BSIS.
+          </p>
+        </div>
       ) : (
         <>
+          <ContentHeader
+            title="Instructors"
+            stats={["Students: 0", "Submitted: 0"]}
+            onSearch={handleSearch}
+            onExport={handleExport}
+            onAdd={handleAddInstructor}
+          />
+
           <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
           <div className="mt-4 text-center">
-            {instructors[activeTab]?.length > 0 ? (
-              <InstructorTable instructors={instructors[activeTab]} />
+            {hasInstructorsForYear(activeTab) ? (
+              <InstructorTable instructors={instructorsByYear[activeTab]} />
             ) : (
               <p className="text-red-500">No instructors assigned for this year.</p>
             )}
           </div>
         </>
       )}
-
-      <button
-        onClick={handleAddInstructor}
-        className="fixed bottom-4 right-4 bg-[#1F3463] text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition"
-        title="Add Instructor"
-      >
-        <FaPlus size={12} />
-      </button>
     </main>
   );
 }

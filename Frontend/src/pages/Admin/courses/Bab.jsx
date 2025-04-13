@@ -6,6 +6,7 @@ import ProgramService from "../../../services/ProgramService";
 import { toast } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
+import { Users } from "lucide-react"; // To display an icon when no instructors are found
 
 function Bab() {
   const [activeTab, setActiveTab] = useState(0);
@@ -78,34 +79,38 @@ function Bab() {
 
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
-      <ContentHeader
-        title="Instructors"
-        stats={["Students: 0", "Submitted: 0"]}
-        onSearch={handleSearch}
-        onExport={handleExport}
-        onAdd={handleAddInstructor}
-      />
-
-      <div className="flex flex-col mt-4">
-        {loading ? (
-          <FullScreenLoader />
-        ) : noInstructors || !hasInstructorsAssigned() ? (
+      {loading ? (
+        <FullScreenLoader />
+      ) : noInstructors || !hasInstructorsAssigned() ? (
+        <div className="flex flex-col items-center justify-center h-[70vh]">
+          <Users className="w-16 h-16 text-gray-400 mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+            No Instructors Found
+          </h2>
           <p className="text-red-500 text-center">
-            No instructors assigned yet to any year for BAB.
+            There are currently no instructors assigned to any year level for BAB.
           </p>
-        ) : (
-          <>
-            <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
-            <div className="mt-4 text-center">
-              {hasInstructorsForYear(activeTab) ? (
-                <InstructorTable instructors={instructorsByYear[activeTab] || []} />
-              ) : (
-                <p className="text-red-500">No instructors assigned for this year.</p>
-              )}
-            </div>
-          </>
-        )}
-      </div>
+        </div>
+      ) : (
+        <>
+          <ContentHeader
+            title="Instructors"
+            stats={["Students: 0", "Submitted: 0"]}
+            onSearch={handleSearch}
+            onExport={handleExport}
+            onAdd={handleAddInstructor}
+          />
+
+          <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
+          <div className="mt-4 text-center">
+            {hasInstructorsForYear(activeTab) ? (
+              <InstructorTable instructors={instructorsByYear[activeTab]} />
+            ) : (
+              <p className="text-red-500">No instructors assigned for this year.</p>
+            )}
+          </div>
+        </>
+      )}
     </main>
   );
 }

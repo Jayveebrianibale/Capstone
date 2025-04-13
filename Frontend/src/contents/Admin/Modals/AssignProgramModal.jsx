@@ -13,7 +13,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       setSelectedPrograms(
         instructor?.programs?.map((p) => ({
           id: p.id,
-          yearLevel: p.pivot?.yearLevel || 1,
+          yearLevel: p.pivot?.yearLevel, // No default yearLevel, must be selected
         })) || []
       );
     }
@@ -27,7 +27,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       const normalized = extracted.map((p) => ({
         id: p.id,
         name: p.name,
-        yearLevel: p.year_level || p.yearLevel || 1,
+        yearLevel: p.year_level || p.yearLevel, // Keep as is, not defaulting to 1
       }));
 
       setPrograms(normalized);
@@ -43,45 +43,50 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       if (exists) {
         return prev.filter((p) => p.id !== program.id);
       } else {
-        return [...prev, { id: program.id, yearLevel: program.yearLevel || 1 }];
+        return [
+          ...prev,
+          { id: program.id, yearLevel: null }, // Set yearLevel to null initially, it will be set when chosen
+        ];
       }
     });
   };
 
   const handleYearLevelChange = (programId, newYearLevel) => {
     const intYearLevel = parseInt(newYearLevel, 10);
-    if (!isNaN(intYearLevel)) {
+    if (intYearLevel >= 1 && intYearLevel <= 4) {
       setSelectedPrograms((prev) =>
         prev.map((p) =>
-          p.id === programId ? { ...p, yearLevel: intYearLevel } : p
+          p.id === programId
+            ? { ...p, yearLevel: intYearLevel }
+            : p
         )
       );
+    } else {
+      toast.error("Year level must be a number between 1 and 4.");
     }
   };
 
   const handleSave = async () => {
+    // Validate if yearLevel is set for all selected programs
+    const invalidPrograms = selectedPrograms.filter((program) => {
+      const intYearLevel = program.yearLevel;
+      return intYearLevel === null || isNaN(intYearLevel) || intYearLevel < 1 || intYearLevel > 4;
+    });
+
+    if (invalidPrograms.length > 0) {
+      toast.error("Please select a valid year level (1-4) for all selected programs.");
+      return;
+    }
+
+    const payload = {
+      programs: selectedPrograms.map((program) => ({
+        id: program.id,
+        yearLevel: parseInt(program.yearLevel, 10),
+      })),
+    };
+
     try {
-      const invalidPrograms = selectedPrograms.filter((program) => {
-        const intYearLevel = parseInt(program.yearLevel, 10);
-        return isNaN(intYearLevel) || intYearLevel < 1 || intYearLevel > 4;
-      });
-
-      if (invalidPrograms.length > 0) {
-        toast.error("Year level must be a number between 1 and 4.");
-        return;
-      }
-
-      const payload = {
-        programs: selectedPrograms.map((program) => ({
-          id: program.id,
-          yearLevel: parseInt(program.yearLevel, 10),
-        })),
-      };
-
-      console.log("Payload being sent:", payload);
-
       await InstructorService.assignPrograms(instructor.id, payload.programs);
-
       toast.success("Programs assigned successfully!");
       onClose();
     } catch (error) {
@@ -95,7 +100,6 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
     }
   };
 
-  // Generate year level options based on program name
   const getYearLevelOptions = (programName) => {
     if (programName.toLowerCase() === "associate in computer technology") {
       return [
@@ -150,10 +154,13 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
 
                     {isChecked && (
                       <select
-                        value={selectedYearLevel || 1}
+                        value={selectedYearLevel || ""}
                         onChange={(e) => handleYearLevelChange(program.id, e.target.value)}
                         className="ml-2 p-1 rounded-md border text-sm dark:bg-gray-700 dark:text-white"
                       >
+                        <option value="" disabled>
+                          Select Year
+                        </option>
                         {getYearLevelOptions(program.name).map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
