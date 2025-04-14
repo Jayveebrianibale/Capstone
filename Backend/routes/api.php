@@ -55,6 +55,8 @@ Route::put('/programs/{id}', [ProgramController::class, 'update']);
 Route::delete('/programs/{id}', [ProgramController::class, 'destroy']);
 Route::get('/instructors/program/{id}', [InstructorController::class, 'getByProgram']);
 Route::get('/programs/{code}/instructors', [ProgramController::class, 'getInstructorsByProgramCode']);
+Route::get('/programs/{program}/year-levels', [ProgramController::class, 'getYearLevels']);
+
 
 // Level Routes
 Route::get('/grade-levels', [GradeLevelController::class, 'index']);

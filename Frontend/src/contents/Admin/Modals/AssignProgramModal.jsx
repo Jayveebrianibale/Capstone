@@ -13,7 +13,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       setSelectedPrograms(
         instructor?.programs?.map((p) => ({
           id: p.id,
-          yearLevel: p.pivot?.yearLevel, // No default yearLevel, must be selected
+          yearLevel: p.pivot?.yearLevel,
         })) || []
       );
     }
@@ -27,7 +27,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       const normalized = extracted.map((p) => ({
         id: p.id,
         name: p.name,
-        yearLevel: p.year_level || p.yearLevel, // Keep as is, not defaulting to 1
+        yearLevel: p.year_level || p.yearLevel,
       }));
 
       setPrograms(normalized);
@@ -45,7 +45,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       } else {
         return [
           ...prev,
-          { id: program.id, yearLevel: null }, // Set yearLevel to null initially, it will be set when chosen
+          { id: program.id, yearLevel: null },
         ];
       }
     });
@@ -67,7 +67,6 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
   };
 
   const handleSave = async () => {
-    // Validate if yearLevel is set for all selected programs
     const invalidPrograms = selectedPrograms.filter((program) => {
       const intYearLevel = program.yearLevel;
       return intYearLevel === null || isNaN(intYearLevel) || intYearLevel < 1 || intYearLevel > 4;

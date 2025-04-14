@@ -55,6 +55,16 @@ const ProgramService = {
       console.error(`Failed to fetch instructors for ${programCode}:`, error.response?.data || error.message);
       throw error;
     }
+  },
+
+  getYearLevels: async (programId) => {
+    try {
+      const response = await axios.get(`${API_URL}/${programId}/year-levels`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch year levels for program ${programId}:`, error.response?.data || error.message);
+      throw error;
+    }
   }
   
 }

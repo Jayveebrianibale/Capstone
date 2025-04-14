@@ -14,6 +14,10 @@ class Program extends Model {
         return $this->hasMany(Level::class);
     }
 
+    public function yearLevels() {
+        return $this->hasMany(YearLevel::class);
+    }
+
     public function instructors()
     {   
         return $this->belongsToMany(Instructor::class, 'instructor_program', 'program_id', 'instructor_id')

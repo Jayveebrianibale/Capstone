@@ -9,10 +9,10 @@ use App\Models\Instructor;
 class ProgramController extends Controller {
 
     public function index() {
-        $programs = Program::with('levels')->get();
+        $programs = Program::all();
         return response()->json(['programs' => $programs]);
     }
-
+    
     public function store(Request $request) {
         $request->validate([
             'name' => 'required|string',
@@ -45,6 +45,23 @@ class ProgramController extends Controller {
         ], 201);
     }
     
+
+    
+    public function getYearLevels($programId)
+    {
+        $program = Program::find($programId);
+
+        if (!$program) {
+            return response()->json(['message' => 'Program not found'], 404);
+        }
+
+        $yearLevels = $program->yearLevel; 
+
+        return response()->json($yearLevels);
+    }
+
+
+
 
     public function show($id) {
         $program = Program::with('levels')->findOrFail($id);
