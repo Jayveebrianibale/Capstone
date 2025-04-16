@@ -36,11 +36,14 @@ class GoogleAuthController extends Controller
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
                 'google_id' => $googleUser->id,
-                'profile_picture' => $googleUser->avatar,
+                'profile_picture' => null,
                 'role' => $role,
                 'password' => bcrypt('defaultpassword'),
                 'profile_completed' => $existingUser->profile_completed ?? false,
             ]);
+
+            $localAvatar = $this->storeGoogleAvatar($googleUser->avatar, $user->id);
+            $user->update(['profile_picture' => $localAvatar]);
         }
 
         $token = $user->createToken('authToken')->plainTextToken;
@@ -55,4 +58,14 @@ class GoogleAuthController extends Controller
         $request->user()->tokens()->delete();
         return response()->json(['message' => 'Logged out']);
     }
+
+
+public function storeGoogleAvatar($url, $userId)
+{
+    $imageContent = \Illuminate\Support\Facades\Http::get($url)->body();
+    $filename = "avatars/user-{$userId}.jpg";
+    \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $imageContent);
+
+    return \Illuminate\Support\Facades\Storage::url($filename);
+}
 }

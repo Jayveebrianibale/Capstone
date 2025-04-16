@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FaBars } from "react-icons/fa";
-import axios from "axios";
 import DarkModeToggle from "../components/DarkmodeToggle";
 
-function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
-  const [user, setUser] = useState(null);
+function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user}) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
@@ -24,30 +22,6 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
   }, []);
 
   const displayTitle = windowWidth < 768 ? abbreviationMap[title] || title : title;
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      const token = localStorage.getItem("authToken");
-      if (!token) return;
-
-      axios
-        .get("http://127.0.0.1:8000/api/user", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((response) => {
-          setUser(response.data);
-          localStorage.setItem("user", JSON.stringify(response.data));
-        })
-        .catch(() => {
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("user");
-        });
-    }
-  }, []);
 
   return (
     <nav className="bg-white dark:bg-gray-900 border-b dark:border-gray-700 px-4 h-16 flex items-center justify-between">
@@ -73,10 +47,10 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle }) {
             <button className="flex items-center gap-2 focus:outline-none">
               {user.profile_picture && (
                 <img
-                  src={user.profile_picture}
-                  alt="Profile"
-                  className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600"
-                />
+                src={`http://localhost:8000${user.profile_picture}`}
+                alt="Profile"
+                className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600 object-cover"
+              />   
               )}
               <span className="hidden sm:block text-gray-700 dark:text-gray-200 font-normal text-sm">
                 {user.role}

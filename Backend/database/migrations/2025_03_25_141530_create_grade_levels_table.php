@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('grade_levels', function (Blueprint $table) {
             $table->id();
             $table->foreignId('program_id')->constrained()->onDelete('cascade');
-            $table->string('name'); // Example: Grade 11 - STEM, Grade 12 - ABM, etc.
+            $table->string('name');
             $table->timestamps();
         });
     }

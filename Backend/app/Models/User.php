@@ -20,7 +20,9 @@ class User extends Authenticatable
         'profile_picture',
         'google_id',
         'email_verified_at',
-        'role'
+        'role',
+        'profile_completed',
+
     ];
 
     protected $hidden = [
@@ -44,14 +46,12 @@ class User extends Authenticatable
         $this->save();
     }
 
-    // Relationship with courses (students only)
     public function courses()
     {
         return $this->belongsToMany(Course::class, 'course_student', 'user_id', 'course_id')
             ->withPivot('semester');
     }
 
-    // Relationship with student profile
     public function studentProfile()
     {
         return $this->hasOne(StudentProfile::class)->where('role', 'Student');

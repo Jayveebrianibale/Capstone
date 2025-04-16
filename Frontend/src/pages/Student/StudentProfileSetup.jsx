@@ -4,9 +4,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import FullScreenLoader from "../../components/FullScreenLoader";
 import "react-toastify/dist/ReactToastify.css";
-import BackgroundPic from "../../assets/Login.jpg";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
 
 function StudentProfileSetup() {
   const navigate = useNavigate();
@@ -16,6 +15,7 @@ function StudentProfileSetup() {
   const [selectedProgramId, setSelectedProgramId] = useState("");
   const [selectedYearLevel, setSelectedYearLevel] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const educationOptions = {
     "Senior High": ["Grade 11", "Grade 12"],
@@ -32,281 +32,289 @@ function StudentProfileSetup() {
     { value: "4th Year", label: "4th Year" },
   ];
 
-  useEffect(() => {
-    const storedUser = sessionStorage.getItem("user");
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      if (user.profile_completed) navigate("/SDashboard");
-    }
-
-    const token = localStorage.getItem("authToken");
-    if (!token) return;
-
-    axios
-      .get("http://127.0.0.1:8000/api/user", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        sessionStorage.setItem("user", JSON.stringify(response.data));
-        if (response.data.profile_completed) navigate("/SDashboard");
-      })
-      .catch((error) => console.error("Error fetching user:", error));
-  }, [navigate]);
-
-  useEffect(() => {
-    if (educationLevel === "Higher Education") {
-      fetchPrograms();
-    }
-  }, [educationLevel]);
-
-  const fetchPrograms = async () => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      toast.error("No token found, please login again.");
-      return;
-    }
-
-    try {
-      const response = await axios.get("http://127.0.0.1:8000/api/programs", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const extracted = Array.isArray(response.data)
-        ? response.data
-        : response.data.programs || [];
-      setPrograms(extracted);
-    } catch (err) {
-      console.error("Failed to fetch programs:", err);
-      toast.error("Failed to load programs.");
-    }
-  };
-
-  const handleSubmit = async () => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      toast.error("Authentication failed. Please log in again.");
-      return;
-    }
-  
-    setLoading(true);
-  
-    try {
-      // Validate payload before submitting
-      const payload = {
-        educationLevel,
-        selectedOption: selectedProgramId,
-        yearLevel: selectedYearLevel,
-      };
-  
-      console.log("Submitting Profile Setup Payload:", payload);
-  
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/student/setup-profile",
-        payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+    useEffect(() => {
+      const storedUser = sessionStorage.getItem("user");
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        if (user.profile_completed) {
+          navigate("/SEvaluations");
         }
-      );
-  
-      console.log("Setup Profile API Response:", response.data);
-  
-      if (response.data.profile_completed === 1) {
-        // Profile setup is marked as completed
-        const userResponse = await axios.get("http://127.0.0.1:8000/api/user", {
+      }
+    
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+    
+      axios
+        .get("http://127.0.0.1:8000/api/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          sessionStorage.setItem("user", JSON.stringify(response.data));
+          if (response.data.profile_completed) navigate("/SEvaluations");
+        })
+        .catch((error) => console.error("Error fetching user:", error));
+    }, [navigate]);
+    
+
+    useEffect(() => {
+      if (educationLevel === "Higher Education") {
+        fetchPrograms();
+      }
+    }, [educationLevel]);
+
+    const fetchPrograms = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        toast.error("No token found, please login again.");
+        return;
+      }
+
+      try {
+        const response = await axios.get("http://127.0.0.1:8000/api/programs", {
           headers: { Authorization: `Bearer ${token}` },
         });
-  
-        console.log("Fetched User After Setup:", userResponse.data);
-  
-        if (userResponse.data.profile_completed === 1) {
-          sessionStorage.setItem("user", JSON.stringify(userResponse.data));
-          toast.success("Profile setup completed!");
-          navigate("/SDashboard");
-        } else {
-          toast.error("Profile update failed. Please try again.");
-        }
-      } else {
-        toast.error("Profile setup was not completed correctly.");
+        const extracted = Array.isArray(response.data)
+          ? response.data
+          : response.data.programs || [];
+        setPrograms(extracted);
+      } catch (err) {
+        console.error("Failed to fetch programs:", err);
+        toast.error("Failed to load programs.");
       }
-    } catch (error) {
-      console.error("Error saving profile:", error.response?.data || error.message);
-      toast.error(
-        `Failed to set up profile: ${error.response?.data?.message || "Unknown error"}`
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+    };
 
-  const isNextDisabled = () => {
-    if (step === 1) return !educationLevel;
-    if (step === 2) {
-      if (educationLevel === "Higher Education") return !selectedProgramId;
-      return !selectedYearLevel;
-    }
-    if (step === 3) return !selectedYearLevel;
-    return false;
-  };
+    const handleSubmit = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        toast.error("Authentication failed. Please log in again.");
+        return;
+      }
+    
+      setLoading(true);
+      setErrorMessage("");
+    
+      try {
+        const payload = {
+          educationLevel,
+          selectedOption: selectedProgramId,
+          yearLevel: selectedYearLevel,
+        };
+    
+        console.log("Sending payload:", payload);
+    
+        const response = await axios.post(
+          "http://127.0.0.1:8000/api/student/setup-profile",
+          payload,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+    
+        console.log("API Response:", response.data);
+    
+        if (response.data.profile_completed) {
+          const userResponse = await axios.get("http://127.0.0.1:8000/api/user", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        
+          if (userResponse.data.profile_completed === true) {
+            sessionStorage.setItem("user", JSON.stringify(userResponse.data));
+            toast.success("Profile setup completed!");
+            navigate("/SDashboard");
+          } else {
+            throw new Error("Profile update failed. Please try again.");
+          }
+        } else {
+          throw new Error("Profile setup was not completed correctly.");
+        }      
+      } catch (error) {
+        const message = error.response?.data?.message || error.message || "Unknown error";
+        setErrorMessage(message);
+        toast.error(`Failed to set up profile: ${message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    const isNextDisabled = () => {
+      if (step === 1) return !educationLevel;
+      if (step === 2) {
+        if (educationLevel === "Higher Education") return !selectedProgramId;
+        return !selectedYearLevel;
+      }
+      if (step === 3) return !selectedYearLevel;
+      return false;
+    };
 
-  const stepVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-  };
+    const stepVariants = {
+      initial: { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 },
+      exit: { opacity: 0, y: -20 },
+    };
+
+    const isStepCompleted = (currentStep) => {
+      if (currentStep === 1) return !!educationLevel;
+      if (currentStep === 2)
+        return educationLevel === "Higher Education" ? !!selectedProgramId : !!selectedYearLevel;
+      if (currentStep === 3) return !!selectedYearLevel;
+      return false;
+    };
 
   return (
-    <div className="relative flex justify-center items-center min-h-screen p-4 overflow-hidden">
+    <div className="relative min-h-screen flex justify-center items-center bg-gray-100 p-4">
       {loading && <FullScreenLoader />}
 
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-20"
-        style={{ backgroundImage: `url(${BackgroundPic})` }}
-      ></div>
-      <div className="absolute inset-0 bg-black opacity-20"></div>
-
-      <div className="relative w-full max-w-xl bg-white shadow-2xl rounded-3xl p-10 transition-all z-10">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Profile Setup</h1>
-          <p className="text-gray-500 mt-2">Let's complete your student profile</p>
+      <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-xl p-16 grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="md:col-span-1 space-y-8">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">Profile Setup</h2>
+            <p className="text-sm text-gray-500">Follow the steps to complete your profile</p>
+          </div>
+          <ul className="space-y-4">
+            {[1, 2, 3].map((s) => {
+              if (s === 3 && educationLevel !== "Higher Education") return null;
+              const label =
+                s === 1
+                  ? "Education Level"
+                  : s === 2
+                  ? educationLevel === "Higher Education" ? "Program" : "Grade Level"
+                  : "Year Level";
+              const active = step === s;
+              const completed = isStepCompleted(s);
+              return (
+                <li key={s} className={`flex items-center gap-2 ${active ? "text-[#1F3463] font-bold" : completed ? "text-green-600" : "text-gray-400"}`}>
+                  {completed ? (
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  ) : (
+                    <div className={`w-5 h-5 rounded-full ${active ? "bg-[#1F3463]" : "bg-gray-300"}`}></div>
+                  )}
+                  {label}
+                </li>
+              );
+            })}
+          </ul>
         </div>
 
-        <div className="flex justify-center gap-2 mb-8">
-          {Array.from({ length: totalSteps }).map((_, index) => (
-            <div
-              key={index}
-              className={`h-3 w-12 rounded-full transition-all ${
-                index + 1 <= step ? "bg-[#1F3463]" : "bg-gray-300"
-              }`}
-            />
-          ))}
-        </div>
-
-        <AnimatePresence mode="wait">
-          {step === 1 && (
-            <motion.div
-              key="step1"
-              variants={stepVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="mb-8"
-            >
-              <label className="block font-semibold text-gray-700 mb-3 text-lg">
-                Education Level
-              </label>
-              <select
-                className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
-                value={educationLevel}
-                onChange={(e) => {
-                  setEducationLevel(e.target.value);
-                  setSelectedProgramId("");
-                  setSelectedYearLevel("");
-                }}
+        <div className="md:col-span-2 space-y-6">
+          <AnimatePresence mode="wait">
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                variants={stepVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="space-y-4"
               >
-                <option value="">Select Education Level</option>
-                <option value="Higher Education">Higher Education</option>
-                <option value="Senior High">Senior High</option>
-                <option value="Junior High">Junior High</option>
-                <option value="Intermediate">Intermediate</option>
-              </select>
-            </motion.div>
+                <h3 className="text-lg font-semibold text-gray-800">What is your education level?</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {["Higher Education", "Senior High", "Junior High", "Intermediate"].map((level) => (
+                    <div
+                      key={level}
+                      className={`cursor-pointer border rounded-xl px-4 py-6 text-center text-sm font-medium transition-all duration-200 ${educationLevel === level ? "border-[#1F3463] bg-[#1F3463]/10 text-[#1F3463]" : "border-gray-300 text-gray-600"}`}
+                      onClick={() => {
+                        setEducationLevel(level);
+                        setSelectedProgramId("");
+                        setSelectedYearLevel("");
+                      }}
+                    >
+                      {level}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                variants={stepVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="space-y-4"
+              >
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {educationLevel === "Higher Education" ? "Select your program" : "Select your grade level"}
+                </h3>
+                <select
+                  className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
+                  value={educationLevel === "Higher Education" ? selectedProgramId : selectedYearLevel}
+                  onChange={(e) => {
+                    if (educationLevel === "Higher Education") {
+                      setSelectedProgramId(e.target.value);
+                    } else {
+                      setSelectedYearLevel(e.target.value);
+                    }
+                  }}
+                >
+                  <option value="">Select an option</option>
+                  {educationLevel === "Higher Education"
+                    ? programs.map((program) => (
+                        <option key={program.id} value={program.id}>
+                          {program.name}
+                        </option>
+                      ))
+                    : educationOptions[educationLevel]?.map((level) => (
+                        <option key={level} value={level}>
+                          {level}
+                        </option>
+                      ))}
+                </select>
+              </motion.div>
+            )}
+
+            {step === 3 && educationLevel === "Higher Education" && (
+              <motion.div
+                key="step3"
+                variants={stepVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="space-y-4"
+              >
+                <h3 className="text-lg font-semibold text-gray-800">Select your year level</h3>
+                <select
+                  className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
+                  value={selectedYearLevel}
+                  onChange={(e) => setSelectedYearLevel(e.target.value)}
+                >
+                  <option value="">Select Year Level</option>
+                  {yearLevelOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {errorMessage && (
+            <div className="text-red-500 text-sm font-medium">
+              {errorMessage}
+            </div>
           )}
 
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              variants={stepVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="mb-8"
-            >
-              <label className="block font-semibold text-gray-700 mb-3 text-lg">
-                {educationLevel === "Higher Education" ? "Program" : "Grade Level"}
-              </label>
-              <select
-                className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
-                value={
-                  educationLevel === "Higher Education"
-                    ? selectedProgramId
-                    : selectedYearLevel
-                }
-                onChange={(e) => {
-                  if (educationLevel === "Higher Education") {
-                    setSelectedProgramId(e.target.value);
-                    setSelectedYearLevel("");
-                  } else {
-                    setSelectedYearLevel(e.target.value);
-                  }
-                }}
+          <div className="flex justify-between pt-4">
+            {step > 1 ? (
+              <button
+                onClick={() => setStep(step - 1)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl flex items-center gap-2 text-sm"
               >
-                <option value="">Select an option</option>
-                {educationLevel === "Higher Education"
-                  ? programs.map((program) => (
-                      <option key={program.id} value={program.id}>
-                        {program.name}
-                      </option>
-                    ))
-                  : educationOptions[educationLevel]?.map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
-              </select>
-            </motion.div>
-          )}
-
-          {step === 3 && educationLevel === "Higher Education" && (
-            <motion.div
-              key="step3"
-              variants={stepVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="mb-8"
-            >
-              <label className="block font-semibold text-gray-700 mb-3 text-lg">
-                Year Level
-              </label>
-              <select
-                className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
-                value={selectedYearLevel}
-                onChange={(e) => setSelectedYearLevel(e.target.value)}
-              >
-                <option value="">Select Year Level</option>
-                {yearLevelOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="flex justify-between mt-8">
-          {step > 1 ? (
+                <ArrowLeft /> Back
+              </button>
+            ) : (
+              <div></div>
+            )}
             <button
-              onClick={() => setStep(step - 1)}
-              className="px-6 py-3 bg-gray-300 text-gray-700 rounded-xl flex items-center gap-2"
+              onClick={() => (step === totalSteps ? handleSubmit() : setStep(step + 1))}
+              className={`px-4 py-2 ${isNextDisabled() ? "bg-gray-300 cursor-not-allowed" : "bg-[#1F3463]"} text-white rounded-xl flex items-center gap-2 text-sm`}
+              disabled={isNextDisabled()}
             >
-              <ArrowLeft /> Back
+              {step === totalSteps ? "Finish" : "Next"} <ArrowRight />
             </button>
-          ) : (
-            <div></div>
-          )}
-          <button
-            onClick={() =>
-              step === totalSteps ? handleSubmit() : setStep(step + 1)
-            }
-            className={`px-6 py-3 ${
-              isNextDisabled() ? "bg-gray-300 cursor-not-allowed" : "bg-[#1F3463]"
-            } text-white rounded-xl flex items-center gap-2`}
-            disabled={isNextDisabled()}
-          >
-            {step === totalSteps ? "Finish" : "Next"}
-            <ArrowRight />
-          </button>
+          </div>
         </div>
       </div>
     </div>

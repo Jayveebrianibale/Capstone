@@ -13,6 +13,7 @@ function MainLayout() {
   const [role, setRole] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null); 
 
   useEffect(() => {
     const handleResize = () => {
@@ -37,15 +38,15 @@ function MainLayout() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        const { role, has_profile } = response.data;
-
+        const { role, profile_completed } = response.data;
+        
+        setUser(response.data); 
         setRole(role);
         setLoading(false);
 
         if (role === "Student") {
-          if (has_profile) {
+          if (profile_completed) {
             sessionStorage.setItem("user", JSON.stringify(response.data));
-            navigate("/SDashboard");
           } else {
             navigate("/Student-profile-setup");
           }
@@ -82,6 +83,7 @@ function MainLayout() {
       >
         {!isProfileSetupPage && (
           <Navbar
+            user={user}
             toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
             darkMode={isDarkMode}
             handleDarkModeToggle={() => {

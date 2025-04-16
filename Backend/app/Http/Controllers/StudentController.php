@@ -60,21 +60,30 @@ public function setupProfile(Request $request)
 
     $validated = $request->validate([
         'educationLevel' => 'required|string',
-        'selectedCourse' => 'required|integer',
-        'semester' => 'required|string'
+        'selectedOption' => 'required|integer',
+        'yearLevel' => 'required|string',
     ]);
 
     $studentProfile = StudentProfile::updateOrCreate(
         ['user_id' => auth()->id()],
         [
             'education_level' => $validated['educationLevel'],
-            'course_id' => $validated['selectedCourse'],
-            'semester' => $validated['semester']
+            'course_id' => $validated['selectedOption'],
+            'year_level' => $validated['yearLevel'],
         ]
     );
+    $user = auth()->user();
+    $user->profile_completed = 1;
+    $user->save();
 
-    return response()->json(['message' => 'Profile setup successful', 'profile' => $studentProfile], 201);
+    return response()->json([
+        'message' => 'Profile setup successful',
+        'profile_completed' => true,
+        'user' => $user
+    ], 201);
 }
+
+
 
 
    
