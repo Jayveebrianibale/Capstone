@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../assets/Updated-logo.png";
 import { CiHome, CiCreditCard2, CiLogout } from "react-icons/ci";
@@ -14,6 +14,13 @@ import axios from "axios";
 function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role, isMobile }) {
   const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState(null);
+
+  useEffect(() => {
+    const savedActivePage = localStorage.getItem("activePage");
+    if (savedActivePage) {
+      setActivePage(savedActivePage);
+    }
+  }, [setActivePage]);
 
   const menus = {
     Student: [
@@ -81,6 +88,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
 
   const handleNavigation = (path, name, fullName = null) => {
     setActivePage(fullName || name);
+    localStorage.setItem("activePage", fullName || name);
     navigate(path);
     closeSidebar();
   };

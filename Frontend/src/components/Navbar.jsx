@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaBars } from "react-icons/fa";
 import DarkModeToggle from "../components/DarkmodeToggle";
 
-function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user}) {
+function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, activePage}) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 

@@ -65,7 +65,6 @@ public function storeGoogleAvatar($url, $userId)
     $imageContent = \Illuminate\Support\Facades\Http::get($url)->body();
     $filename = "avatars/user-{$userId}.jpg";
     \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $imageContent);
-
     return \Illuminate\Support\Facades\Storage::url($filename);
 }
 }
