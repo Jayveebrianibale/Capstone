@@ -39,7 +39,7 @@ function MainLayout() {
       })
       .then((response) => {
         const { role, profile_completed } = response.data;
-        
+
         setUser(response.data); 
         setRole(role);
         setLoading(false);
@@ -47,11 +47,15 @@ function MainLayout() {
         if (role === "Student") {
           if (profile_completed) {
             sessionStorage.setItem("user", JSON.stringify(response.data));
+            navigate("/SDashboard");
           } else {
             navigate("/Student-profile-setup");
           }
+        } else if (role === "Instructor") {
+          navigate("/InstructorDashboard");
+        } else if (role === "Admin") {
+          navigate("/AdminDashboard");
         }
-
       })
       .catch(() => {
         localStorage.removeItem("authToken");
@@ -77,9 +81,7 @@ function MainLayout() {
         />
       )}
       <div
-        className={`flex-grow ${
-          !isProfileSetupPage && sidebarOpen ? "ml-56" : "ml-0"
-        } transition-all duration-300`}
+        className={`flex-grow ${!isProfileSetupPage && sidebarOpen ? "ml-56" : "ml-0"} transition-all duration-300`}
       >
         {!isProfileSetupPage && (
           <Navbar

@@ -35,7 +35,7 @@ function Login() {
             Admin: "/AdminDashboard",
           };
 
-          navigate(dashboardRoutes[role] || "/");
+          navigate(dashboardRoutes[role] || "/", { replace: true });
         })
         .catch(() => {
           localStorage.removeItem("authToken");

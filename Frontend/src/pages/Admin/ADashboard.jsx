@@ -36,7 +36,7 @@ function ADashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 flex flex-col items-center bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
           <PieChart />
           <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mt-4">
