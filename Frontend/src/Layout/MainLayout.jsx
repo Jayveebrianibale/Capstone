@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
@@ -13,7 +13,9 @@ function MainLayout() {
   const [role, setRole] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null); 
+  const [user, setUser] = useState(null);
+
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -39,22 +41,32 @@ function MainLayout() {
       })
       .then((response) => {
         const { role, profile_completed } = response.data;
-
-        setUser(response.data); 
+        
+        setUser(response.data);
         setRole(role);
         setLoading(false);
 
-        if (role === "Student") {
-          if (profile_completed) {
-            sessionStorage.setItem("user", JSON.stringify(response.data));
-            navigate("/SDashboard");
-          } else {
-            navigate("/Student-profile-setup");
+        if (!hasRedirected.current && location.pathname !== "/Student-profile-setup") {
+          hasRedirected.current = true;
+
+          if (role === "Student" && profile_completed) {
+            if (!location.pathname.includes("SDashboard") && !location.pathname.includes("Account")) {
+              sessionStorage.setItem("user", JSON.stringify(response.data));
+              navigate("/SDashboard");
+            }
+          } else if (role === "Instructor") {
+            if (!location.pathname.includes("InstructorDashboard") && !location.pathname.includes("Account")) {
+              navigate("/InstructorDashboard");
+            }
+          } else if (role === "Admin") {
+            if (!location.pathname.includes("AdminDashboard") && !location.pathname.includes("Account")) {
+              navigate("/AdminDashboard");
+            }
+          } else if (role === "Student" && !profile_completed) {
+            if (!location.pathname.includes("Student-profile-setup")) {
+              navigate("/Student-profile-setup");
+            }
           }
-        } else if (role === "Instructor") {
-          navigate("/InstructorDashboard");
-        } else if (role === "Admin") {
-          navigate("/AdminDashboard");
         }
       })
       .catch(() => {
@@ -62,7 +74,7 @@ function MainLayout() {
         localStorage.removeItem("role");
         navigate("/login");
       });
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   if (loading) return null;
 
