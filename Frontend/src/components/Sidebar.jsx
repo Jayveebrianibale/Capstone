@@ -10,10 +10,12 @@ import { VscPerson } from "react-icons/vsc";
 import { TbMessageQuestion } from "react-icons/tb";
 import { SlPeople } from "react-icons/sl";
 import axios from "axios";
+import LogoutModal from "../contents/Admin/Modals/LogoutModal";
 
-function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role, isMobile }) {
+function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role, isMobile, openLogoutModal }) {
   const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState(null);
+
 
   useEffect(() => {
     const savedActivePage = localStorage.getItem("activePage");
@@ -163,11 +165,15 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
             </div>
           ))}
         </div>
-        <button className="flex w-full items-center gap-2 p-2 rounded-lg text-sm hover:bg-red-600 dark:hover:bg-red-700 transition-colors duration-200" onClick={handleLogout}>
-          <CiLogout className="w-6 h-6" />
-          <span>Logout</span>
-        </button>
+       <button
+        className="flex w-full items-center gap-2 p-2 rounded-lg text-sm hover:bg-red-600 transition-colors duration-200"
+        onClick={openLogoutModal}
+      >
+        <CiLogout className="w-6 h-6" />
+        <span>Logout</span>
+      </button>
       </nav>
+
     </div>
   );
 }

@@ -9,29 +9,43 @@ function SEvaluations() {
   const itemsPerPage = 5;
 
   useEffect(() => {
-    const fetchInstructors = async () => {
-      try {
-        const response = await axios.get('/api/instructors/by-course', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+  const fetchInstructors = async () => {
+    try {
+      const user = JSON.parse(sessionStorage.getItem("user"));
+      const programId = user?.program_id;
+      const yearLevel = user?.year_level;
 
-        if (Array.isArray(response.data)) {
-          setInstructors(response.data);
-        } else {
-          setInstructors([]);
-        }
-      } catch (error) {
-        console.error('Error fetching instructors:', error);
-        setInstructors([]);
-      } finally {
-        setLoading(false);
+      if (!programId || !yearLevel) {
+        console.error('Program ID or Year Level missing');
+        return;
       }
-    };
 
-    fetchInstructors();
-  }, []);
+      const response = await axios.get('/api/instructors/by-course', {
+        params: {
+          program_id: programId,
+          year_level: yearLevel,
+        },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (Array.isArray(response.data)) {
+        setInstructors(response.data);
+      } else {
+        setInstructors([]);
+      }
+    } catch (error) {
+      console.error('Error fetching instructors:', error);
+      setInstructors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchInstructors();
+}, []);
+
 
   const questions = [
     { category: 'Teaching Effectiveness', question: 'How effective is the teacher in delivering lessons?' },

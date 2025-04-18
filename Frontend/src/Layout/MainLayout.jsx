@@ -3,6 +3,8 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import axios from "axios";
+import LogoutModal from "../contents/Admin/Modals/LogoutModal";
+
 
 function MainLayout() {
   const navigate = useNavigate();
@@ -14,69 +16,88 @@ function MainLayout() {
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
       setSidebarOpen(window.innerWidth >= 768);
     };
-  
+
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-  
+
   useEffect(() => {
     const savedActivePage = localStorage.getItem("activePage");
     if (savedActivePage) {
       setActivePage(savedActivePage);
     }
   }, []);
-  
+
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-  
-    axios
-      .get("http://127.0.0.1:8000/api/user", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        const { role, profile_completed } = response.data;
-  
-        setUser(response.data);
-        setRole(role);
-        setLoading(false);
-  
-        const isProfileSetupPage = location.pathname.includes("Student-profile-setup");
-        if (location.pathname === "/" || location.pathname === "/login") {
-          if (role === "Student") {
-            if (profile_completed) {
-              sessionStorage.setItem("user", JSON.stringify(response.data));
-              navigate("/SDashboard");
-            } else {
-              navigate("/Student-profile-setup");
-            }
-          } else if (role === "Instructor") {
-            navigate("/InstructorDashboard");
-          } else if (role === "Admin") {
-            navigate("/AdminDashboard");
-          }
+  const savedActivePage = localStorage.getItem("activePage");
+  if (savedActivePage) {
+    setActivePage(savedActivePage);
+  }
+}, []);
+
+useEffect(() => {
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+
+  axios.get("http://127.0.0.1:8000/api/user", {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  .then((response) => {
+    const { role, profile_completed } = response.data;
+
+    sessionStorage.setItem("user", JSON.stringify(response.data));
+    setUser(response.data);
+    setRole(role);
+    setLoading(false);
+
+    if (location.pathname === "/" || location.pathname === "/login") {
+      if (role === "Student") {
+        if (profile_completed) {
+          navigate("/SDashboard");
+        } else {
+          navigate("/Student-profile-setup");
         }
-      })
-      .catch(() => {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("role");
-        navigate("/login");
-      });
-  }, [navigate, location.pathname]);
+      } else if (role === "Instructor") {
+        navigate("/InstructorDashboard");
+      } else if (role === "Admin") {
+        navigate("/AdminDashboard");
+      }
+    }
+  })
+  .catch(() => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("role");
+    navigate("/login");
+  });
+}, [navigate, location.pathname]);
+
+useEffect(() => {
+  if (!loading && role === "Student" && user && !user.profile_completed && location.pathname !== "/Student-profile-setup") {
+    navigate("/Student-profile-setup");
+  }
+}, [loading, role, user, location.pathname, navigate]);
+
 
   if (loading) return null;
 
   const isProfileSetupPage = location.pathname === "/Student-profile-setup";
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("role");
+    navigate("/login");
+  };
 
   return (
     <div className={`flex ${isDarkMode ? "dark" : ""}`}>
@@ -88,6 +109,7 @@ function MainLayout() {
           setActivePage={setActivePage}
           role={role}
           isMobile={isMobile}
+          openLogoutModal={() => setLogoutModalOpen(true)}
         />
       )}
       <div
@@ -107,6 +129,13 @@ function MainLayout() {
         )}
         <Outlet />
       </div>
+
+     
+      <LogoutModal
+        isOpen={logoutModalOpen}
+        onClose={() => setLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class StudentController extends Controller
 {
@@ -54,39 +55,37 @@ class StudentController extends Controller
     ], 201);
 }
 
-public function setupProfile(Request $request)
-{
-    \Log::info('Received Profile Data:', $request->all());
 
-    $validated = $request->validate([
-        'educationLevel' => 'required|string',
-        'selectedOption' => 'required|integer',
-        'yearLevel' => 'required|string',
-    ]);
+    public function setupProfile(Request $request)
+    {
+        $request->validate([
+            'educationLevel' => 'required|string',
+            'selectedOption' => 'required|integer',
+            'yearLevel' => [
+                'nullable',
+                Rule::in(['1st Year', '2nd Year', '3rd Year', '4th Year']),
+            ],
+        ]);
 
-    $studentProfile = StudentProfile::updateOrCreate(
-        ['user_id' => auth()->id()],
-        [
-            'education_level' => $validated['educationLevel'],
-            'course_id' => $validated['selectedOption'],
-            'year_level' => $validated['yearLevel'],
-        ]
-    );
-    $user = auth()->user();
-    $user->profile_completed = 1;
-    $user->save();
+        $user = Auth::user();
 
-    return response()->json([
-        'message' => 'Profile setup successful',
-        'profile_completed' => true,
-        'user' => $user
-    ], 201);
-}
+        $user->education_level = $request->input('educationLevel');
+        $user->program_id = $request->input('selectedOption');
+        $user->year_level = $request->input('yearLevel');
 
+        $user->profile_completed = true;
 
+        $user->save();
+
+        return response()->json([
+            'message' => 'Profile setup successful',
+            'profile_completed' => true,
+            'user' => $user->fresh(),
+        ]);
+    }
 
 
-   
+
     public function getStudent(Student $student)
     {
         return response()->json($student);

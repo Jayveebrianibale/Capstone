@@ -22,6 +22,10 @@ class User extends Authenticatable
         'email_verified_at',
         'role',
         'profile_completed',
+        'education_level',
+        'program_id',
+        'year_level',
+
 
     ];
 
@@ -52,8 +56,9 @@ class User extends Authenticatable
             ->withPivot('semester');
     }
 
-    public function studentProfile()
+   public function studentProfile()
     {
-        return $this->hasOne(StudentProfile::class)->where('role', 'Student');
+    return $this->hasOne(StudentProfile::class);
     }
+
 }
