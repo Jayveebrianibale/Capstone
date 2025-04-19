@@ -1,15 +1,48 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FiCheckCircle, FiCalendar, FiInfo, FiUsers } from "react-icons/fi";
 import bgImage from "../../assets/Login.jpg";
+import axios from "axios";
 
 const SDashboard = () => {
-  const studentName = "John Doe";
+  const [studentName, setStudentName] = useState("");
   const totalInstructors = 10;
   const semester = "2nd Semester, SY 2024-2025";
 
+  const greeting = () => {
+    const currentHour = new Date().getHours();
+    if (currentHour < 12) {
+      return "Good Morning!";
+    } else if (currentHour < 18) {
+      return "Good Afternoon!";
+    } else {
+      return "Good Evening!";
+    }
+  };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          const response = await axios.get("http://127.0.0.1:8000/api/user", {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          setStudentName(response.data.name);
+        } else {
+          console.error("No authentication token found.");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   return (
     <main className="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen transition-all duration-300">
-
       <div
         className="relative mb-10 rounded-2xl overflow-hidden shadow-md bg-[#1F3463] p-6 sm:p-8 text-white"
         style={{
@@ -23,7 +56,7 @@ const SDashboard = () => {
         <div className="absolute inset-0 bg-black opacity-30 z-0" />
         <div className="relative z-10">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-2 tracking-tight break-words leading-tight drop-shadow-sm">
-            Welcome, {studentName}! 👋
+            {greeting()} {studentName ? studentName : "Loading..."} 👋
           </h1>
           <p className="text-sm sm:text-base md:text-lg tracking-wide text-white/80 break-words">
             {semester}
@@ -31,8 +64,7 @@ const SDashboard = () => {
         </div>
       </div>
 
-    
-      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
         <div className="p-4 sm:p-5 md:p-6 bg-white/80 dark:bg-white/5 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-green-100 dark:bg-green-800 rounded-full">
@@ -42,7 +74,7 @@ const SDashboard = () => {
               Completed
             </h2>
           </div>
-          <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 mb-3 leading-snug break-words">
+          <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400 mb-3 leading-snug break-words">
             You’ve completed <strong>3 out of 10</strong> evaluations.
           </p>
           <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
@@ -56,10 +88,10 @@ const SDashboard = () => {
               <FiCalendar className="text-yellow-600 text-2xl sm:text-3xl" />
             </div>
             <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white break-words leading-tight">
-              Next Eval
+              Next Evaluations
             </h2>
           </div>
-          <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 leading-snug break-words">
+          <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400 leading-snug break-words">
             Scheduled for <strong>March 10, 2025</strong>.
           </p>
         </div>
@@ -73,21 +105,21 @@ const SDashboard = () => {
               Instructors
             </h2>
           </div>
-          <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 leading-snug break-words">
+          <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400 leading-snug break-words">
             You’re evaluating <strong>{totalInstructors}</strong> instructors this semester.
           </p>
         </div>
 
-        <div className="p-4 sm:p-5 md:p-6 bg-white/80 dark:bg-white/5 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 lg:col-span-3 xl:col-span-1">
+        <div className="p-4 sm:p-5 md:p-6 bg-white/80 dark:bg-white/5 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-red-100 dark:bg-red-800 rounded-full">
               <FiInfo className="text-red-600 text-2xl sm:text-3xl" />
             </div>
-            <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white break-words leading-tight">
+            <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white break-words leading-tight truncate">
               Announcements
             </h2>
           </div>
-          <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 leading-snug break-words">
+          <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400 leading-snug break-words">
             <strong>Evaluation Deadline:</strong> March 15, 2025.
             <br />
             Please complete all evaluations before the deadline.

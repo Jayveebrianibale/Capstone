@@ -8,6 +8,7 @@ import { LoadingProvider, useLoading } from "../../components/LoadingContext";
 import FullScreenLoader from "../../components/FullScreenLoader";
 import "react-toastify/dist/ReactToastify.css";
 import AssignProgramModal from "../../contents/Admin/Modals/AssignProgramModal";
+import { Users } from "lucide-react";
 
 function Instructors() {
   const [instructors, setInstructors] = useState([]);
@@ -99,10 +100,16 @@ function Instructors() {
       </div>
 
       {instructors.length === 0 ? (
-        <div className="text-center text-red-500 font-semibold">
-          No instructors have been created yet.
-        </div>
-      ) : (
+          <div className="flex flex-col items-center justify-center h-[70vh]">
+            <Users className="w-16 h-16 text-gray-400 mb-4" />
+            <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+              No Instructors Found
+            </h2>
+            <p className="text-red-500 text-center">
+              There are currently no instructors created yet.
+            </p>
+          </div>
+        ) : (
         <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow-md">
           <div className="hidden md:grid grid-cols-4 gap-4 border-b bg-gray-100 dark:bg-gray-700 p-4 font-semibold text-sm text-gray-700 dark:text-gray-300 rounded-t-lg">
             <div className="px-4 py-3">Instructor Name</div>

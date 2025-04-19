@@ -27,10 +27,6 @@ Route::middleware('auth:sanctum')->post('/student/setup-profile', [StudentProfil
 Route::middleware('auth:sanctum')->get('/student/profile', [StudentProfileController::class, 'getProfile']);
 
 // Student Routes
-Route::post('/students', [StudentController::class, 'createStudent']);
-Route::post('/students/register', [StudentController::class, 'registerStudent']);
-Route::get('/students/{student}', [StudentController::class, 'getStudent']);
-Route::post('/students/{student}/enrollment-check', [StudentController::class, 'checkEnrollment']);
 Route::get('/students/{student}/instructors', [StudentController::class, 'getStudentInstructors']);
 
 // Course Routes
