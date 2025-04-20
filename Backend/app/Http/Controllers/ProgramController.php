@@ -128,4 +128,19 @@ class ProgramController extends Controller
 
         return response()->json($instructors);
     }
+
+    // Retrieves programs based on category
+    public function getProgramsByCategory($category)
+    {
+        $programs = Program::where('category', ucwords(str_replace('_', ' ', $category)))->get();
+
+        if ($programs->isEmpty()) {
+            return response()->json(['message' => 'No programs found for this category'], 404);
+        }
+
+        return response()->json($programs);
+    }
+
+    
+
 }

@@ -22,9 +22,9 @@ class User extends Authenticatable
         'email_verified_at',
         'role',
         'profile_completed',
-        'education_level',
+        'educationLevel',
         'program_id',
-        'year_level',
+        'yearLevel',
 
 
     ];

@@ -53,7 +53,6 @@ Route::get('/instructors/program/{id}', [InstructorController::class, 'getByProg
 Route::get('/programs/{code}/instructors', [ProgramController::class, 'getInstructorsByProgramCode']);
 Route::get('/programs/{program}/year-levels', [ProgramController::class, 'getYearLevels']);
 
-
 // Level Routes
 Route::get('/grade-levels', [GradeLevelController::class, 'index']);
 Route::post('/grade-levels', [GradeLevelController::class, 'store']);

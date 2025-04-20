@@ -71,7 +71,9 @@ function StudentProfileSetup() {
       const response = await axios.get("http://127.0.0.1:8000/api/programs", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const extracted = Array.isArray(response.data) ? response.data : response.data.programs || [];
+      const extracted = Array.isArray(response.data)
+        ? response.data
+        : response.data.programs || [];
       setPrograms(extracted);
     } catch (err) {
       console.error("Failed to fetch programs:", err);
@@ -96,13 +98,13 @@ function StudentProfileSetup() {
         year_level: selectedYearLevel,
       };
 
-      console.log("Sending payload:", payload);
-
-      const response = await axios.post("http://127.0.0.1:8000/api/student/setup-profile", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      console.log("API Response:", response.data);
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/student/setup-profile",
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (response.data.profile_completed) {
         sessionStorage.setItem("user", JSON.stringify(response.data.user || response.data));
@@ -139,7 +141,9 @@ function StudentProfileSetup() {
   const isStepCompleted = (currentStep) => {
     if (currentStep === 1) return !!educationLevel;
     if (currentStep === 2)
-      return educationLevel === "Higher Education" ? !!selectedProgramId : !!selectedYearLevel;
+      return educationLevel === "Higher Education"
+        ? !!selectedProgramId
+        : !!selectedYearLevel;
     if (currentStep === 3) return !!selectedYearLevel;
     return false;
   };
@@ -148,7 +152,7 @@ function StudentProfileSetup() {
     <div className="relative min-h-screen flex justify-center items-center bg-gray-100 p-4">
       {loading && <FullScreenLoader />}
       <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-xl p-16 grid grid-cols-1 md:grid-cols-3 gap-10">
-        {/* Sidebar */}
+
         <div className="md:col-span-1 space-y-8">
           <div>
             <h2 className="text-xl font-bold text-gray-800">Profile Setup</h2>
@@ -157,12 +161,36 @@ function StudentProfileSetup() {
           <ul className="space-y-4">
             {[1, 2, 3].map((s) => {
               if (s === 3 && educationLevel !== "Higher Education") return null;
-              const label = s === 1 ? "Education Level" : s === 2 ? (educationLevel === "Higher Education" ? "Program" : "Grade Level") : "Year Level";
+              const label =
+                s === 1
+                  ? "Education Level"
+                  : s === 2
+                  ? educationLevel === "Higher Education"
+                    ? "Program"
+                    : "Grade Level"
+                  : "Year Level";
               const active = step === s;
               const completed = isStepCompleted(s);
               return (
-                <li key={s} className={`flex items-center gap-2 ${active ? "text-[#1F3463] font-bold" : completed ? "text-green-600" : "text-gray-400"}`}>
-                  {completed ? <CheckCircle className="w-5 h-5 text-green-500" /> : <div className={`w-5 h-5 rounded-full ${active ? "bg-[#1F3463]" : "bg-gray-300"}`}></div>}
+                <li
+                  key={s}
+                  className={`flex items-center gap-2 ${
+                    active
+                      ? "text-[#1F3463] font-bold"
+                      : completed
+                      ? "text-green-600"
+                      : "text-gray-400"
+                  }`}
+                >
+                  {completed ? (
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  ) : (
+                    <div
+                      className={`w-5 h-5 rounded-full ${
+                        active ? "bg-[#1F3463]" : "bg-gray-300"
+                      }`}
+                    ></div>
+                  )}
                   {label}
                 </li>
               );
@@ -170,16 +198,36 @@ function StudentProfileSetup() {
           </ul>
         </div>
 
-        {/* Main Content */}
+
         <div className="md:col-span-2 space-y-6">
           <AnimatePresence mode="wait">
             {step === 1 && (
-              <motion.div key="step1" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800">What is your education level?</h3>
+              <motion.div
+                key="step1"
+                variants={stepVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="space-y-4"
+              >
+                <h3 className="text-lg font-semibold text-gray-800">
+                  What is your education level?
+                </h3>
                 <div className="grid grid-cols-2 gap-4">
                   {["Higher Education", "Senior High", "Junior High", "Intermediate"].map((level) => (
-                    <div key={level} onClick={() => { setEducationLevel(level); setSelectedProgramId(""); setSelectedYearLevel(""); }}
-                      className={`cursor-pointer border rounded-xl px-4 py-6 text-center text-sm font-medium ${educationLevel === level ? "border-[#1F3463] bg-[#1F3463]/10 text-[#1F3463]" : "border-gray-300 text-gray-600"}`}>
+                    <div
+                      key={level}
+                      onClick={() => {
+                        setEducationLevel(level);
+                        setSelectedProgramId("");
+                        setSelectedYearLevel("");
+                      }}
+                      className={`cursor-pointer border rounded-xl px-4 py-6 text-center text-sm font-medium ${
+                        educationLevel === level
+                          ? "border-[#1F3463] bg-[#1F3463]/10 text-[#1F3463]"
+                          : "border-gray-300 text-gray-600"
+                      }`}
+                    >
                       {level}
                     </div>
                   ))}
@@ -188,31 +236,67 @@ function StudentProfileSetup() {
             )}
 
             {step === 2 && (
-              <motion.div key="step2" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800">{educationLevel === "Higher Education" ? "Select your program" : "Select your grade level"}</h3>
-                <select className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
-                  value={educationLevel === "Higher Education" ? selectedProgramId : selectedYearLevel}
+              <motion.div
+                key="step2"
+                variants={stepVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="space-y-4"
+              >
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {educationLevel === "Higher Education"
+                    ? "Select your program"
+                    : "Select your grade level"}
+                </h3>
+                <select
+                  className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
+                  value={
+                    educationLevel === "Higher Education"
+                      ? selectedProgramId
+                      : selectedYearLevel
+                  }
                   onChange={(e) => {
                     if (educationLevel === "Higher Education") {
                       setSelectedProgramId(e.target.value);
                     } else {
                       setSelectedYearLevel(e.target.value);
                     }
-                  }}>
+                  }}
+                >
                   <option value="">Select an option</option>
                   {educationLevel === "Higher Education"
-                    ? programs.map((program) => <option key={program.id} value={program.id}>{program.name}</option>)
-                    : educationOptions[educationLevel]?.map((level) => <option key={level} value={level}>{level}</option>)
-                  }
+                    ? programs.map((program) => (
+                        <option key={program.id} value={program.id}>
+                          {program.name}
+                        </option>
+                      ))
+                    : educationOptions[educationLevel]?.map((level) => (
+                        <option key={level} value={level}>
+                          {level}
+                        </option>
+                      ))}
                 </select>
               </motion.div>
             )}
 
             {step === 3 && educationLevel === "Higher Education" && (
-              <motion.div key="step3" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800">Select your year level</h3>
-                <select className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
-                  value={selectedYearLevel} onChange={(e) => setSelectedYearLevel(e.target.value)}>
+              <motion.div
+                key="step3"
+                variants={stepVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="space-y-4"
+              >
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Select your year level
+                </h3>
+                <select
+                  className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
+                  value={selectedYearLevel}
+                  onChange={(e) => setSelectedYearLevel(e.target.value)}
+                >
                   <option value="">Select Year Level</option>
                   {yearLevelOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -230,13 +314,22 @@ function StudentProfileSetup() {
 
           <div className="flex justify-between pt-4">
             {step > 1 ? (
-              <button onClick={() => setStep(step - 1)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl flex items-center gap-2 text-sm">
+              <button
+                onClick={() => setStep(step - 1)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl flex items-center gap-2 text-sm"
+              >
                 <ArrowLeft /> Back
               </button>
-            ) : (<div></div>)}
-            <button onClick={() => (step === totalSteps ? handleSubmit() : setStep(step + 1))}
-              className={`px-4 py-2 ${isNextDisabled() ? "bg-gray-300 cursor-not-allowed" : "bg-[#1F3463]"} text-white rounded-xl flex items-center gap-2 text-sm`}
-              disabled={isNextDisabled()}>
+            ) : (
+              <div></div>
+            )}
+            <button
+              onClick={() => (step === totalSteps ? handleSubmit() : setStep(step + 1))}
+              className={`px-4 py-2 ${
+                isNextDisabled() ? "bg-gray-300 cursor-not-allowed" : "bg-[#1F3463]"
+              } text-white rounded-xl flex items-center gap-2 text-sm`}
+              disabled={isNextDisabled()}
+            >
               {step === totalSteps ? "Finish" : "Next"} <ArrowRight />
             </button>
           </div>

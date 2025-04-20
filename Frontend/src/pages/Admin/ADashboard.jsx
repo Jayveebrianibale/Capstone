@@ -28,9 +28,9 @@ function ADashboard() {
           backgroundBlendMode: 'overlay'
         }}
       >
-        <div className="absolute inset-0 bg-black opacity-30 z-0" />
+      <div className="absolute inset-0 bg-black opacity-30 z-0" />
         <div className="relative z-10">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-2 tracking-tight break-words leading-tight drop-shadow-sm">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight break-words leading-tight drop-shadow-sm">
             {greeting()}
           </h1>
         </div>

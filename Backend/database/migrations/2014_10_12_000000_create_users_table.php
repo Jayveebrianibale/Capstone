@@ -18,9 +18,9 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
             $table->string('profile_picture')->nullable();
-            $table->string('education_level')->nullable();
+            $table->string('educationLevel')->nullable();
             $table->unsignedBigInteger('program_id')->nullable();
-            $table->string('year_level')->nullable();
+            $table->string('yearLevel')->nullable();
             $table->boolean('profile_completed')->default(0);
             $table->rememberToken();
             $table->timestamps();

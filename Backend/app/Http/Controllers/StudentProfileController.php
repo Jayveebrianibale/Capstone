@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class StudentProfileController extends Controller
+
 {
+    // Student Setup Profile
     public function setupProfile(Request $request)
     {
         $validated = $request->validate([
@@ -21,12 +23,13 @@ class StudentProfileController extends Controller
 
         $user = Auth::user();
         
-        $user->update([
-            'education_level' => $validated['educationLevel'],
-            'course_id' => $validated['selectedOption'], 
-            'year_level' => $validated['yearLevel'] ?? null,
-            'profile_completed' => true, 
+            $user->update([
+            'educationLevel' => $validated['educationLevel'],
+            'program_id' => $validated['selectedOption'], 
+            'yearLevel' => $validated['yearLevel'] ?? null,
+            'profile_completed' => true,
         ]);
+
 
         return response()->json([
             'message' => 'Profile setup successful',
