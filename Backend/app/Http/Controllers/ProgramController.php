@@ -6,31 +6,19 @@ use App\Models\Program;
 use Illuminate\Http\Request;
 use App\Models\Instructor;
 
-/**
- * Class ProgramController
- * 
- * Handles program-related operations: creating, updating, deleting programs, 
- * retrieving year levels, and fetching instructors assigned to specific programs.
- */
+
 class ProgramController extends Controller
 {
-    /**
-     * Retrieves all programs.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
+    //  Retrieves all programs.
     public function index()
     {
         $programs = Program::all();
         return response()->json(['programs' => $programs]);
     }
 
-    /**
-     * Stores a new program if it doesn’t already exist.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+   
+    // Stores a new program if it doesn’t already exist.
     public function store(Request $request)
     {
         // Validate request data
@@ -67,12 +55,8 @@ class ProgramController extends Controller
         ], 201);
     }
 
-    /**
-     * Retrieves the year levels of a program by its ID.
-     *
-     * @param  int  $programId
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
+    // Retrieves the year levels of a program by its ID.
     public function getYearLevels($programId)
     {
         $program = Program::find($programId);
@@ -86,25 +70,17 @@ class ProgramController extends Controller
         return response()->json($yearLevels);
     }
 
-    /**
-     * Displays a specific program with its levels.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
+     // Displays a specific program with its levels.
     public function show($id)
     {
         $program = Program::with('levels')->findOrFail($id);
         return response()->json($program);
     }
 
-    /**
-     * Updates a specific program's details.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
+    // Updates a specific program's details.
+    
     public function update(Request $request, $id)
     {
         // Validate request data
@@ -125,12 +101,7 @@ class ProgramController extends Controller
         ]);
     }
 
-    /**
-     * Deletes a program.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
+     // Deletes a program.
     public function destroy($id)
     {
         $program = Program::findOrFail($id);
@@ -139,12 +110,8 @@ class ProgramController extends Controller
         return response()->json(['message' => 'Program deleted successfully']);
     }
 
-    /**
-     * Retrieves instructors assigned to a program by its code.
-     *
-     * @param  string  $programCode
-     * @return \Illuminate\Http\JsonResponse
-     */
+   
+     // Retrieves instructors assigned to a program by its code.
     public function getInstructorsByProgramCode($programCode)
     {
         $program = Program::where('code', $programCode)->first();

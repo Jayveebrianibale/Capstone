@@ -24,7 +24,7 @@ class StudentProfileController extends Controller
         $user->update([
             'education_level' => $validated['educationLevel'],
             'course_id' => $validated['selectedOption'], 
-            'semester' => $validated['yearLevel'] ?? null,
+            'year_level' => $validated['yearLevel'] ?? null,
             'profile_completed' => true, 
         ]);
 
