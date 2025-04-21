@@ -43,7 +43,6 @@ function Login() {
         })
         .finally(() => {
           setLoading(false);
-          window.history.replaceState({}, document.title, "/");
         });
     }
   }, [navigate]);

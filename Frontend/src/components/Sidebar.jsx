@@ -10,7 +10,6 @@ import { VscPerson } from "react-icons/vsc";
 import { TbMessageQuestion } from "react-icons/tb";
 import { SlPeople } from "react-icons/sl";
 import axios from "axios";
-import LogoutModal from "../contents/Admin/Modals/LogoutModal";
 
 function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role, isMobile, openLogoutModal }) {
   const navigate = useNavigate();
@@ -107,6 +106,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
   
       localStorage.removeItem("authToken");
       localStorage.removeItem("role");
+      localStorage.removeItem("activePage");
       navigate("/login");
     } catch (error) {
       console.error("Logout failed", error);

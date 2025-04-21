@@ -96,6 +96,7 @@ useEffect(() => {
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("role");
+    localStorage.removeItem("activePage");
     navigate("/login");
   };
 
