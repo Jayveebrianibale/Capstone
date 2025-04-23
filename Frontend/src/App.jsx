@@ -22,18 +22,11 @@ import Bssw from "./pages/Admin/Courses/Bssw";
 import Bab from "./pages/Admin/Courses/Bab";
 import Bsis from "./pages/Admin/Courses/Bsis";
 import Act from "./pages/Admin/Courses/Act";
-// Intermediate
-import Grade4 from "./pages/Admin/Intermediate/Grade4";
-import Grade5 from "./pages/Admin/Intermediate/Grade5";
-import Grade6 from "./pages/Admin/Intermediate/Grade6";
-// Junior High
-import Grade7 from "./pages/Admin/JuniorHigh/Grade7";
-import Grade8 from "./pages/Admin/JuniorHigh/Grade8";
-import Grade9 from "./pages/Admin/JuniorHigh/Grade9";
-import Grade10 from "./pages/Admin/JuniorHigh/Grade10";
-// Senior High
-import Grade11 from "./pages/Admin/SeniorHigh/Grade11";
-import Grade12 from "./pages/Admin/SeniorHigh/Grade12";
+
+import Intermediate from "./pages/Admin/Intermediate";
+import JuniorHigh from "./pages/Admin/JuniorHigh";
+import SeniorHigh from "./pages/Admin/SeniorHigh";
+
 
 // Protect routes if no token
 const PrivateRoute = ({ children }) => {
@@ -131,21 +124,11 @@ function App() {
             <Route path="BAB" element={<ProtectedRoute allowedRoles={["Admin"]}><Bab /></ProtectedRoute>} />
             <Route path="BSIS" element={<ProtectedRoute allowedRoles={["Admin"]}><Bsis /></ProtectedRoute>} />
             <Route path="ACT" element={<ProtectedRoute allowedRoles={["Admin"]}><Act /></ProtectedRoute>} />
-
             {/* Intermediate */}
-            <Route path="Grade4" element={<ProtectedRoute allowedRoles={["Admin"]}><Grade4 /></ProtectedRoute>} />
-            <Route path="Grade5" element={<ProtectedRoute allowedRoles={["Admin"]}><Grade5 /></ProtectedRoute>} />
-            <Route path="Grade6" element={<ProtectedRoute allowedRoles={["Admin"]}><Grade6 /></ProtectedRoute>} />
+            <Route path="Intermediate" element={<ProtectedRoute allowedRoles={["Admin"]}><Intermediate /></ProtectedRoute>} />
+            <Route path="JuniorHigh" element={<ProtectedRoute allowedRoles={["Admin"]}><JuniorHigh /></ProtectedRoute>} />
+            <Route path="SeniorHigh" element={<ProtectedRoute allowedRoles={["Admin"]}><SeniorHigh /></ProtectedRoute>} />
 
-            {/* Junior High */}
-            <Route path="Grade7" element={<ProtectedRoute allowedRoles={["Admin"]}><Grade7 /></ProtectedRoute>} />
-            <Route path="Grade8" element={<ProtectedRoute allowedRoles={["Admin"]}><Grade8 /></ProtectedRoute>} />
-            <Route path="Grade9" element={<ProtectedRoute allowedRoles={["Admin"]}><Grade9 /></ProtectedRoute>} />
-            <Route path="Grade10" element={<ProtectedRoute allowedRoles={["Admin"]}><Grade10 /></ProtectedRoute>} />
-
-            {/* Senior High */}
-            <Route path="Grade11" element={<ProtectedRoute allowedRoles={["Admin"]}><Grade11 /></ProtectedRoute>} />
-            <Route path="Grade12" element={<ProtectedRoute allowedRoles={["Admin"]}><Grade12 /></ProtectedRoute>} />
           </Route>
 
           {/* Catch-all: Redirect unknown routes */}

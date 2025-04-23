@@ -43,31 +43,13 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
         ],
       },
       {
-        name: "Intermediate",
-        icon: LiaChildSolid,
-        submenu: [
-          { name: "Grade 4", path: "/Grade4" },
-          { name: "Grade 5", path: "/Grade5" },
-          { name: "Grade 6", path: "/Grade6" },
-        ],
+        name: "Intermediate", icon: LiaChildSolid, path:"Intermediate",
       },
       {
-        name: "Junior Highschool",
-        icon: VscPerson,
-        submenu: [
-          { name: "Grade 7", path: "/Grade7" },
-          { name: "Grade 8", path: "/Grade8" },
-          { name: "Grade 9", path: "/Grade9" },
-          { name: "Grade 10", path: "/Grade10" },
-        ],
+        name: "Junior High", icon: VscPerson, path: "JuniorHigh"
       },
       {
-        name: "Senior Highschool",
-        icon: VscPerson,
-        submenu: [
-          { name: "Grade 11", path: "/Grade11" },
-          { name: "Grade 12", path: "/Grade12" },
-        ],
+        name: "Senior High", icon: VscPerson, path:"SeniorHigh"
       },
       { name: "Accounts", icon: MdOutlineManageAccounts, path: "/Accounts" },
       { name: "Questionnaires", icon: TbMessageQuestion, path: "/Questions" },
