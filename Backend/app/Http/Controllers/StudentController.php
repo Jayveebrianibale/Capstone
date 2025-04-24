@@ -56,35 +56,6 @@ class StudentController extends Controller
 }
 
 
-    public function setupProfile(Request $request)
-    {
-        $request->validate([
-            'educationLevel' => 'required|string',
-            'selectedOption' => 'required|integer',
-            'yearLevel' => [
-                'nullable',
-                Rule::in(['1st Year', '2nd Year', '3rd Year', '4th Year']),
-            ],
-        ]);
-
-        $user = Auth::user();
-
-        $user->education_level = $request->input('educationLevel');
-        $user->program_id = $request->input('selectedOption');
-        $user->year_level = $request->input('yearLevel');
-
-        $user->profile_completed = true;
-
-        $user->save();
-
-        return response()->json([
-            'message' => 'Profile setup successful',
-            'profile_completed' => true,
-            'user' => $user->fresh(),
-        ]);
-    }
-
-
 
     public function getStudent(Student $student)
     {

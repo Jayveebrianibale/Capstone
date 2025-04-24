@@ -82,45 +82,54 @@ function StudentProfileSetup() {
   };
 
   const handleSubmit = async () => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      toast.error("Authentication failed. Please log in again.");
-      return;
-    }
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    toast.error("Authentication failed. Please log in again.");
+    return;
+  }
 
-    setLoading(true);
-    setErrorMessage("");
+  setLoading(true);
+  setErrorMessage("");
 
-    try {
-      const payload = {
-        education_level: educationLevel,
-        program_id: educationLevel === "Higher Education" ? selectedProgramId : null,
-        year_level: selectedYearLevel,
-      };
+  if (educationLevel === "Higher Education" && !selectedYearLevel) {
+    toast.error("Year Level is required for Higher Education.");
+    setLoading(false);
+    return;
+  }
 
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/student/setup-profile",
-        payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+  try {
+    const payload = {
+      educationLevel: educationLevel,
+      selectedOption: selectedYearLevel || "",
+      ...(selectedProgramId && { program_id: selectedProgramId }), 
+    };
 
-      if (response.data.profile_completed) {
-        sessionStorage.setItem("user", JSON.stringify(response.data.user || response.data));
-        toast.success("Profile setup completed!");
-        navigate("/SDashboard");
-      } else {
-        throw new Error("Profile setup was not completed correctly.");
+    console.log("Payload submitted:", payload);
+    
+    const response = await axios.post(
+      "http://127.0.0.1:8000/api/student/setup-profile",
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
       }
-    } catch (error) {
-      const message = error.response?.data?.message || error.message || "Unknown error";
-      setErrorMessage(message);
-      toast.error(`Failed to set up profile: ${message}`);
-    } finally {
-      setLoading(false);
+    );
+
+    if (response.data.profile_completed) {
+      sessionStorage.setItem("user", JSON.stringify(response.data.user || response.data));
+      toast.success("Profile setup completed!");
+      navigate("/SDashboard");
+    } else {
+      throw new Error("Profile setup was not completed correctly.");
     }
-  };
+  } catch (error) {
+    const message = error.response?.data?.message || error.message || "Unknown error";
+    setErrorMessage(message);
+    toast.error(`Failed to set up profile: ${message}`);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const isNextDisabled = () => {
     if (step === 1) return !educationLevel;
