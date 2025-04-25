@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -9,6 +9,8 @@ import "react-toastify/dist/ReactToastify.css";
 
 function StudentProfileSetup() {
   const navigate = useNavigate();
+  const didRedirect = useRef(false);
+  
   const [step, setStep] = useState(1);
   const [educationLevel, setEducationLevel] = useState("");
   const [programs, setPrograms] = useState([]);
@@ -33,26 +35,42 @@ function StudentProfileSetup() {
   const totalSteps = educationLevel === "Higher Education" ? 3 : 2;
 
   useEffect(() => {
+  const checkProfile = async () => {
+    if (didRedirect.current) return;
+
     const storedUser = sessionStorage.getItem("user");
+
     if (storedUser) {
       const user = JSON.parse(storedUser);
       if (user.profile_completed) {
+        didRedirect.current = true;
         navigate("/SDashboard");
+        return;
       }
     }
 
     const token = localStorage.getItem("authToken");
     if (!token) return;
 
-    axios.get("http://127.0.0.1:8000/api/user", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    .then((response) => {
+    try {
+      const response = await axios.get("http://127.0.0.1:8000/api/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       sessionStorage.setItem("user", JSON.stringify(response.data));
-      if (response.data.profile_completed) navigate("/SDashboard");
-    })
-    .catch((error) => console.error("Error fetching user:", error));
-  }, [navigate]);
+
+      if (response.data.profile_completed && !didRedirect.current) {
+        didRedirect.current = true;
+        navigate("/SDashboard");
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+  };
+
+  checkProfile();
+}, []);
+
 
   useEffect(() => {
     if (educationLevel === "Higher Education") {
@@ -98,11 +116,11 @@ function StudentProfileSetup() {
   }
 
   try {
-    const payload = {
-      educationLevel: educationLevel,
-      selectedOption: selectedYearLevel || "",
-      ...(selectedProgramId && { program_id: selectedProgramId }), 
-    };
+   const payload = {
+  educationLevel: educationLevel,
+  selectedOption: educationLevel === "Higher Education" ? selectedProgramId : selectedYearLevel,
+  yearLevel: educationLevel === "Higher Education" ? selectedYearLevel : null,
+};
 
     console.log("Payload submitted:", payload);
     
