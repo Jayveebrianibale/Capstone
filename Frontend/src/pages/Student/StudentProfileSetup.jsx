@@ -8,9 +8,9 @@ import { ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
 import "react-toastify/dist/ReactToastify.css";
 
 function StudentProfileSetup() {
-  const navigate = useNavigate();
   const didRedirect = useRef(false);
-  
+  const navigate = useNavigate();
+
   const [step, setStep] = useState(1);
   const [educationLevel, setEducationLevel] = useState("");
   const [programs, setPrograms] = useState([]);
@@ -35,41 +35,30 @@ function StudentProfileSetup() {
   const totalSteps = educationLevel === "Higher Education" ? 3 : 2;
 
   useEffect(() => {
-  const checkProfile = async () => {
-    if (didRedirect.current) return;
-
-    const storedUser = sessionStorage.getItem("user");
-
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      if (user.profile_completed) {
-        didRedirect.current = true;
-        navigate("/SDashboard");
-        return;
-      }
+  const storedUser = sessionStorage.getItem("user");
+  if (storedUser) {
+    const user = JSON.parse(storedUser);
+    if (user.profile_completed && !didRedirect.current) {
+      didRedirect.current = true;
+      navigate("/SDashboard");
     }
+  }
 
-    const token = localStorage.getItem("authToken");
-    if (!token) return;
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
 
-    try {
-      const response = await axios.get("http://127.0.0.1:8000/api/user", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      sessionStorage.setItem("user", JSON.stringify(response.data));
-
-      if (response.data.profile_completed && !didRedirect.current) {
-        didRedirect.current = true;
-        navigate("/SDashboard");
-      }
-    } catch (error) {
-      console.error("Error fetching user:", error);
+  axios.get("http://127.0.0.1:8000/api/user", {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  .then((response) => {
+    sessionStorage.setItem("user", JSON.stringify(response.data));
+    if (response.data.profile_completed && !didRedirect.current) {
+      didRedirect.current = true;
+      navigate("/SDashboard");
     }
-  };
-
-  checkProfile();
-}, []);
+  })
+  .catch((error) => console.error("Error fetching user:", error));
+}, [navigate]);
 
 
   useEffect(() => {
@@ -122,6 +111,8 @@ function StudentProfileSetup() {
   yearLevel: educationLevel === "Higher Education" ? selectedYearLevel : null,
 };
 
+
+
     console.log("Payload submitted:", payload);
     
     const response = await axios.post(
@@ -133,10 +124,13 @@ function StudentProfileSetup() {
     );
 
     if (response.data.profile_completed) {
-      sessionStorage.setItem("user", JSON.stringify(response.data.user || response.data));
-      toast.success("Profile setup completed!");
-      navigate("/SDashboard");
-    } else {
+  const updatedUser = response.data.user || response.data;
+  sessionStorage.setItem("user", JSON.stringify(updatedUser));
+  localStorage.setItem("profileCompleted", "true");
+  toast.success("Profile setup completed!");
+  navigate("/SDashboard");
+  }
+    else {
       throw new Error("Profile setup was not completed correctly.");
     }
   } catch (error) {

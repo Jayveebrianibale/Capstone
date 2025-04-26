@@ -1,10 +1,7 @@
-import React, { useEffect, useState } from "react";
 import { FiCheckCircle, FiCalendar, FiInfo, FiUsers } from "react-icons/fi";
 import bgImage from "../../assets/Login.jpg";
-import axios from "axios";
 
 const SDashboard = () => {
-  const [studentName, setStudentName] = useState("");
   const totalInstructors = 10;
   const semester = "2nd Semester, SY 2024-2025";
 
@@ -18,28 +15,6 @@ const SDashboard = () => {
       return "Good Evening!";
     }
   };
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = localStorage.getItem('authToken');
-        if (token) {
-          const response = await axios.get("http://127.0.0.1:8000/api/user", {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-          setStudentName(response.data.name);
-        } else {
-          console.error("No authentication token found.");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
 
   return (
     <main className="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen transition-all duration-300">
@@ -56,7 +31,7 @@ const SDashboard = () => {
         <div className="absolute inset-0 bg-black opacity-30 z-0" />
         <div className="relative z-10">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-2 tracking-tight break-words leading-tight drop-shadow-sm">
-            {greeting()} {studentName ? studentName : "Loading..."} 👋
+            {greeting()}👋
           </h1>
           <p className="text-sm sm:text-base md:text-lg tracking-wide text-white/80 break-words">
             {semester}
