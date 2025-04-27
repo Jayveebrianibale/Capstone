@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Instructor;
 use App\Models\Program;
+use Illuminate\Support\Facades\DB;
+
+
 
 class InstructorController extends Controller
 {
@@ -103,22 +106,18 @@ class InstructorController extends Controller
 
     //Get instructor that assigned to the program/Course
 
-            public function getInstructorsByProgramAndYear(Request $request)
-        {
-            $programId = $request->query('program_id');
-            $yearLevel = $request->query('yearLevel');
+       public function getInstructorsByProgramAndYear($programId, $yearLevel)
+    {
+        // Fetch instructors assigned to the given program_id and yearLevel
+        $instructors = DB::table('instructor_program')
+                        ->join('instructors', 'instructor_program.instructor_id', '=', 'instructors.id')
+                        ->where('instructor_program.program_id', $programId)
+                        ->where('instructor_program.yearLevel', $yearLevel)
+                        ->select('instructors.*') // Or specify the fields you need
+                        ->get();
 
-            if (!$programId || !$yearLevel) {
-                return response()->json(['message' => 'Program ID and Year Level are required'], 400);
-            }
-
-            $instructors = Instructor::where('program_id', $programId)
-                ->where('yearLevel', $yearLevel)
-                ->get();
-
-            return response()->json($instructors);
-        }
-
-
+        // Return the response as JSON
+        return response()->json($instructors);
+    }
 
 }
