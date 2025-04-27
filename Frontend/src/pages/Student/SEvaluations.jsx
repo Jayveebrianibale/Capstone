@@ -13,35 +13,68 @@ function SEvaluations() {
 
   const itemsPerPage = 5;
 
+  const mapYearLevelToNumber = (yearLevel) => {
+    if (typeof yearLevel === 'number') {
+      return yearLevel; 
+    }
+
+    switch (yearLevel) {
+      case '1st Year': return 1;
+      case '2nd Year': return 2;
+      case '3rd Year': return 3;
+      case '4th Year': return 4;
+      default: return null;
+    }
+  };
+
   useEffect(() => {
     const fetchAssignedInstructors = async () => {
-      const user = JSON.parse(sessionStorage.getItem('user'));
-      const programId = user?.program_id;
-      const yearLevel = user?.yearLevel;
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        const programId = user?.program_id;
+        const yearLevel = user?.yearLevel;
 
-      if (!programId || !yearLevel) {
-        console.warn('Program ID or Year Level missing');
-        return;
-      }
+        console.log('Program ID:', programId, 'Year Level:', yearLevel);
 
-      setLoading(true);
-      try {
-        const response = await InstructorService.getInstructorsByProgramAndYear(programId, yearLevel);
-        if (Array.isArray(response.data) && response.data.length > 0) {
-          setInstructors(response.data);
-        } else {
-          setNoInstructors(true);
+        if (!programId || !yearLevel) {
+            console.warn('Program ID or Year Level missing');
+            return;
         }
-      } catch (error) {
-        console.error('Error fetching instructors:', error);
-        setNoInstructors(true);
-      } finally {
-        setLoading(false);
-      }
+
+        const yearLevelNumber = mapYearLevelToNumber(yearLevel);
+
+        if (!yearLevelNumber) {
+            console.warn('Invalid Year Level');
+            return;
+        }
+
+        console.log(`Fetching instructors from: /api/instructors/${programId}/${yearLevelNumber}`);
+
+        setLoading(true);
+        try {
+            const response = await InstructorService.getInstructorsByProgramAndYear(programId, yearLevelNumber);
+            console.log('Fetched Instructors Response:', response);  // Debug log
+
+            // Make sure instructors data exists and has the expected format
+            if (response?.data && Array.isArray(response.data) && response.data.length > 0) {
+                setInstructors(response.data);
+                setNoInstructors(false); // Reset "no instructors" state if data is fetched successfully
+            } else {
+                setInstructors([]); // Clear instructors if no data is found
+                setNoInstructors(true);
+            }
+        } catch (error) {
+            console.error('Error fetching instructors:', error);
+            setInstructors([]); // Clear instructors on error
+            setNoInstructors(true);
+        } finally {
+            setLoading(false);
+        }
     };
 
     fetchAssignedInstructors();
-  }, [setLoading]);
+}, [setLoading]);
+
+
 
   const questions = [
     { category: 'Teaching Effectiveness', question: 'How effective is the teacher in delivering lessons?' },
@@ -172,11 +205,7 @@ function SEvaluations() {
             <button
               onClick={handleSubmit}
               disabled={!isEvaluationComplete()}
-              className={`px-6 py-2 rounded-lg transition-all ${
-                isEvaluationComplete()
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-              }`}
+              className={`px-6 py-2 rounded-lg transition-all ${isEvaluationComplete() ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-400 text-gray-200 cursor-not-allowed'}`}
             >
               Submit
             </button>

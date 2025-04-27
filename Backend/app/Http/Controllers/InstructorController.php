@@ -105,18 +105,26 @@ class InstructorController extends Controller
     }
 
     //Get instructor that assigned to the program/Course
-
-       public function getInstructorsByProgramAndYear($programId, $yearLevel)
+    public function getInstructorsByProgramAndYear($programId, $yearLevel)
     {
+        // Make sure yearLevel is an integer
+        if (!in_array($yearLevel, [1, 2, 3, 4])) {
+            return response()->json(['message' => 'Invalid year level'], 400);
+        }
+
         // Fetch instructors assigned to the given program_id and yearLevel
         $instructors = DB::table('instructor_program')
                         ->join('instructors', 'instructor_program.instructor_id', '=', 'instructors.id')
                         ->where('instructor_program.program_id', $programId)
                         ->where('instructor_program.yearLevel', $yearLevel)
-                        ->select('instructors.*') // Or specify the fields you need
+                        ->select('instructors.*')
                         ->get();
 
-        // Return the response as JSON
+        if ($instructors->isEmpty()) {
+            return response()->json(['message' => 'No instructors found'], 404);
+        }
+
+        // Return the instructors data
         return response()->json($instructors);
     }
 

@@ -29,15 +29,16 @@ const InstructorService = {
     return res.data;
   },
   
-  getInstructorsByProgramAndYear: ({ program_id, year_level }) => {
-    return axios.get('/api/instructors-by-program-year', {
-      params: {
-        program_id,
-        year_level
-      }
-    });
+ getInstructorsByProgramAndYear: async (programId, yearLevel) => {
+    try {
+      const response = await axios.get(`${API_URL}/${programId}/${yearLevel}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching instructors:', error);
+      throw error;
+    }
   },
-  
+
 };
 
 export default InstructorService;
