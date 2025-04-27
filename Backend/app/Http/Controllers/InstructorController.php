@@ -102,21 +102,23 @@ class InstructorController extends Controller
     }
 
     //Get instructor that assigned to the program/Course
-        public function getInstructorsByCourse(Request $request)
-    {
-        $request->validate([
-            'program_id' => 'required|integer',
-            'yearLevel' => 'required|string',
-        ]);
 
-        $programId = $request->input('program_id');
-        $yearLevel = $request->input('year_level');
+            public function getInstructorsByProgramAndYear(Request $request)
+        {
+            $programId = $request->query('program_id');
+            $yearLevel = $request->query('yearLevel');
 
-        $instructors = Instructor::where('program_id', $programId)
-                         ->where('year_level', $yearLevel)
-                         ->get();
+            if (!$programId || !$yearLevel) {
+                return response()->json(['message' => 'Program ID and Year Level are required'], 400);
+            }
 
-        return response()->json($instructors);
-    }
+            $instructors = Instructor::where('program_id', $programId)
+                ->where('yearLevel', $yearLevel)
+                ->get();
+
+            return response()->json($instructors);
+        }
+
+
 
 }

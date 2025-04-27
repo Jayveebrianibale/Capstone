@@ -27,7 +27,16 @@ const InstructorService = {
       programs: programs,
     });
     return res.data;
-  }
+  },
+  
+  getInstructorsByProgramAndYear: ({ program_id, year_level }) => {
+    return axios.get('/api/instructors-by-program-year', {
+      params: {
+        program_id,
+        year_level
+      }
+    });
+  },
   
 };
 

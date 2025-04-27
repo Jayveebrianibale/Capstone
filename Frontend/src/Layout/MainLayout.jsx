@@ -62,7 +62,7 @@ useEffect(() => {
   setUser(updatedUser);
   setRole(role);
   setLoading(false);
-  
+
   if (location.pathname === "/" || location.pathname === "/login") {
     if (role === "Student") {
       if (!profile_completed) {
@@ -77,7 +77,6 @@ useEffect(() => {
     }
   }
 })
-
   .catch(() => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("role");
