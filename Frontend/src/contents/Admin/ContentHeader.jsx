@@ -11,7 +11,6 @@ const ContentHeader = ({ title, stats = [], onSearch, onExport, onAdd }) => {
         ))}
       </div>
 
-
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] lg:justify-self-end gap-4 w-full sm:w-auto">
         
         <div className="relative w-full sm:w-[250px]">

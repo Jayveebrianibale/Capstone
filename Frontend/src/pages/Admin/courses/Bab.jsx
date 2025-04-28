@@ -6,7 +6,7 @@ import ProgramService from "../../../services/ProgramService";
 import { toast } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
-import { Users } from "lucide-react"; // To display an icon when no instructors are found
+import { Users } from "lucide-react";
 
 function Bab() {
   const [activeTab, setActiveTab] = useState(0);

@@ -10,12 +10,13 @@ function SEvaluations() {
   const [responses, setResponses] = useState({});
   const [noInstructors, setNoInstructors] = useState(false);
   const { loading, setLoading } = useLoading();
+  const [error, setError] = useState(null);
 
   const itemsPerPage = 5;
 
   const mapYearLevelToNumber = (yearLevel) => {
     if (typeof yearLevel === 'number') {
-      return yearLevel; 
+      return yearLevel;
     }
 
     switch (yearLevel) {
@@ -29,52 +30,56 @@ function SEvaluations() {
 
   useEffect(() => {
     const fetchAssignedInstructors = async () => {
-        const user = JSON.parse(sessionStorage.getItem('user'));
-        const programId = user?.program_id;
-        const yearLevel = user?.yearLevel;
+      const user = JSON.parse(sessionStorage.getItem('user'));
+      const programId = user?.program_id;
+      const yearLevel = user?.yearLevel;
 
-        console.log('Program ID:', programId, 'Year Level:', yearLevel);
+      if (!programId || !yearLevel) {
+        console.warn('Program ID or Year Level missing');
+        setError('Program ID or Year Level is missing');
+        return;
+      }
 
-        if (!programId || !yearLevel) {
-            console.warn('Program ID or Year Level missing');
-            return;
+      const yearLevelNumber = mapYearLevelToNumber(yearLevel);
+
+      if (!yearLevelNumber) {
+        console.warn('Invalid Year Level');
+        setError('Invalid Year Level');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await InstructorService.getInstructorsByProgramAndYear(programId, yearLevelNumber);
+        console.log('Fetched Instructors Response:', response); // Check the full response here
+
+        // Assuming response is the array, not response.data
+        if (Array.isArray(response) && response.length > 0) {
+          const instructorNames = response.map((instructor) => ({
+            id: instructor.id,
+            name: instructor.name,
+          }));
+
+          setInstructors(instructorNames);
+          setNoInstructors(false);
+          setError(null); // Clear error if data is fetched successfully
+        } else {
+          setInstructors([]);
+          setNoInstructors(true);
+          setError(null); // Clear error if no instructors are found
         }
-
-        const yearLevelNumber = mapYearLevelToNumber(yearLevel);
-
-        if (!yearLevelNumber) {
-            console.warn('Invalid Year Level');
-            return;
-        }
-
-        console.log(`Fetching instructors from: /api/instructors/${programId}/${yearLevelNumber}`);
-
-        setLoading(true);
-        try {
-            const response = await InstructorService.getInstructorsByProgramAndYear(programId, yearLevelNumber);
-            console.log('Fetched Instructors Response:', response);  // Debug log
-
-            // Make sure instructors data exists and has the expected format
-            if (response?.data && Array.isArray(response.data) && response.data.length > 0) {
-                setInstructors(response.data);
-                setNoInstructors(false); // Reset "no instructors" state if data is fetched successfully
-            } else {
-                setInstructors([]); // Clear instructors if no data is found
-                setNoInstructors(true);
-            }
-        } catch (error) {
-            console.error('Error fetching instructors:', error);
-            setInstructors([]); // Clear instructors on error
-            setNoInstructors(true);
-        } finally {
-            setLoading(false);
-        }
+      } catch (error) {
+        console.error('Error fetching instructors:', error);
+        setInstructors([]);
+        setNoInstructors(true);
+        setError('An error occurred while fetching instructors');
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchAssignedInstructors();
-}, [setLoading]);
-
-
+  }, [setLoading]);
 
   const questions = [
     { category: 'Teaching Effectiveness', question: 'How effective is the teacher in delivering lessons?' },
@@ -102,6 +107,16 @@ function SEvaluations() {
       [instructorId]: {
         ...prev[instructorId],
         [category]: value,
+      },
+    }));
+  };
+
+  const handleCommentChange = (instructorId, comment) => {
+    setResponses((prev) => ({
+      ...prev,
+      [instructorId]: {
+        ...prev[instructorId],
+        comment,
       },
     }));
   };
@@ -141,22 +156,19 @@ function SEvaluations() {
         </div>
       ) : (
         <>
-          <div className="bg-white text-center dark:bg-gray-800 p-6 rounded-lg">
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Instructor Evaluation</h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">
+          <div className="bg-[#1F3463] text-white text-center p-6 font-bold rounded-lg dark:bg-[#1F3463]">
+            <h1 className="text-3xl">Instructor Evaluation</h1>
+            <p className="text-gray-200 mt-2">
               Please evaluate each instructor based on the listed criteria. Your responses are confidential and will help improve teaching quality.
             </p>
           </div>
 
           <div className="mt-6">
             {currentInstructors.map((instructor) => (
-              <div key={instructor.id} className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-lg mb-6">
+              <div key={instructor.id} className="bg-white border dark:bg-gray-800 p-6 shadow-md rounded-lg mb-6">
                 <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
-                  Name: {instructor.name}
+                  Instructor Name: {instructor.name}
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Course: {instructor.course_name || 'Unknown'}
-                </p>
 
                 <div className="mt-4 border-t pt-4 overflow-x-auto">
                   <table className="w-full border border-gray-300 dark:border-gray-700">
@@ -196,6 +208,21 @@ function SEvaluations() {
                       ))}
                     </tbody>
                   </table>
+
+                  {/* Comment Box */}
+                  <div className="mt-4">
+                    <label htmlFor={`comment-${instructor.id}`} className="block text-gray-800 dark:text-white font-semibold">
+                      Additional Comments:
+                    </label>
+                    <textarea
+                      id={`comment-${instructor.id}`}
+                      className="w-full p-2 mt-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-white"
+                      rows="4"
+                      value={responses[instructor.id]?.comment || ''}
+                      onChange={(e) => handleCommentChange(instructor.id, e.target.value)}
+                      placeholder="Provide additional feedback to help the instructor improve their teaching skills..."
+                    />
+                  </div>
                 </div>
               </div>
             ))}
@@ -205,7 +232,11 @@ function SEvaluations() {
             <button
               onClick={handleSubmit}
               disabled={!isEvaluationComplete()}
-              className={`px-6 py-2 rounded-lg transition-all ${isEvaluationComplete() ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-400 text-gray-200 cursor-not-allowed'}`}
+              className={`px-6 py-2 rounded-lg transition-all ${
+                isEvaluationComplete()
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              }`}
             >
               Submit
             </button>
