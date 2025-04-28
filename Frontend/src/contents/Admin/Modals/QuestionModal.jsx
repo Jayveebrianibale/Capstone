@@ -83,6 +83,16 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
                     onChange={(e) => handleChange(index, "category", e.target.value)}
                     className="w-full border dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 transition-all"
                   >
+                    <option value="Learning Environment">Learning Environment</option>
+                    <option value="Student Development">Student Development</option>
+                    <option value="Content Knowledge">Content Knowledge</option>
+                    <option value="Application of Content">Application of Content</option>
+                    <option value="Planning for Instruction">Planning for Instruction</option>
+                    <option value="Teaching Strategies">Teaching Strategies</option>
+                    <option value="Ethical Practice">Ethical Practice</option>
+                    <option value="Leadership and Collaboration">Leadership and Collaboration</option>
+                    <option value="Overall Rating">Overall Rating</option>
+
                     <option value="Teaching Effectiveness">Teaching Effectiveness</option>
                     <option value="Classroom Management">Classroom Management</option>
                     <option value="Student Engagement">Student Engagement</option>

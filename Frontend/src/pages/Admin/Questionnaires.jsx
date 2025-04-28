@@ -134,37 +134,37 @@ function Questionnaires() {
             <div className="px-4 py-3 text-center">Actions</div>
           </div>
 
-  {questions.map((q, index) => (
-    <div
-      key={`${q.id}-${index}`}
-      className="grid grid-cols-[1fr_1fr_3fr_auto] gap-4 p-4 border-b hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200"
-    >
-      <div className="px-4 py-3 text-sm text-gray-800 dark:text-gray-200">
-        {q.category}
+        {questions.map((q, index) => (
+          <div
+            key={`${q.id}-${index}`}
+            className="grid grid-cols-[1fr_1fr_3fr_auto] gap-4 p-4 border-b hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200"
+          >
+            <div className="px-4 py-3 text-sm text-gray-800 dark:text-gray-200">
+              {q.category}
+            </div>
+            <div className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+              {q.type}
+            </div>
+            <div className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 break-words">
+              {q.question}
+            </div>
+            <div className="px-4 py-3 text-center flex justify-center gap-3">
+              <button
+                onClick={() => handleEditClick(q)}
+                className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+              >
+                <FaEdit />
+              </button>
+              <button
+                onClick={() => confirmDelete(q.id)}
+                className="text-red-600 hover:text-red-700 transition-colors duration-200"
+              >
+                <FaTrash />
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
-      <div className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-        {q.type}
-      </div>
-      <div className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 break-words">
-        {q.question}
-      </div>
-      <div className="px-4 py-3 text-center flex justify-center gap-3">
-        <button
-          onClick={() => handleEditClick(q)}
-          className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
-        >
-          <FaEdit />
-        </button>
-        <button
-          onClick={() => confirmDelete(q.id)}
-          className="text-red-600 hover:text-red-700 transition-colors duration-200"
-        >
-          <FaTrash />
-        </button>
-      </div>
-    </div>
-  ))}
-</div>
 
       )}
 
