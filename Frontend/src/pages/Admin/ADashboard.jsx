@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PieChart from "../../contents/Admin/Piechart";
 import CompletionandPerformingInstructors from '../../contents/Admin/CompletionandPerformingInstructors';
 import bgImage from "../../assets/Login.jpg"; 
+import InstructorService from '../../services/InstructorService';
+import StudentService from '../../services/StudentService';
+
 
 function ADashboard() {
+  const [instructorsCount, setInstructorsCount] = useState(0);
+  const [studentsCount, setStudentsCount] = useState(0);
   const currentHour = new Date().getHours();
 
   const greeting = () => {
@@ -15,6 +20,22 @@ function ADashboard() {
       return "Good Evening, Admin!";
     }
   };
+
+ useEffect(() => {
+  const fetchCounts = async () => {
+    try {
+      const instructors = await InstructorService.getAll();
+      const students = await StudentService.getAll();
+
+      setInstructorsCount(instructors.length);
+      setStudentsCount(students.length);
+    } catch (error) {
+      console.error("Error fetching counts:", error);
+    }
+  };
+
+  fetchCounts();
+}, []);
 
   return (
     <main className="p-5 min-h-screen dark:bg-gray-900 space-y-6">
@@ -28,7 +49,7 @@ function ADashboard() {
           backgroundBlendMode: 'overlay'
         }}
       >
-      <div className="absolute inset-0 bg-black opacity-30 z-0" />
+        <div className="absolute inset-0 bg-black opacity-30 z-0" />
         <div className="relative z-10">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight break-words leading-tight drop-shadow-sm">
             {greeting()}
@@ -45,9 +66,9 @@ function ADashboard() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:col-span-2 gap-6">
-          {[
-            { title: 'Number of Students', count: 0, color: 'text-[#2196f3]' },
-            { title: 'Number of Instructors', count: 0, color: 'text-[#4caf50]' },
+          {[ 
+            { title: 'Number of Students', count: studentsCount, color: 'text-[#2196f3]'},
+            { title: 'Number of Instructors', count: instructorsCount, color: 'text-[#4caf50]' },
             { title: 'Evaluation Submitted', count: 0, color: 'text-[#9c27b0]' },
             { title: 'Evaluation Not Submitted', count: 0, color: 'text-[#f44336]' },
           ].map(({ title, count, color }) => (
@@ -63,7 +84,6 @@ function ADashboard() {
           ))}
         </div>
       </div>
-
       <CompletionandPerformingInstructors />
     </main>
   );
