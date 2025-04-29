@@ -30,6 +30,9 @@ Route::middleware('auth:sanctum')->get('/student/profile', [StudentProfileContro
 Route::get('/students', [UserController::class, 'getAllStudents']);
 Route::get('/students/{student}/instructors', [StudentController::class, 'getStudentInstructors']);
 
+//Evaluation Route
+Route::middleware('auth:sanctum')->post('/evaluations', [EvaluationController::class, 'store']);
+
 // Course Routes
 Route::post('/courses', [CourseController::class, 'createCourse']); 
 Route::get('/courses', [CourseController::class, 'getAllCourses']);

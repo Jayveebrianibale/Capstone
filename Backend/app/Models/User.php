@@ -38,27 +38,39 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function getProfilePictureUrlAttribute()
-    {
-        return $this->profile_picture ? Storage::url($this->profile_picture) : null;
-    }
 
-    public function resetTwoFactorCode()
-    {
-        $this->two_factor_code = null;
-        $this->two_factor_expires_at = null;
-        $this->save();
-    }
+        public function evaluationsGiven()
+        {
+            return $this->hasMany(Evaluation::class, 'student_id');
+        }
 
-    public function courses()
-    {
-        return $this->belongsToMany(Course::class, 'course_student', 'user_id', 'course_id')
-            ->withPivot('semester');
-    }
+        public function evaluationsReceived()
+        {
+            return $this->hasMany(Evaluation::class, 'instructor_id');
+        }
 
-   public function studentProfile()
-    {
-    return $this->hasOne(StudentProfile::class);
-    }
+
+//     public function getProfilePictureUrlAttribute()
+//     {
+//         return $this->profile_picture ? Storage::url($this->profile_picture) : null;
+//     }
+
+//     public function resetTwoFactorCode()
+//     {
+//         $this->two_factor_code = null;
+//         $this->two_factor_expires_at = null;
+//         $this->save();
+//     }
+
+//     public function courses()
+//     {
+//         return $this->belongsToMany(Course::class, 'course_student', 'user_id', 'course_id')
+//             ->withPivot('semester');
+//     }
+
+//    public function studentProfile()
+//     {
+//     return $this->hasOne(StudentProfile::class);
+//     }
 
 }

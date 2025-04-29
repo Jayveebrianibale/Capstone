@@ -1,18 +1,29 @@
 <?php
+
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Evaluation extends Model
 {
-    use HasFactory;
+    protected $fillable = ['student_id', 'instructor_id'];
 
-    protected $fillable = ['teacher_id', 'rating', 'comment'];
-
-    public function teacher()
+    public function student()
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->belongsTo(User::class, 'student_id');
+    }
+
+    public function instructor()
+    {
+        return $this->belongsTo(User::class, 'instructor_id');
+    }
+
+    public function responses()
+    {
+        return $this->hasMany(EvaluationResponse::class);
     }
 }
+
+
 

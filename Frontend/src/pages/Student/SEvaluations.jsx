@@ -231,7 +231,7 @@ function SEvaluations() {
             {currentInstructors.map((instructor) => (
               <div key={instructor.id} className="bg-white border dark:bg-gray-800 p-6 shadow-md rounded-lg mb-6">
                 <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
-                  Instructor Name: {instructor.name}
+                  Name: {instructor.name}
                 </h2>
 
                 <div className="mt-4 border-t pt-4 overflow-x-auto">
