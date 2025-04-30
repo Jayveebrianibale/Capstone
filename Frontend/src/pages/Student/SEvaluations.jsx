@@ -206,19 +206,19 @@ function SEvaluations() {
 
   return (
     <main className="p-4 dark:text-white dark:bg-gray-900 min-h-screen">
-      {loading ? (
-        <FullScreenLoader />
-      ) : noInstructors ? (
-        <div className="flex flex-col items-center justify-center h-[70vh]">
-          <Users className="w-16 h-16 text-gray-400 mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-            No Instructors Found
-          </h2>
-          <p className="text-red-500 text-center">
-            There are currently no instructors assigned to your program and year level.
-          </p>
-        </div>
-      ) : (
+              `{loading ? (
+          <FullScreenLoader />
+        ) : instructors.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-[70vh]">
+            <Users className="w-16 h-16 text-gray-400 mb-4" />
+            <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+              No Instructors Found
+            </h2>
+            <p className="text-red-500 text-center">
+              There are currently no instructors assigned to your program and year level.
+            </p>
+          </div>
+        ) : (
         <>
           <div className="bg-[#1F3463] text-white text-center p-6 font-bold rounded-lg dark:bg-[#1F3463]">
             <h1 className="text-3xl">Instructor Evaluation</h1>

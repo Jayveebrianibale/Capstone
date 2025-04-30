@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('evaluation_responses')) {
         Schema::create('evaluation_responses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('evaluation_id')->constrained()->onDelete('cascade');
@@ -19,6 +20,8 @@ return new class extends Migration
             $table->text('comment')->nullable();
             $table->timestamps();
         });
+}
+
 
     }
 
