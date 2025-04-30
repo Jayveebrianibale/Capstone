@@ -29,7 +29,7 @@ const InstructorService = {
     return res.data;
   },
   
- getInstructorsByProgramAndYear: async (programId, yearLevel) => {
+  getInstructorsByProgramAndYear: async (programId, yearLevel) => {
     try {
       const response = await axios.get(`${API_URL}/${programId}/${yearLevel}`);
       return response.data;
@@ -39,6 +39,28 @@ const InstructorService = {
     }
   },
 
+  submitEvaluation: async (evaluationData) => {
+    const token = localStorage.getItem('authToken');
+    const response = await axios.post(
+      'http://localhost:8000/api/evaluations',
+      evaluationData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      }
+    );
+    return response.data;
+  },
+
+  checkIfEvaluated: async (instructorId) => {
+    try {
+      const response = await axios.get(`/api/check-evaluation/${instructorId}`);
+      return response.data.message;
+    } catch (error) {
+      throw new Error('Error checking evaluation status');
+    }
+  }
 };
 
 export default InstructorService;

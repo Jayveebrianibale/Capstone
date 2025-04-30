@@ -4,6 +4,8 @@ import FullScreenLoader from '../../components/FullScreenLoader';
 import { useLoading } from '../../components/LoadingContext';
 import InstructorService from '../../services/InstructorService';
 import { fetchQuestions } from '../../services/QuestionService';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function SEvaluations() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,10 +19,7 @@ function SEvaluations() {
   const itemsPerPage = 5;
 
   const mapYearLevelToNumber = (yearLevel) => {
-    if (typeof yearLevel === 'number') {
-      return yearLevel;
-    }
-
+    if (typeof yearLevel === 'number') return yearLevel;
     switch (yearLevel) {
       case '1st Year': return 1;
       case '2nd Year': return 2;
@@ -37,15 +36,12 @@ function SEvaluations() {
       const yearLevel = user?.yearLevel;
 
       if (!programId || !yearLevel) {
-        console.warn('Program ID or Year Level missing');
         setError('Program ID or Year Level is missing');
         return;
       }
 
       const yearLevelNumber = mapYearLevelToNumber(yearLevel);
-
       if (!yearLevelNumber) {
-        console.warn('Invalid Year Level');
         setError('Invalid Year Level');
         return;
       }
@@ -53,27 +49,22 @@ function SEvaluations() {
       setLoading(true);
       try {
         const response = await InstructorService.getInstructorsByProgramAndYear(programId, yearLevelNumber);
-        console.log('Fetched Instructors Response:', response);
-
         if (Array.isArray(response) && response.length > 0) {
           const instructorNames = response.map((instructor) => ({
             id: instructor.id,
             name: instructor.name,
           }));
-
           setInstructors(instructorNames);
           setNoInstructors(false);
-          setError(null);
         } else {
           setInstructors([]);
           setNoInstructors(true);
-          setError(null);
         }
-      } catch (error) {
-        console.error('Error fetching instructors:', error);
+      } catch (err) {
+        console.error('Error fetching instructors:', err);
+        setError('An error occurred while fetching instructors');
         setInstructors([]);
         setNoInstructors(true);
-        setError('An error occurred while fetching instructors');
       } finally {
         setLoading(false);
       }
@@ -99,7 +90,7 @@ function SEvaluations() {
     fetchEvaluationQuestions();
   }, [setLoading]);
 
-          const ratingOptions = {
+  const ratingOptions = {
           "Learning Environment": [
             { value: '5', label: '5 - Extremely positive and significantly enhances learning' },
             { value: '4', label: '4 - Positive and slightly enhances learning' },
@@ -164,39 +155,61 @@ function SEvaluations() {
             { value: '1', label: '1 - Very unsatisfied' },
           ],
         };
-        
-  const handleResponseChange = (instructorId, category, value) => {
-    setResponses((prev) => ({
-      ...prev,
-      [instructorId]: {
-        ...prev[instructorId],
-        [category]: value,
-      },
-    }));
-  };
 
-  const handleCommentChange = (instructorId, comment) => {
-    setResponses((prev) => ({
-      ...prev,
-      [instructorId]: {
-        ...prev[instructorId],
-        comment,
-      },
-    }));
-  };
 
-  const isEvaluationComplete = () => {
-    return instructors.every((instructor) =>
-      questions.every((q) => responses[instructor.id]?.[q.category])
-    );
-  };
+      const handleResponseChange = (instructorId, category, value) => {
+        setResponses((prev) => ({
+          ...prev,
+          [instructorId]: {
+            ...prev[instructorId],
+            [category]: value,
+          },
+        }));
+      };
 
-  const handleSubmit = async () => {
-    if (!isEvaluationComplete()) return;
+      const handleCommentChange = (instructorId, comment) => {
+        setResponses((prev) => ({
+          ...prev,
+          [instructorId]: {
+            ...prev[instructorId],
+            comment,
+          },
+        }));
+      };
 
-    console.log('Submitted Evaluations:', responses);
-    alert('Evaluation submitted successfully!');
-  };
+      const isEvaluationComplete = () => {
+        return instructors.every((instructor) =>
+          questions.every((q) => responses[instructor.id]?.[q.category])
+        );
+      };
+
+      const handleSubmit = async () => {
+      if (!isEvaluationComplete()) return;
+
+      try {
+        for (const instructor of instructors) {
+          const responseEntries = questions.map((q) => ({
+            question_id: q.id,
+            rating: parseInt(responses[instructor.id][q.category]),
+          }));
+
+          const payload = {
+            instructor_id: instructor.id,
+            comment: responses[instructor.id]?.comment || '',
+            responses: responseEntries,
+          };
+
+          await InstructorService.submitEvaluation(payload);
+        }
+
+        toast.success('Evaluation submitted successfully!');
+        setResponses({});
+      } catch (error) {
+        console.error('Error submitting evaluation:', error);
+        toast.error('Failed to submit evaluations. Please try again.');
+      }
+    };
+
 
   const totalPages = Math.ceil(instructors.length / itemsPerPage);
   const currentInstructors = instructors.slice(
@@ -206,21 +219,22 @@ function SEvaluations() {
 
   return (
     <main className="p-4 dark:text-white dark:bg-gray-900 min-h-screen">
-              `{loading ? (
-          <FullScreenLoader />
-        ) : instructors.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[70vh]">
-            <Users className="w-16 h-16 text-gray-400 mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-              No Instructors Found
-            </h2>
-            <p className="text-red-500 text-center">
-              There are currently no instructors assigned to your program and year level.
-            </p>
-          </div>
-        ) : (
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      {loading ? (
+        <FullScreenLoader />
+      ) : instructors.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-[70vh]">
+          <Users className="w-16 h-16 text-gray-400 mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+            No Instructors Found
+          </h2>
+          <p className="text-red-500 text-center">
+            There are currently no instructors assigned to your program and year level.
+          </p>
+        </div>
+      ) : (
         <>
-          <div className="bg-[#1F3463] text-white text-center p-6 font-bold rounded-lg dark:bg-[#1F3463]">
+          <div className="bg-[#1F3463] text-white text-center p-6 font-bold rounded-lg">
             <h1 className="text-3xl">Instructor Evaluation</h1>
             <p className="text-gray-200 mt-2">
               Please evaluate each instructor based on the listed criteria. Your responses are confidential and will help improve teaching quality.
@@ -237,54 +251,43 @@ function SEvaluations() {
                 <div className="mt-4 border-t pt-4 overflow-x-auto">
                   <table className="w-full border border-gray-300 dark:border-gray-700">
                     <tbody>
-                      {questions.map((q, catIndex) => (
-                      <React.Fragment key={catIndex}>
-                        <tr className="bg-gray-100 dark:bg-gray-700">
-                          <td
-                            className="border border-gray-300 dark:border-gray-700 p-3 font-semibold text-gray-800 dark:text-white"
-                            colSpan="3"
-                          >
-                            {catIndex + 1}. {q.category}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="border border-gray-300 dark:border-gray-700 p-3 text-gray-800 dark:text-white">
-                            {q.question}
-                          </td>
-                          <td className="border border-gray-300 dark:border-gray-700 p-3">
-                            <select
-                              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring focus:ring-blue-300"
-                              value={responses[instructor.id]?.[q.category] || ''}
-                              onChange={(e) =>
-                                handleResponseChange(instructor.id, q.category, e.target.value)
-                              }
-                            >
-                              <option value="" disabled>Select Rating</option>
-                              {ratingOptions[q.category]?.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-                        </tr>
-                      </React.Fragment>
-                    ))}
-
+                      {questions.map((q, idx) => (
+                        <React.Fragment key={idx}>
+                          <tr className="bg-gray-100 dark:bg-gray-700">
+                            <td colSpan="3" className="p-3 font-semibold text-gray-800 dark:text-white">
+                              {idx + 1}. {q.category}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="p-3 text-gray-800 dark:text-white">{q.question}</td>
+                            <td className="p-3">
+                              <select
+                                className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-white"
+                                value={responses[instructor.id]?.[q.category] || ''}
+                                onChange={(e) => handleResponseChange(instructor.id, q.category, e.target.value)}
+                              >
+                                <option value="" disabled>Select Rating</option>
+                                {ratingOptions[q.category]?.map((opt) => (
+                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                              </select>
+                            </td>
+                          </tr>
+                        </React.Fragment>
+                      ))}
                     </tbody>
                   </table>
 
                   <div className="mt-4">
-                    <label htmlFor={`comment-${instructor.id}`} className="block text-gray-800 dark:text-white font-semibold">
+                    <label className="block text-gray-800 dark:text-white font-semibold">
                       Additional Comments:
                     </label>
                     <textarea
-                      id={`comment-${instructor.id}`}
                       className="w-full p-2 mt-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                       rows="4"
                       value={responses[instructor.id]?.comment || ''}
                       onChange={(e) => handleCommentChange(instructor.id, e.target.value)}
-                      placeholder="Provide additional feedback to help the instructor improve their teaching skills..."
+                      placeholder="Provide additional feedback..."
                     />
                   </div>
                 </div>

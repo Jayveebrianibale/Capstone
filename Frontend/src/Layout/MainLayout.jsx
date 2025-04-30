@@ -51,39 +51,36 @@ useEffect(() => {
   }
 
   axios.get("http://127.0.0.1:8000/api/user", {
-  headers: { Authorization: `Bearer ${token}` },
-})
-.then((response) => {
-  const updatedUser = response.data;
-  const { role, profile_completed } = updatedUser;
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then((response) => {
+      const updatedUser = response.data;
+      const { role, profile_completed } = updatedUser;
 
-  sessionStorage.setItem("user", JSON.stringify(updatedUser));
-  localStorage.setItem("profileCompleted", profile_completed);
-  setUser(updatedUser);
-  setRole(role);
-  setLoading(false);
+      sessionStorage.setItem("user", JSON.stringify(updatedUser));
+      localStorage.setItem("profileCompleted", profile_completed);
+      setUser(updatedUser);
+      setRole(role);
+      setLoading(false);
 
-  if (location.pathname === "/" || location.pathname === "/login") {
-    if (role === "Student") {
-      if (!profile_completed) {
-        navigate("/Student-profile-setup");
-      } else {
-        navigate("/SDashboard");
+      if (role === "Student") {
+        if (!profile_completed && location.pathname !== "/Student-profile-setup") {
+          navigate("/Student-profile-setup");
+        } else if (profile_completed && location.pathname === "/") {
+          navigate("/SDashboard");
+        }
+      } else if (role === "Instructor" && location.pathname === "/") {
+        navigate("/InstructorDashboard");
+      } else if (role === "Admin" && location.pathname === "/") {
+        navigate("/AdminDashboard");
       }
-    } else if (role === "Instructor") {
-      navigate("/InstructorDashboard");
-    } else if (role === "Admin") {
-      navigate("/AdminDashboard");
-    }
-  }
-})
-  .catch(() => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("role");
-    navigate("/login");
-  });
+    })
+    .catch(() => {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("role");
+      navigate("/login");
+    });
 }, [navigate, location.pathname]);
-
 
 
   if (loading) return null;

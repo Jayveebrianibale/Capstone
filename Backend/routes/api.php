@@ -32,6 +32,7 @@ Route::get('/students/{student}/instructors', [StudentController::class, 'getStu
 
 //Evaluation Route
 Route::middleware('auth:sanctum')->post('/evaluations', [EvaluationController::class, 'store']);
+Route::get('/check-evaluation/{instructorId}', [EvaluationController::class, 'checkEvaluationStatus']);
 
 // Course Routes
 Route::post('/courses', [CourseController::class, 'createCourse']); 
