@@ -11,8 +11,18 @@ use App\Models\EvaluationResponse;
 use App\Models\Question;
 
 
-class EvaluationController extends Controller
-{
+class EvaluationController extends Controller {
+
+        public function index(Request $request) {
+            $user = $request->user();
+            $evaluations = Evaluation::with('instructor')
+                ->where('student_id', $user->id)
+                ->get()
+                ->groupBy('instructor_id');
+
+            return response()->json($evaluations);
+        }
+
         public function store(Request $request)
     {
         $user = auth()->user();
@@ -21,13 +31,17 @@ class EvaluationController extends Controller
             return response()->json(['message' => 'Only students can submit evaluations.'], 403);
         }
 
-        $validated = $request->validate([
-            'instructor_id' => 'required|exists:users,id',
-            'responses' => 'required|array|min:1',
-            'responses.*.question_id' => 'required|exists:questions,id',
-            'responses.*.rating' => 'required|integer|between:1,5',
-            'comment' => 'nullable|string',
-        ]);
+            $validated = $request->validate([
+                'instructor_id' => 'required|exists:users,id',
+                'responses' => 'required|array|min:1',
+                'responses.*.question_id' => 'required|exists:questions,id',
+                'responses.*.rating' => 'required|integer|between:1,5',
+                'comment' => 'nullable|string',
+                'school_year' => 'required|string',
+                'semester' => 'required|string',
+            ]);
+
+
 
         // ✅ Check if this student already evaluated this instructor
         $existingEvaluation = Evaluation::where('student_id', $user->id)
@@ -39,10 +53,17 @@ class EvaluationController extends Controller
         }
 
         // ✅ Create evaluation and responses
-        $evaluation = Evaluation::create([
-            'student_id' => $user->id,
-            'instructor_id' => $validated['instructor_id'],
-        ]);
+            $evaluation = Evaluation::create([
+                'student_id' => $user->id,
+                'instructor_id' => $validated['instructor_id'],
+                'school_year' => $validated['school_year'],
+                'semester' => $validated['semester'],
+                'status' => 'Evaluated',
+                'evaluated_at' => now(),
+            ]);
+
+
+
 
         foreach ($validated['responses'] as $response) {
             EvaluationResponse::create([
@@ -53,22 +74,25 @@ class EvaluationController extends Controller
             ]);
         }
 
-        return response()->json(['message' => 'Evaluation submitted successfully.'], 201);
+       return response()->json([
+            'message' => 'Evaluation submitted successfully.',
+            'status' => $evaluation->status,
+            'evaluated_at' => $evaluation->evaluated_at,
+        ], 201);
+
     }
 
-        public function checkEvaluationStatus($instructorId)
-    {
-        $user = auth()->user();
-        $hasEvaluated = Evaluation::where('user_id', $user->id)
-                                ->where('instructor_id', $instructorId)
-                                ->exists();
+        public function getEvaluationWithResponses($evaluationId) {
+            
+            $evaluation = Evaluation::with('responses.question')->find($evaluationId);
 
-        if ($hasEvaluated) {
-            return response()->json(['message' => 'You have already submitted an evaluation for this instructor.']);
-        } else {
-            return response()->json(['message' => 'Evaluation not submitted.']);
+            if (!$evaluation) {
+                return response()->json(['error' => 'Evaluation not found'], 404);
+            }
+
+            return response()->json($evaluation);
         }
-    }
+
 
 
 }

@@ -7,7 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Evaluation extends Model
 {
-    protected $fillable = ['student_id', 'instructor_id'];
+    protected $fillable = [
+    'student_id', 
+    'instructor_id', 
+    'school_year',
+    'status',
+    'evaluated_at',
+    'semester',];
 
     public function student()
     {
