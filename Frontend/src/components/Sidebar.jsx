@@ -77,24 +77,6 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
     closeSidebar();
   };
 
-  const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-  
-      if (token) {
-        await axios.post("http://localhost:8000/api/logout", {}, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      }
-  
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("role");
-      localStorage.removeItem("activePage");
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  };
   return (
     <div
       className={`fixed inset-0 z-40 transition-transform transform w-56 bg-[#1F3463] dark:bg-gray-800 border-r border-gray-700 overflow-y-auto h-screen ${

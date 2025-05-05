@@ -262,66 +262,57 @@ function SEvaluations() {
               Please evaluate each instructor based on the listed criteria. Your responses are confidential and will help improve teaching quality.
             </p>
           </div>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 space-y-4 sm:space-y-0">
+                  <div className="flex-1">
+                    <label className="block text-gray-700 dark:text-gray-200 font-semibold mb-2">
+                      School Year
+                    </label>
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => {
+                        setSelectedYear(e.target.value);
+                        sessionStorage.setItem('selectedYear', e.target.value);
+                        if (e.target.value && selectedSemester) {
+                          fetchAssignedInstructors();
+                          setFormReady(true);
+                        }
+                      }}
+                      disabled={formReady}
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed transition"
+                    >
+                      <option value="">Select School Year</option>
+                      {schoolYears.map((year) => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
 
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-4 sm:space-y-0">
-              <div className="flex-1">
-                <label className="block text-gray-700 dark:text-gray-200 font-semibold mb-1">School Year</label>
-                <select
-                  value={selectedYear}
-                  onChange={(e) => {
-                    const year = e.target.value;
-                    setSelectedYear(year);
-                    setSelectedSemester('');
-                    setFormReady(false);
-                    sessionStorage.setItem('selectedYear', year);
-                  }}
-
-                  className="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="" disabled>Select School Year</option>
-                  {schoolYears.map((year) => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex-1">
-                <label className="block text-gray-700 dark:text-gray-200 font-semibold mb-1">Semester</label>
-                <select
-                  value={selectedSemester}
-                 onChange={(e) => {
-                    const semester = e.target.value;
-                    setSelectedSemester(semester);
-                    sessionStorage.setItem('selectedSemester', semester);
-                  }}
-                  disabled={!selectedYear}
-                  className="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="" disabled>Select Semester</option>
-                  {selectedYear && semesters.map((sem) => (
-                    <option key={sem} value={sem}>{sem}</option>
-                  ))}
-                </select>
-              </div>
-
-              {!proceeded && (
-                <div className="flex items-end">
-                  <button
-                    onClick={handleYearSemesterSelect}
-                    disabled={!selectedYear || !selectedSemester}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                      selectedYear && selectedSemester
-                        ? 'bg-[#1F3463] text-white hover:bg-blue-700'
-                        : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                    }`}
-                  >
-                    Proceed
-                  </button>
+                  <div className="flex-1">
+                    <label className="block text-gray-700 dark:text-gray-200 font-semibold mb-2">
+                      Semester
+                    </label>
+                    <select
+                      value={selectedSemester}
+                      onChange={(e) => {
+                        setSelectedSemester(e.target.value);
+                        sessionStorage.setItem('selectedSemester', e.target.value);
+                        if (selectedYear && e.target.value) {
+                          fetchAssignedInstructors();
+                          setFormReady(true);
+                        }
+                      }}
+                      disabled={formReady}
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed transition"
+                    >
+                      <option value="">Select Semester</option>
+                      {semesters.map((semester) => (
+                        <option key={semester} value={semester}>{semester}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
 
           {formReady ? (
             instructors.length === 0 ? (
@@ -374,72 +365,59 @@ function SEvaluations() {
                           </tr>
 
                           {isExpanded && (
-                            <tr>
-                              <td colSpan={4} className="bg-gray-50 dark:bg-gray-900 px-8 py-6">
-                                <div className="space-y-6 border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800 rounded-lg">
-                                  {submission?.status && (
-                                    <div className="bg-green-50 dark:bg-green-900 p-4 rounded-lg border border-green-200 dark:border-green-700">
-                                      <p className="text-green-600 dark:text-green-300 font-medium">
-                                        Status: {submission.status} <br />
-                                        Evaluated At: {submission.evaluatedAt 
-                                          ? new Date(submission.evaluatedAt).toLocaleString() 
-                                          : 'Not submitted yet'}
-                                      </p>
-                                    </div>
-                                  )}
+                           <tr>
+                            <td colSpan={4} className="bg-gray-50 dark:bg-gray-900 px-6 py-4">
+                              <div className="space-y-6 border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
 
-                                  {questions.map((q, idx) => (
-                                    <div key={idx} className="space-y-2">
-                                      <h3 className="font-semibold text-lg dark:text-white">{idx + 1}. {q.category}</h3>
-                                      <p className="text-gray-600 dark:text-gray-300">{q.question}</p>
-                                      <select
-                                        className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-white"
-                                        value={responses[instructor.id]?.[q.category] || ''}
-                                        onChange={(e) =>
-                                          handleResponseChange(instructor.id, q.category, e.target.value)
-                                        }
-                                        disabled={submission?.status === 'Evaluated'}
-                                      >
-                                        <option value="" disabled>Select Rating</option>
-                                        {ratingOptions[q.category]?.map((opt) => (
-                                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                  ))}
-
-                                  <div>
-                                    <label className="block text-lg font-semibold text-gray-900 dark:text-white">
-                                      Additional Comments:
-                                    </label>
-                                    <textarea
-                                      className="w-full mt-2 p-3 border rounded-lg bg-white dark:bg-gray-700 dark:text-white"
-                                      rows="4"
-                                      value={responses[instructor.id]?.comment || ''}
-                                      onChange={(e) =>
-                                        handleCommentChange(instructor.id, e.target.value)
-                                      }
-                                      placeholder="Provide additional feedback..."
+                                {questions.map((q, idx) => (
+                                  <div key={idx} className="space-y-2 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
+                                    <h3 className="font-semibold text-base text-gray-800 dark:text-white">{idx + 1}. {q.category}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-300">{q.question}</p>
+                                    <select
+                                      className="w-full mt-1 p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                                      value={responses[instructor.id]?.[q.category] || ''}
+                                      onChange={(e) => handleResponseChange(instructor.id, q.category, e.target.value)}
                                       disabled={submission?.status === 'Evaluated'}
-                                    />
-                                  </div>
-
-                                  <div className="text-right">
-                                    <button
-                                      onClick={() => handleSubmit(instructor.id)}
-                                      disabled={!isInstructorEvaluationComplete(instructor.id) || submission?.status === 'Evaluated'}
-                                      className={`px-6 py-2 rounded-lg font-medium transition-all text-sm ${
-                                        isInstructorEvaluationComplete(instructor.id) && submission?.status !== 'Evaluated'
-                                          ? 'bg-green-600 text-white hover:bg-green-700'
-                                          : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                                      }`}
                                     >
-                                      {submission?.status === 'Evaluated' ? 'Evaluation Submitted' : 'Submit Evaluation'}
-                                    </button>
+                                      <option value="" disabled>Select Rating</option>
+                                      {ratingOptions[q.category]?.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                      ))}
+                                    </select>
                                   </div>
+                                ))}
+
+                                <div className="space-y-2">
+                                  <label className="block text-base font-semibold text-gray-900 dark:text-white">
+                                    Additional Comments:
+                                  </label>
+                                  <textarea
+                                    className="w-full p-3 border border-gray-300 rounded-md bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    rows="4"
+                                    value={responses[instructor.id]?.comment || ''}
+                                    onChange={(e) => handleCommentChange(instructor.id, e.target.value)}
+                                    placeholder="Provide additional feedback..."
+                                    disabled={submission?.status === 'Evaluated'}
+                                  />
                                 </div>
-                              </td>
-                            </tr>
+
+                                <div className="text-right">
+                                  <button
+                                    onClick={() => handleSubmit(instructor.id)}
+                                    disabled={!isInstructorEvaluationComplete(instructor.id) || submission?.status === 'Evaluated'}
+                                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                                      isInstructorEvaluationComplete(instructor.id) && submission?.status !== 'Evaluated'
+                                        ? 'bg-green-600 text-white hover:bg-green-700'
+                                        : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                    }`}
+                                  >
+                                    {submission?.status === 'Evaluated' ? 'Evaluation Submitted' : 'Submit Evaluation'}
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                          
                           )}
                         </React.Fragment>
                       );

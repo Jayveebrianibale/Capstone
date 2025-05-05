@@ -91,6 +91,8 @@ useEffect(() => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("role");
     localStorage.removeItem("activePage");
+    sessionStorage.removeItem('selectedYear');
+    sessionStorage.removeItem('selectedSemester');
     navigate("/login");
   };
 
