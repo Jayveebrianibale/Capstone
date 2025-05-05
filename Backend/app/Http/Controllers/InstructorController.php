@@ -20,7 +20,6 @@ class InstructorController extends Controller
     // Create a new instructor
     public function store(Request $request)
     {
-        // Validate the request
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:instructors',
@@ -34,16 +33,13 @@ class InstructorController extends Controller
     // Update an instructor’s information
     public function update(Request $request, $id)
     {
-        // Find the instructor or return 404
+        
         $instructor = Instructor::findOrFail($id);
-
-        // Validate the updated data
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:instructors,email,' . $id,
         ]);
 
-        // Update the instructor details
         $instructor->update($request->all());
         return response()->json($instructor);
     }
@@ -51,10 +47,7 @@ class InstructorController extends Controller
     // Delete an instructor
     public function destroy($id)
     {
-        // Find the instructor or return 404
         $instructor = Instructor::findOrFail($id);
-
-        // Delete the instructor
         $instructor->delete();
 
         return response()->json(['message' => 'Instructor deleted successfully']);
@@ -63,17 +56,13 @@ class InstructorController extends Controller
     // Assign one or more programs with year levels to an instructor
     public function assignProgram(Request $request, $id)
     {
-        // Find the instructor or return 404
         $instructor = Instructor::findOrFail($id);
-
-        // Validate the program assignment data
         $request->validate([
             'programs' => 'required|array',
             'programs.*.id' => 'required|exists:programs,id',
             'programs.*.yearLevel' => 'required|integer|between:1,4',
         ]);
 
-        // Loop through programs and attach them to the instructor if not already assigned for the given year level
         foreach ($request->programs as $program) {
             $exists = $instructor->programs()
                 ->wherePivot('program_id', $program['id'])
@@ -85,7 +74,6 @@ class InstructorController extends Controller
             }
         }
 
-        // Return the updated instructor with their assigned programs
         return response()->json([
             'message' => 'Programs assigned successfully',
             'instructor' => $instructor->load('programs')

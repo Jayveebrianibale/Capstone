@@ -6,19 +6,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::table('instructors', function (Blueprint $table) {
-            $table->dropColumn('program_id');
             $table->dropColumn('yearLevel');
         });
-    }
 
-    public function down(): void
-    {
-        Schema::table('instructors', function (Blueprint $table) {
-            $table->unsignedBigInteger('program_id')->nullable();
-            $table->integer('yearLevel')->default(0);
-        });
     }
 };

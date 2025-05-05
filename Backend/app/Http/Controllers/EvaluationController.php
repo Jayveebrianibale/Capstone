@@ -93,6 +93,4 @@ class EvaluationController extends Controller {
             return response()->json($evaluation);
         }
 
-
-
 }

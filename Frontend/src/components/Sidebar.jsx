@@ -43,14 +43,15 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
         ],
       },
       {
-        name: "Intermediate", icon: LiaChildSolid, path:"Intermediate",
+        name: "Basic Education",
+        icon: LiaChildSolid,
+        submenu: [
+          { name: "Intermediate", path: "/Intermediate" },
+          { name: "Junior High", path: "/JuniorHigh" },
+          { name: "Senior High", path: "/SeniorHigh" },
+        ],
       },
-      {
-        name: "Junior High", icon: VscPerson, path: "JuniorHigh"
-      },
-      {
-        name: "Senior High", icon: VscPerson, path:"SeniorHigh"
-      },
+
       { name: "Accounts", icon: MdOutlineManageAccounts, path: "/Accounts" },
       { name: "Questionnaires", icon: TbMessageQuestion, path: "/Questions" },
       { name: "Instructors", icon: SlPeople, path: "/Instructors" },
@@ -133,8 +134,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
                         <button
                         key={sub.name}
                         className={`flex w-full items-center gap-2 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 ${
-                          activePage === sub.fullName ? "bg-indigo-600 dark:bg-indigo-500" : ""
+                          (activePage === sub.fullName || activePage === sub.name) ? "bg-indigo-600 dark:bg-indigo-500" : ""
                         }`}
+
                         onClick={() => handleNavigation(sub.path, sub.name, sub.fullName)}
                       >
                         <span>{sub.name}</span>
