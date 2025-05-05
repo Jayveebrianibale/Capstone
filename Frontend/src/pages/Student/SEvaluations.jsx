@@ -6,7 +6,7 @@ import InstructorService from '../../services/InstructorService';
 import { fetchQuestions } from '../../services/QuestionService';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Evaluation from "../../assets/Evaluation.png"
+import Evaluation from "../../assets/Evaluation.png";
 import EvaluationService from '../../services/EvaluationService';
 
 function SEvaluations() {
@@ -22,6 +22,8 @@ function SEvaluations() {
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('');
   const [formReady, setFormReady] = useState(false);
+  const [proceeded, setProceeded] = useState(false);
+
 
   const itemsPerPage = 5;
 
@@ -38,6 +40,19 @@ function SEvaluations() {
 
   const schoolYears = ['2023-2024', '2024-2025', '2025-2026'];
   const semesters = ['1st Semester', '2nd Semester', 'Summer'];
+
+  useEffect(() => {
+  const storedYear = sessionStorage.getItem('selectedYear');
+  const storedSemester = sessionStorage.getItem('selectedSemester');
+
+  if (storedYear) setSelectedYear(storedYear);
+  if (storedSemester) setSelectedSemester(storedSemester);
+  if (storedYear && storedSemester) {
+    setFormReady(true);
+    fetchAssignedInstructors();
+  }
+}, []);
+
 
   useEffect(() => {
     const fetchEvaluationQuestions = async () => {
@@ -99,11 +114,12 @@ function SEvaluations() {
   const handleYearSemesterSelect = () => {
     if (selectedYear && selectedSemester) {
       setFormReady(true);
+      setProceeded(true);
       fetchAssignedInstructors();
     }
   };
 
-  const ratingOptions = {
+   const ratingOptions = {
     "Learning Environment": [
       { value: '5', label: '5 - Extremely positive and significantly enhances learning' },
       { value: '4', label: '4 - Positive and slightly enhances learning' },
@@ -194,38 +210,38 @@ function SEvaluations() {
   };
 
   const handleSubmit = async (instructorId) => {
-  if (!isInstructorEvaluationComplete(instructorId)) return;
+    if (!isInstructorEvaluationComplete(instructorId)) return;
 
-  const responseEntries = questions.map((q) => ({
-    question_id: q.id,
-    rating: parseInt(responses[instructorId][q.category]),
-  }));
-
-  const payload = {
-    instructor_id: instructorId,
-    comment: responses[instructorId]?.comment || '',
-    responses: responseEntries,
-    school_year: selectedYear,
-    semester: selectedSemester,
-  };
-
-  try {
-    await InstructorService.submitEvaluation(payload);
-
-    setSubmissionInfo((prev) => ({
-      ...prev,
-      [instructorId]: {
-        submittedAt: new Date().toLocaleString(),
-        status: 'Submitted',
-      }
+    const responseEntries = questions.map((q) => ({
+      question_id: q.id,
+      rating: parseInt(responses[instructorId][q.category]),
     }));
 
-    toast.success('Evaluation submitted successfully!');
-  } catch (error) {
-    console.error('Error submitting evaluation:', error);
-    toast.error('Failed to submit evaluation. Please try again.');
-  }
-};
+    const payload = {
+      instructor_id: instructorId,
+      comment: responses[instructorId]?.comment || '',
+      responses: responseEntries,
+      school_year: selectedYear,
+      semester: selectedSemester,
+    };
+
+    try {
+      const result = await InstructorService.submitEvaluation(payload);
+      
+      setSubmissionInfo((prev) => ({
+        ...prev,
+        [instructorId]: {
+          status: result.status || result.message,
+          evaluatedAt: result.evaluated_at,
+        }
+      }));
+
+      toast.success(result.message || 'Evaluation submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting evaluation:', error);
+      toast.error(error.response?.data?.message || 'Failed to submit evaluation. Please try again.');
+    }
+  };
 
   const totalPages = Math.ceil(instructors.length / itemsPerPage);
   const currentInstructors = instructors.slice(
@@ -254,10 +270,13 @@ function SEvaluations() {
                 <select
                   value={selectedYear}
                   onChange={(e) => {
-                    setSelectedYear(e.target.value);
+                    const year = e.target.value;
+                    setSelectedYear(year);
                     setSelectedSemester('');
                     setFormReady(false);
+                    sessionStorage.setItem('selectedYear', year);
                   }}
+
                   className="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-white"
                 >
                   <option value="" disabled>Select School Year</option>
@@ -271,7 +290,11 @@ function SEvaluations() {
                 <label className="block text-gray-700 dark:text-gray-200 font-semibold mb-1">Semester</label>
                 <select
                   value={selectedSemester}
-                  onChange={(e) => setSelectedSemester(e.target.value)}
+                 onChange={(e) => {
+                    const semester = e.target.value;
+                    setSelectedSemester(semester);
+                    sessionStorage.setItem('selectedSemester', semester);
+                  }}
                   disabled={!selectedYear}
                   className="w-full border rounded-lg p-2 dark:bg-gray-700 dark:text-white"
                 >
@@ -282,19 +305,21 @@ function SEvaluations() {
                 </select>
               </div>
 
-              <div className="flex items-end">
-                <button
-                  onClick={handleYearSemesterSelect}
-                  disabled={!selectedYear || !selectedSemester}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    selectedYear && selectedSemester
-                      ? 'bg-[#1F3463] text-white hover:bg-blue-700'
-                      : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                  }`}
-                >
-                  Proceed
-                </button>
-              </div>
+              {!proceeded && (
+                <div className="flex items-end">
+                  <button
+                    onClick={handleYearSemesterSelect}
+                    disabled={!selectedYear || !selectedSemester}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      selectedYear && selectedSemester
+                        ? 'bg-[#1F3463] text-white hover:bg-blue-700'
+                        : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                    }`}
+                  >
+                    Proceed
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -329,14 +354,21 @@ function SEvaluations() {
                         <React.Fragment key={instructor.id}>
                           <tr className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">{instructor.name}</td>
-                            <td className="px-6 py-4">{submission?.status || 'Pending'}</td>
-                            <td className="px-6 py-4">{submission?.submittedAt || '—'}</td>
+                            <td className="px-6 py-4">
+                              {submission?.status || 'Pending'}
+                            </td>
+                            <td className="px-6 py-4">
+                              {submission?.evaluatedAt 
+                                ? new Date(submission.evaluatedAt).toLocaleString() 
+                                : '—'}
+                            </td>
                             <td className="px-6 py-4 text-center">
                               <button
                                 className="bg-[#1F3463] text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
                                 onClick={() => setExpandedInstructorId(isExpanded ? null : instructor.id)}
+                                disabled={submission?.status === 'Evaluated'}
                               >
-                                {isExpanded ? 'Hide' : 'Evaluate'}
+                                {isExpanded ? 'Hide' : submission?.status === 'Evaluated' ? 'Completed' : 'Evaluate'}
                               </button>
                             </td>
                           </tr>
@@ -345,6 +377,17 @@ function SEvaluations() {
                             <tr>
                               <td colSpan={4} className="bg-gray-50 dark:bg-gray-900 px-8 py-6">
                                 <div className="space-y-6 border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800 rounded-lg">
+                                  {submission?.status && (
+                                    <div className="bg-green-50 dark:bg-green-900 p-4 rounded-lg border border-green-200 dark:border-green-700">
+                                      <p className="text-green-600 dark:text-green-300 font-medium">
+                                        Status: {submission.status} <br />
+                                        Evaluated At: {submission.evaluatedAt 
+                                          ? new Date(submission.evaluatedAt).toLocaleString() 
+                                          : 'Not submitted yet'}
+                                      </p>
+                                    </div>
+                                  )}
+
                                   {questions.map((q, idx) => (
                                     <div key={idx} className="space-y-2">
                                       <h3 className="font-semibold text-lg dark:text-white">{idx + 1}. {q.category}</h3>
@@ -355,6 +398,7 @@ function SEvaluations() {
                                         onChange={(e) =>
                                           handleResponseChange(instructor.id, q.category, e.target.value)
                                         }
+                                        disabled={submission?.status === 'Evaluated'}
                                       >
                                         <option value="" disabled>Select Rating</option>
                                         {ratingOptions[q.category]?.map((opt) => (
@@ -376,20 +420,21 @@ function SEvaluations() {
                                         handleCommentChange(instructor.id, e.target.value)
                                       }
                                       placeholder="Provide additional feedback..."
+                                      disabled={submission?.status === 'Evaluated'}
                                     />
                                   </div>
 
                                   <div className="text-right">
                                     <button
                                       onClick={() => handleSubmit(instructor.id)}
-                                      disabled={!isInstructorEvaluationComplete(instructor.id) || submission?.status === 'Submitted'}
+                                      disabled={!isInstructorEvaluationComplete(instructor.id) || submission?.status === 'Evaluated'}
                                       className={`px-6 py-2 rounded-lg font-medium transition-all text-sm ${
-                                        isInstructorEvaluationComplete(instructor.id) && submission?.status !== 'Submitted'
+                                        isInstructorEvaluationComplete(instructor.id) && submission?.status !== 'Evaluated'
                                           ? 'bg-green-600 text-white hover:bg-green-700'
                                           : 'bg-gray-300 text-gray-600 cursor-not-allowed'
                                       }`}
                                     >
-                                      Submit Evaluation
+                                      {submission?.status === 'Evaluated' ? 'Evaluation Submitted' : 'Submit Evaluation'}
                                     </button>
                                   </div>
                                 </div>
@@ -405,20 +450,20 @@ function SEvaluations() {
             )
           ) : (
             <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow text-center">
-            <div className="mb-6">
-              <img 
-                src={Evaluation}
-                alt="Onboarding" 
-                className="mx-auto mb-4 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto" 
-              />
+              <div className="mb-6">
+                <img 
+                  src={Evaluation}
+                  alt="Onboarding" 
+                  className="mx-auto mb-4 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto" 
+                />
+              </div>
+              <p className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                Let's get started with your evaluation!
+              </p>
+              <p className="text-lg text-gray-600 dark:text-gray-400">
+                Please select a school year and semester to begin your evaluation process.
+              </p>
             </div>
-            <p className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-              Let's get started with your evaluation!
-            </p>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Please select a school year and semester to begin your evaluation process.
-            </p>
-          </div>
           )}
         </>
       )}

@@ -32,7 +32,7 @@ class EvaluationController extends Controller {
         }
 
             $validated = $request->validate([
-                'instructor_id' => 'required|exists:users,id',
+                'instructor_id' => 'required|exists:instructors,id',
                 'responses' => 'required|array|min:1',
                 'responses.*.question_id' => 'required|exists:questions,id',
                 'responses.*.rating' => 'required|integer|between:1,5',
