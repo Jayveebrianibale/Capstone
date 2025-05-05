@@ -23,9 +23,49 @@ function SEvaluations() {
   const [selectedSemester, setSelectedSemester] = useState('');
   const [formReady, setFormReady] = useState(false);
   const [proceeded, setProceeded] = useState(false);
-
+  const [savedEvaluations, setSavedEvaluations] = useState({});
 
   const itemsPerPage = 5;
+
+  // Load persisted data from localStorage on component mount
+  useEffect(() => {
+    const loadPersistedData = () => {
+      const savedData = localStorage.getItem('evaluationAppData');
+      if (savedData) {
+        const {
+          submissionInfo: savedSubmissionInfo,
+          responses: savedResponses,
+          savedEvaluations: savedEvals,
+          selectedYear: savedYear,
+          selectedSemester: savedSemester
+        } = JSON.parse(savedData);
+
+        if (savedSubmissionInfo) setSubmissionInfo(savedSubmissionInfo);
+        if (savedResponses) setResponses(savedResponses);
+        if (savedEvals) setSavedEvaluations(savedEvals);
+        if (savedYear) setSelectedYear(savedYear);
+        if (savedSemester) setSelectedSemester(savedSemester);
+      }
+    };
+
+    loadPersistedData();
+  }, []);
+
+  // Save relevant state to localStorage whenever it changes
+  useEffect(() => {
+    const savePersistedData = () => {
+      const dataToSave = {
+        submissionInfo,
+        responses,
+        savedEvaluations,
+        selectedYear,
+        selectedSemester
+      };
+      localStorage.setItem('evaluationAppData', JSON.stringify(dataToSave));
+    };
+
+    savePersistedData();
+  }, [submissionInfo, responses, savedEvaluations, selectedYear, selectedSemester]);
 
   const mapYearLevelToNumber = (yearLevel) => {
     if (typeof yearLevel === 'number') return yearLevel;
@@ -42,17 +82,16 @@ function SEvaluations() {
   const semesters = ['1st Semester', '2nd Semester', 'Summer'];
 
   useEffect(() => {
-  const storedYear = sessionStorage.getItem('selectedYear');
-  const storedSemester = sessionStorage.getItem('selectedSemester');
+    const storedYear = sessionStorage.getItem('selectedYear');
+    const storedSemester = sessionStorage.getItem('selectedSemester');
 
-  if (storedYear) setSelectedYear(storedYear);
-  if (storedSemester) setSelectedSemester(storedSemester);
-  if (storedYear && storedSemester) {
-    setFormReady(true);
-    fetchAssignedInstructors();
-  }
-}, []);
-
+    if (storedYear) setSelectedYear(storedYear);
+    if (storedSemester) setSelectedSemester(storedSemester);
+    if (storedYear && storedSemester) {
+      setFormReady(true);
+      fetchAssignedInstructors();
+    }
+  }, []);
 
   useEffect(() => {
     const fetchEvaluationQuestions = async () => {
@@ -119,7 +158,7 @@ function SEvaluations() {
     }
   };
 
-   const ratingOptions = {
+  const ratingOptions = {
     "Learning Environment": [
       { value: '5', label: '5 - Extremely positive and significantly enhances learning' },
       { value: '4', label: '4 - Positive and slightly enhances learning' },
@@ -209,37 +248,75 @@ function SEvaluations() {
     return questions.every((q) => responses[instructorId]?.[q.category]);
   };
 
-  const handleSubmit = async (instructorId) => {
-    if (!isInstructorEvaluationComplete(instructorId)) return;
+  const handleSaveEvaluation = (instructorId) => {
+    if (!isInstructorEvaluationComplete(instructorId)) {
+      toast.error('Please complete all evaluation fields before saving');
+      return;
+    }
 
-    const responseEntries = questions.map((q) => ({
-      question_id: q.id,
-      rating: parseInt(responses[instructorId][q.category]),
+    setSavedEvaluations(prev => ({
+      ...prev,
+      [instructorId]: true
     }));
 
-    const payload = {
-      instructor_id: instructorId,
-      comment: responses[instructorId]?.comment || '',
-      responses: responseEntries,
-      school_year: selectedYear,
-      semester: selectedSemester,
-    };
+    // Close the expanded section after saving
+    setExpandedInstructorId(null);
+    
+    toast.success('Evaluation saved! Don\'t forget to submit all.');
+  };
+
+  const handleSubmitAll = async () => {
+    if (Object.keys(savedEvaluations).length === 0) {
+      toast.error('No saved evaluations to submit');
+      return;
+    }
 
     try {
-      const result = await InstructorService.submitEvaluation(payload);
-      
-      setSubmissionInfo((prev) => ({
-        ...prev,
-        [instructorId]: {
-          status: result.status || result.message,
-          evaluatedAt: result.evaluated_at,
-        }
-      }));
+      for (const instructorId of Object.keys(savedEvaluations)) {
+        if (!savedEvaluations[instructorId]) continue;
 
-      toast.success(result.message || 'Evaluation submitted successfully!');
+        const responseEntries = questions.map((q) => ({
+          question_id: q.id,
+          rating: parseInt(responses[instructorId][q.category]),
+        }));
+
+        const payload = {
+          instructor_id: instructorId,
+          comment: responses[instructorId]?.comment || '',
+          responses: responseEntries,
+          school_year: selectedYear,
+          semester: selectedSemester,
+        };
+
+        const result = await InstructorService.submitEvaluation(payload);
+        const evaluatedAt = new Date().toISOString();
+        
+        setSubmissionInfo((prev) => ({
+          ...prev,
+          [instructorId]: {
+            status: result.status || 'Evaluated',
+            evaluatedAt: result.evaluated_at || evaluatedAt
+          }
+        }));
+
+        // Clean up after submission
+        setResponses(prev => {
+          const updated = { ...prev };
+          delete updated[instructorId];
+          return updated;
+        });
+
+        setSavedEvaluations(prev => {
+          const updated = { ...prev };
+          delete updated[instructorId];
+          return updated;
+        });
+
+        toast.success(`Submitted evaluation for ${instructors.find(i => i.id === instructorId)?.name}`);
+      }
     } catch (error) {
-      console.error('Error submitting evaluation:', error);
-      toast.error(error.response?.data?.message || 'Failed to submit evaluation. Please try again.');
+      console.error('Submit error:', error);
+      toast.error('Failed to submit some evaluations. Please try again.');
     }
   };
 
@@ -262,57 +339,59 @@ function SEvaluations() {
               Please evaluate each instructor based on the listed criteria. Your responses are confidential and will help improve teaching quality.
             </p>
           </div>
+          
+          {/* Year/Semester Selection Form */}
           <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg mb-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 space-y-4 sm:space-y-0">
-                  <div className="flex-1">
-                    <label className="block text-gray-700 dark:text-gray-200 font-semibold mb-2">
-                      School Year
-                    </label>
-                    <select
-                      value={selectedYear}
-                      onChange={(e) => {
-                        setSelectedYear(e.target.value);
-                        sessionStorage.setItem('selectedYear', e.target.value);
-                        if (e.target.value && selectedSemester) {
-                          fetchAssignedInstructors();
-                          setFormReady(true);
-                        }
-                      }}
-                      disabled={formReady}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed transition"
-                    >
-                      <option value="">Select School Year</option>
-                      {schoolYears.map((year) => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex-1">
-                    <label className="block text-gray-700 dark:text-gray-200 font-semibold mb-2">
-                      Semester
-                    </label>
-                    <select
-                      value={selectedSemester}
-                      onChange={(e) => {
-                        setSelectedSemester(e.target.value);
-                        sessionStorage.setItem('selectedSemester', e.target.value);
-                        if (selectedYear && e.target.value) {
-                          fetchAssignedInstructors();
-                          setFormReady(true);
-                        }
-                      }}
-                      disabled={formReady}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed transition"
-                    >
-                      <option value="">Select Semester</option>
-                      {semesters.map((semester) => (
-                        <option key={semester} value={semester}>{semester}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 space-y-4 sm:space-y-0">
+              <div className="flex-1">
+                <label className="block text-gray-700 dark:text-gray-200 font-semibold mb-2">
+                  School Year
+                </label>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => {
+                    setSelectedYear(e.target.value);
+                    sessionStorage.setItem('selectedYear', e.target.value);
+                    if (e.target.value && selectedSemester) {
+                      fetchAssignedInstructors();
+                      setFormReady(true);
+                    }
+                  }}
+                  disabled={formReady}
+                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed transition"
+                >
+                  <option value="">Select School Year</option>
+                  {schoolYears.map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
               </div>
+
+              <div className="flex-1">
+                <label className="block text-gray-700 dark:text-gray-200 font-semibold mb-2">
+                  Semester
+                </label>
+                <select
+                  value={selectedSemester}
+                  onChange={(e) => {
+                    setSelectedSemester(e.target.value);
+                    sessionStorage.setItem('selectedSemester', e.target.value);
+                    if (selectedYear && e.target.value) {
+                      fetchAssignedInstructors();
+                      setFormReady(true);
+                    }
+                  }}
+                  disabled={formReady}
+                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed transition"
+                >
+                  <option value="">Select Semester</option>
+                  {semesters.map((semester) => (
+                    <option key={semester} value={semester}>{semester}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
 
           {formReady ? (
             instructors.length === 0 ? (
@@ -326,105 +405,128 @@ function SEvaluations() {
                 </p>
               </div>
             ) : (
-              <div className="mt-6 overflow-x-auto border rounded-lg shadow-sm">
-                <table className="min-w-full text-sm text-left bg-white dark:bg-gray-800">
-                  <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                    <tr>
-                      <th className="px-6 py-4 text-base">Instructor</th>
-                      <th className="px-6 py-4 text-base">Status</th>
-                      <th className="px-6 py-4 text-base">Submitted At</th>
-                      <th className="px-6 py-4 text-center text-base">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {currentInstructors.map((instructor) => {
-                      const isExpanded = expandedInstructorId === instructor.id;
-                      const submission = submissionInfo[instructor.id];
+              <>
+                <div className="mt-6 overflow-x-auto border rounded-lg shadow-sm">
+                  <table className="min-w-full text-sm text-left bg-white dark:bg-gray-800">
+                    <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                      <tr>
+                        <th className="px-6 py-4 text-base">Instructor</th>
+                        <th className="px-6 py-4 text-base">Status</th>
+                        <th className="px-6 py-4 text-base">Submitted At</th>
+                        <th className="px-6 py-4 text-center text-base">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentInstructors.map((instructor) => {
+                        const isExpanded = expandedInstructorId === instructor.id;
+                        const submission = submissionInfo[instructor.id];
 
-                      return (
-                        <React.Fragment key={instructor.id}>
-                          <tr className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">{instructor.name}</td>
-                            <td className="px-6 py-4">
-                              {submission?.status || 'Pending'}
-                            </td>
-                            <td className="px-6 py-4">
-                              {submission?.evaluatedAt 
-                                ? new Date(submission.evaluatedAt).toLocaleString() 
-                                : '—'}
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <button
-                                className="bg-[#1F3463] text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-                                onClick={() => setExpandedInstructorId(isExpanded ? null : instructor.id)}
-                                disabled={submission?.status === 'Evaluated'}
-                              >
-                                {isExpanded ? 'Hide' : submission?.status === 'Evaluated' ? 'Completed' : 'Evaluate'}
-                              </button>
-                            </td>
-                          </tr>
+                        return (
+                          <React.Fragment key={instructor.id}>
+                            <tr className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                              <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
+                                {instructor.name}
+                              </td>
+                              <td className="px-6 py-4">
+                                {submission?.status || 'Pending'}
+                              </td>
+                              <td className="px-6 py-4">
+                                {submission?.evaluatedAt 
+                                  ? new Date(submission.evaluatedAt).toLocaleString() 
+                                  : '—'}
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <button
+                                  className="bg-[#1F3463] text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                                  onClick={() => setExpandedInstructorId(isExpanded ? null : instructor.id)}
+                                  disabled={submission?.status === 'Evaluated'}
+                                >
+                                  {submission?.status === 'Evaluated' 
+                                    ? 'Completed' 
+                                    : savedEvaluations[instructor.id] 
+                                      ? 'Edit' 
+                                      : 'Evaluate'}
+                                </button>
+                              </td>
+                            </tr>
 
-                          {isExpanded && (
-                           <tr>
-                            <td colSpan={4} className="bg-gray-50 dark:bg-gray-900 px-6 py-4">
-                              <div className="space-y-6 border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                            {isExpanded && (
+                              <tr>
+                                <td colSpan={4} className="bg-gray-50 dark:bg-gray-900 px-6 py-4">
+                                  <div className="space-y-6 border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                                    {questions.map((q, idx) => (
+                                      <div key={idx} className="space-y-2 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
+                                        <h3 className="font-semibold text-base text-gray-800 dark:text-white">
+                                          {idx + 1}. {q.category}
+                                        </h3>
+                                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                                          {q.question}
+                                        </p>
+                                        <select
+                                          className="w-full mt-1 p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                                          value={responses[instructor.id]?.[q.category] || ''}
+                                          onChange={(e) => handleResponseChange(instructor.id, q.category, e.target.value)}
+                                          disabled={submission?.status === 'Evaluated'}
+                                        >
+                                          <option value="" disabled>Select Rating</option>
+                                          {ratingOptions[q.category]?.map((opt) => (
+                                            <option key={opt.value} value={opt.value}>
+                                              {opt.label}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                    ))}
 
-                                {questions.map((q, idx) => (
-                                  <div key={idx} className="space-y-2 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
-                                    <h3 className="font-semibold text-base text-gray-800 dark:text-white">{idx + 1}. {q.category}</h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300">{q.question}</p>
-                                    <select
-                                      className="w-full mt-1 p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-                                      value={responses[instructor.id]?.[q.category] || ''}
-                                      onChange={(e) => handleResponseChange(instructor.id, q.category, e.target.value)}
-                                      disabled={submission?.status === 'Evaluated'}
-                                    >
-                                      <option value="" disabled>Select Rating</option>
-                                      {ratingOptions[q.category]?.map((opt) => (
-                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                      ))}
-                                    </select>
+                                    <div className="space-y-2">
+                                      <label className="block text-base font-semibold text-gray-900 dark:text-white">
+                                        Additional Comments:
+                                      </label>
+                                      <textarea
+                                        className="w-full p-3 border border-gray-300 rounded-md bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                                        rows="4"
+                                        value={responses[instructor.id]?.comment || ''}
+                                        onChange={(e) => handleCommentChange(instructor.id, e.target.value)}
+                                        placeholder="Provide additional feedback..."
+                                        disabled={submission?.status === 'Evaluated'}
+                                      />
+                                    </div>
+
+                                    <div className="flex justify-end">
+                                      <button
+                                        onClick={() => handleSaveEvaluation(instructor.id)}
+                                        disabled={!isInstructorEvaluationComplete(instructor.id) || submission?.status === 'Evaluated'}
+                                        className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                                          isInstructorEvaluationComplete(instructor.id) && submission?.status !== 'Evaluated'
+                                            ? 'bg-green-600 text-white hover:bg-green-700'
+                                            : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                        }`}
+                                      >
+                                        {savedEvaluations[instructor.id] ? 'Update Evaluation' : 'Save Evaluation'}
+                                      </button>
+                                    </div>
                                   </div>
-                                ))}
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
-                                <div className="space-y-2">
-                                  <label className="block text-base font-semibold text-gray-900 dark:text-white">
-                                    Additional Comments:
-                                  </label>
-                                  <textarea
-                                    className="w-full p-3 border border-gray-300 rounded-md bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-                                    rows="4"
-                                    value={responses[instructor.id]?.comment || ''}
-                                    onChange={(e) => handleCommentChange(instructor.id, e.target.value)}
-                                    placeholder="Provide additional feedback..."
-                                    disabled={submission?.status === 'Evaluated'}
-                                  />
-                                </div>
-
-                                <div className="text-right">
-                                  <button
-                                    onClick={() => handleSubmit(instructor.id)}
-                                    disabled={!isInstructorEvaluationComplete(instructor.id) || submission?.status === 'Evaluated'}
-                                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                                      isInstructorEvaluationComplete(instructor.id) && submission?.status !== 'Evaluated'
-                                        ? 'bg-green-600 text-white hover:bg-green-700'
-                                        : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                                    }`}
-                                  >
-                                    {submission?.status === 'Evaluated' ? 'Evaluation Submitted' : 'Submit Evaluation'}
-                                  </button>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                          
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                {Object.keys(savedEvaluations).length > 0 && (
+                  <div className="text-right mt-4">
+                    <button
+                      onClick={handleSubmitAll}
+                      className="bg-[#1F3463] text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition"
+                    >
+                      Submit All Saved Evaluations ({Object.keys(savedEvaluations).length})
+                    </button>
+                  </div>
+                )}
+              </>
             )
           ) : (
             <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow text-center">
@@ -449,4 +551,4 @@ function SEvaluations() {
   );
 }
 
-export default SEvaluations;
+export default SEvaluations;  
