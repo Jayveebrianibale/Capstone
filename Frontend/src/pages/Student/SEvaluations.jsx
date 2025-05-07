@@ -23,11 +23,19 @@ const SEvaluations = () => {
   const [currentInstructors, setCurrentInstructors] = useState([]);
   const [expandedInstructorId, setExpandedInstructorId] = useState(null);
   const [responses, setResponses] = useState({});
-  const [savedEvaluations, setSavedEvaluations] = useState({});
+  const [savedEvaluations, setSavedEvaluations] = useState(() => {
+    // Load saved evaluations from sessionStorage
+    const saved = sessionStorage.getItem('savedEvaluations');
+    return saved ? JSON.parse(saved) : {};
+  });
   const [noInstructors, setNoInstructors] = useState(false);
   const [error, setError] = useState('');
   const [questions, setQuestions] = useState([]);
   const [submissionInfo, setSubmissionInfo] = useState({});
+
+  useEffect(() => {
+    sessionStorage.setItem('savedEvaluations', JSON.stringify(savedEvaluations));
+  }, [savedEvaluations]);
 
   useEffect(() => {
     setSchoolYears(['2023-2024', '2024-2025']);
@@ -43,7 +51,7 @@ const SEvaluations = () => {
       }
     };
     initializeComponent();
-  }, []);
+  }, [selectedYear, selectedSemester]);
 
   useEffect(() => {
     const getQuestions = async () => {
@@ -114,40 +122,48 @@ const SEvaluations = () => {
     }
   };
 
-  const handleResponseChange = (instructorId, questionId, value) => {
-    setResponses((prev) => ({
-      ...prev,
-      [instructorId]: {
-        ...prev[instructorId],
-        [questionId]: {
-          ...(prev[instructorId]?.[questionId] || {}),
-          rating: value,
+    const handleResponseChange = (instructorId, questionId, value) => {
+      setResponses((prev) => ({
+        ...prev,
+        [instructorId]: {
+          ...prev[instructorId],
+          [questionId]: {
+            ...(prev[instructorId]?.[questionId] || {}),
+            rating: value,
+          },
         },
-      },
-    }));
-  };
+      }));
+    };
 
-  const handleCommentChange = (instructorId, comment) => {
-    setResponses((prev) => ({
-      ...prev,
-      [instructorId]: {
-        ...prev[instructorId],
-        comment,
-      },
-    }));
-  };
+    const handleCommentChange = (instructorId, value) => {
+      setResponses((prev) => ({
+        ...prev,
+        [instructorId]: {
+          ...prev[instructorId],
+          comment: value,
+        },
+      }));
+    };
 
   const handleSaveEvaluation = (instructorId) => {
-    const evaluationData = responses[instructorId];
-    if (!evaluationData) {
-      toast.error('Please answer the questions before saving.');
-      return;
-    }
+  const evaluationData = responses[instructorId];
+  console.log('Evaluation Data:', evaluationData);
 
-    setSavedEvaluations((prev) => ({ ...prev, [instructorId]: true }));
-    toast.success('Evaluation saved! Don\'t forget to submit All.');
-    setExpandedInstructorId(null);
-  };
+  if (!evaluationData) {
+    toast.error('Please answer the questions before saving.');
+    return;
+  }
+
+  setSavedEvaluations((prev) => {
+    const updated = { ...prev, [instructorId]: 'Done' };
+    sessionStorage.setItem('savedEvaluations', JSON.stringify(updated)); 
+    return updated;
+  });
+
+  toast.success('Evaluation saved! Don\'t forget to submit All.');
+  setExpandedInstructorId(null);
+};
+
 
   const handleSubmitAll = async () => {
     if (Object.keys(savedEvaluations).length === 0) {
@@ -157,7 +173,7 @@ const SEvaluations = () => {
 
     try {
       for (const instructorId of Object.keys(savedEvaluations)) {
-        if (!savedEvaluations[instructorId]) continue;
+        if (savedEvaluations[instructorId] !== 'Done') continue;
 
         const responseEntries = questions.map((q) => {
           const rating = parseInt(responses[instructorId]?.[q.id]?.rating);
@@ -191,6 +207,8 @@ const SEvaluations = () => {
       }
 
       toast.success('All evaluations submitted successfully!');
+      setSavedEvaluations({});
+      sessionStorage.removeItem('savedEvaluations');
     } catch (err) {
       console.error('Error submitting evaluations:', err);
       toast.error(err.message || 'An error occurred while submitting evaluations.');

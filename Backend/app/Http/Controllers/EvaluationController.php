@@ -13,15 +13,17 @@ use App\Models\Question;
 
 class EvaluationController extends Controller {
 
-        public function index(Request $request) {
+        public function index(Request $request)
+        {
             $user = $request->user();
-            $evaluations = Evaluation::with('instructor')
+            $evaluations = Evaluation::with(['instructor', 'student']) 
                 ->where('student_id', $user->id)
                 ->get()
                 ->groupBy('instructor_id');
 
             return response()->json($evaluations);
         }
+
 
         public function store(Request $request)
     {
