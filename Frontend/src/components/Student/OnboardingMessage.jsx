@@ -1,7 +1,6 @@
-import { FaUsers } from 'react-icons/fa';
-import Evaluation from "../../assets/Evaluation.png"
+import Evaluation from "../../assets/Evaluation.png";
 
-const OnboardingMessage = () => (
+const OnboardingMessage = ({ showInstructors }) => (
   <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow text-center">
     <div className="mb-6">
       <img 
@@ -16,6 +15,11 @@ const OnboardingMessage = () => (
     <p className="text-lg text-gray-600 dark:text-gray-400">
       Please select a school year and semester to begin your evaluation process.
     </p>
+    {showInstructors && (
+      <p className="text-lg text-green-600 dark:text-green-400 mt-4">
+        Instructors are available. You can proceed with the evaluation.
+      </p>
+    )}
   </div>
 );
 

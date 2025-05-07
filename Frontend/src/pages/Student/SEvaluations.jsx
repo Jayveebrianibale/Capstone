@@ -6,14 +6,18 @@ import NoInstructorsFound from '../../components/Student/NoInstructorFound';
 import OnboardingMessage from '../../components/Student/OnboardingMessage';
 import { ToastContainer, toast } from 'react-toastify';
 import InstructorService from '../../services/InstructorService';
-import { fetchQuestions } from '../../services/QuestionService'; // Make sure to import the service
+import { fetchQuestions } from '../../services/QuestionService';
 
 const SEvaluations = () => {
   const [loading, setLoading] = useState(true);
   const [schoolYears, setSchoolYears] = useState([]);
   const [semesters, setSemesters] = useState([]);
-  const [selectedYear, setSelectedYear] = useState('');
-  const [selectedSemester, setSelectedSemester] = useState('');
+  const [selectedYear, setSelectedYear] = useState(() => 
+    sessionStorage.getItem('selectedYear') || ''
+  );
+  const [selectedSemester, setSelectedSemester] = useState(() => 
+    sessionStorage.getItem('selectedSemester') || ''
+  );
   const [formReady, setFormReady] = useState(false);
   const [instructors, setInstructors] = useState([]);
   const [currentInstructors, setCurrentInstructors] = useState([]);
@@ -22,29 +26,37 @@ const SEvaluations = () => {
   const [savedEvaluations, setSavedEvaluations] = useState({});
   const [noInstructors, setNoInstructors] = useState(false);
   const [error, setError] = useState('');
-  const [questions, setQuestions] = useState([]); // State for questions
+  const [questions, setQuestions] = useState([]);
+  const [submissionInfo, setSubmissionInfo] = useState({});
 
   useEffect(() => {
-    // Example: Fetch school years and semesters dynamically if needed
     setSchoolYears(['2023-2024', '2024-2025']);
     setSemesters(['1st Semester', '2nd Semester']);
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    // Fetch questions when component is mounted
+    const initializeComponent = async () => {
+      if (selectedYear && selectedSemester) {
+        setFormReady(true);
+        await fetchAssignedInstructors();
+      }
+    };
+    initializeComponent();
+  }, []);
+
+  useEffect(() => {
     const getQuestions = async () => {
       try {
         const fetchedQuestions = await fetchQuestions();
         setQuestions(fetchedQuestions);
       } catch (error) {
-        console.error("Error fetching questions:", error);
-        toast.error("Error fetching questions.");
+        console.error('Error fetching questions:', error);
+        toast.error('Error fetching questions.');
       }
     };
-
     getQuestions();
-  }, []); // Empty dependency array ensures this only runs on component mount
+  }, []);
 
   const mapYearLevelToNumber = (yearLevel) => {
     if (typeof yearLevel === 'number') return yearLevel;
@@ -77,7 +89,10 @@ const SEvaluations = () => {
 
     setLoading(true);
     try {
-      const response = await InstructorService.getInstructorsByProgramAndYear(programId, yearLevelNumber);
+      const response = await InstructorService.getInstructorsByProgramAndYear(
+        programId,
+        yearLevelNumber
+      );
       if (Array.isArray(response) && response.length > 0) {
         setInstructors(response);
         setCurrentInstructors(response);
@@ -99,76 +114,93 @@ const SEvaluations = () => {
     }
   };
 
- const handleResponseChange = (instructorId, questionId, value) => {
-  setResponses((prev) => ({
-    ...prev,
-    [instructorId]: {
-      ...prev[instructorId],
-      [questionId]: {
-        ...(prev[instructorId]?.[questionId] || {}),
-        rating: value,
+  const handleResponseChange = (instructorId, questionId, value) => {
+    setResponses((prev) => ({
+      ...prev,
+      [instructorId]: {
+        ...prev[instructorId],
+        [questionId]: {
+          ...(prev[instructorId]?.[questionId] || {}),
+          rating: value,
+        },
       },
-    },
-  }));
-};
-
+    }));
+  };
 
   const handleCommentChange = (instructorId, comment) => {
-  setResponses(prev => ({
-    ...prev,
-    [instructorId]: {
-      ...prev[instructorId],
-      comment,
-    },
-  }));
-};
+    setResponses((prev) => ({
+      ...prev,
+      [instructorId]: {
+        ...prev[instructorId],
+        comment,
+      },
+    }));
+  };
 
-
-  const handleSaveEvaluation = async (instructorId) => {
+  const handleSaveEvaluation = (instructorId) => {
     const evaluationData = responses[instructorId];
     if (!evaluationData) {
       toast.error('Please answer the questions before saving.');
       return;
     }
-    try {
-      setLoading(true);
-      await InstructorService.saveEvaluation({
-        instructorId,
-        answers: evaluationData,
-        schoolYear: selectedYear,
-        semester: selectedSemester,
-      });
-      setSavedEvaluations(prev => ({ ...prev, [instructorId]: true }));
-      toast.success('Evaluation saved successfully');
-    } catch (err) {
-      console.error('Error saving evaluation:', err);
-      toast.error('Error saving evaluation');
-    } finally {
-      setLoading(false);
-    }
+
+    setSavedEvaluations((prev) => ({ ...prev, [instructorId]: true }));
+    toast.success('Evaluation saved! Don\'t forget to submit All.');
+    setExpandedInstructorId(null);
   };
 
   const handleSubmitAll = async () => {
-    if (!Object.keys(responses).length) {
-      toast.error('No evaluations to submit');
+    if (Object.keys(savedEvaluations).length === 0) {
+      toast.error('No saved evaluations to submit');
       return;
     }
+
     try {
-      setLoading(true);
-      for (const instructorId of Object.keys(responses)) {
-        await InstructorService.saveEvaluation({
-          instructorId,
-          answers: responses[instructorId],
-          schoolYear: selectedYear,
-          semester: selectedSemester,
+      for (const instructorId of Object.keys(savedEvaluations)) {
+        if (!savedEvaluations[instructorId]) continue;
+
+        const responseEntries = questions.map((q) => {
+          const rating = parseInt(responses[instructorId]?.[q.id]?.rating);
+          if (isNaN(rating)) {
+            throw new Error(`Incomplete answers for instructor ${instructorId}`);
+          }
+          return {
+            question_id: q.id,
+            rating: rating,
+          };
         });
+
+        const payload = {
+          instructor_id: instructorId,
+          comment: responses[instructorId]?.comment || '',
+          responses: responseEntries,
+          school_year: selectedYear,
+          semester: selectedSemester,
+        };
+
+        const result = await InstructorService.submitEvaluation(payload);
+        const evaluatedAt = new Date().toISOString();
+
+        setSubmissionInfo((prev) => ({
+          ...prev,
+          [instructorId]: {
+            status: result.status || 'Evaluated',
+            evaluatedAt: result.evaluated_at || evaluatedAt,
+          },
+        }));
       }
-      toast.success('All evaluations submitted successfully');
+
+      toast.success('All evaluations submitted successfully!');
     } catch (err) {
-      console.error('Error submitting all evaluations:', err);
-      toast.error('Error submitting evaluations');
-    } finally {
-      setLoading(false);
+      console.error('Error submitting evaluations:', err);
+      toast.error(err.message || 'An error occurred while submitting evaluations.');
+    }
+  };
+
+  const handleSelectionChange = (year, semester) => {
+    if (year && semester) {
+      setFormReady(true);
+      fetchAssignedInstructors();
     }
   };
 
@@ -185,7 +217,8 @@ const SEvaluations = () => {
               Please evaluate each instructor based on the listed criteria.
             </p>
           </div>
-          <YearSemesterSelector 
+
+          <YearSemesterSelector
             selectedYear={selectedYear}
             setSelectedYear={setSelectedYear}
             selectedSemester={selectedSemester}
@@ -194,12 +227,14 @@ const SEvaluations = () => {
             fetchAssignedInstructors={fetchAssignedInstructors}
             schoolYears={schoolYears}
             semesters={semesters}
+            onSelectionChange={handleSelectionChange}
           />
+
           {formReady ? (
             noInstructors ? (
               <NoInstructorsFound />
             ) : (
-              <InstructorTable 
+              <InstructorTable
                 instructors={currentInstructors}
                 expandedInstructorId={expandedInstructorId}
                 setExpandedInstructorId={setExpandedInstructorId}

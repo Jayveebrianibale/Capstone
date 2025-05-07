@@ -26,7 +26,7 @@ const EvaluationForm = ({
             value={responses[instructor.id]?.[q.id]?.rating || ''}
             onChange={(e) => {
               const value = e.target.value;
-              handleResponseChange(instructor.id, q.id, value); // Pass questionId as q.id
+              handleResponseChange(instructor.id, q.id, value);
             }}
             disabled={isEvaluated}
             className="w-full mt-1 p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed"

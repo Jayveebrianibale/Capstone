@@ -94,20 +94,32 @@ const InstructorTable = ({
           <tbody>
             {instructors.map((instructor) => {
               const isExpanded = expandedInstructorId === instructor.id;
+              const isSaved = savedEvaluations[instructor.id];
+
               return (
                 <React.Fragment key={instructor.id}>
                   <tr className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                       {instructor.name}
                     </td>
-                    <td className="px-6 py-4">{instructor.status}</td>
-                    <td className="px-6 py-4">{instructor.submittedAt}</td>
+                    <td className="px-6 py-4">
+                      {isSaved ? (
+                        <span className="text-green-600 font-semibold">Done</span>
+                      ) : (
+                        <span className="text-red-500 font-semibold">Not Started</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {isSaved ? '—' : '—'}
+                    </td>
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => setExpandedInstructorId(isExpanded ? null : instructor.id)}
-                        className="bg-[#1F3463] text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                        className={`px-4 py-2 rounded-lg transition ${
+                          isSaved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
+                        } text-white`}
                       >
-                        {isExpanded ? 'Collapse' : 'Expand'}
+                        {isSaved ? 'Edit' : 'Evaluate'}
                       </button>
                     </td>
                   </tr>
@@ -122,7 +134,7 @@ const InstructorTable = ({
                           handleCommentChange={handleCommentChange}
                           handleSaveEvaluation={handleSaveEvaluation}
                           savedEvaluations={savedEvaluations}
-                          ratingOptions={ratingOptions} // Pass it here
+                          ratingOptions={ratingOptions}
                         />
                       </td>
                     </tr>
