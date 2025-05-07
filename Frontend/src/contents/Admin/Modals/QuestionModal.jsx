@@ -92,7 +92,6 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
                     <option value="Ethical Practice">Ethical Practice</option>
                     <option value="Leadership and Collaboration">Leadership and Collaboration</option>
                     <option value="Overall Rating">Overall Rating</option>
-
                     <option value="Teaching Effectiveness">Teaching Effectiveness</option>
                     <option value="Classroom Management">Classroom Management</option>
                     <option value="Student Engagement">Student Engagement</option>

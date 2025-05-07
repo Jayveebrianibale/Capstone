@@ -2,16 +2,19 @@ import React from 'react';
 import EvaluationForm from './EvaluationForm';
 
 const InstructorTable = ({
-  instructors, 
-  expandedInstructorId, 
+  instructors,
+  expandedInstructorId,
   setExpandedInstructorId,
-  responses, 
-  handleResponseChange, 
+  responses,
+  handleResponseChange,
   handleCommentChange,
-  handleSaveEvaluation, 
-  savedEvaluations, 
+  handleSaveEvaluation,
+  savedEvaluations,
   handleSubmitAll,
   questions,
+  submissionInfo, 
+  viewOnlyInstructorId,
+  setViewOnlyInstructorId,
 }) => {
   const ratingOptions = {
     "Learning Environment": [
@@ -86,7 +89,7 @@ const InstructorTable = ({
           <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
             <tr>
               <th className="px-6 py-4 text-base">Instructor</th>
-              <th className="px-6 py-4 text-base">Status</th>
+              <th className="px-6 py-4 text-base">Evaluation Status</th>
               <th className="px-6 py-4 text-base">Submitted At</th>
               <th className="px-6 py-4 text-center text-base">Actions</th>
             </tr>
@@ -94,7 +97,22 @@ const InstructorTable = ({
           <tbody>
             {instructors.map((instructor) => {
               const isExpanded = expandedInstructorId === instructor.id;
-              const isSaved = savedEvaluations[instructor.id];
+              const saved = savedEvaluations[instructor.id];
+
+              const submittedAt = submissionInfo?.[instructor.id]?.evaluatedAt || null;
+              let status = 'Not Started';
+              if (submissionInfo?.[instructor.id]?.status === 'Evaluated') {
+                status = 'Evaluated';
+              } else if (savedEvaluations[instructor.id]) {
+                status = 'Done';
+              }
+
+              let statusClass = 'text-red-500'; 
+              if (status === 'Evaluated') {
+                statusClass = 'text-green-600';
+              } else if (status === 'Done') {
+                statusClass = 'text-green-600';
+              }
 
               return (
                 <React.Fragment key={instructor.id}>
@@ -102,31 +120,45 @@ const InstructorTable = ({
                     <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                       {instructor.name}
                     </td>
-                    <td className="px-6 py-4">
-                      {isSaved ? (
-                        <span className="text-green-600 font-semibold">Done</span>
-                      ) : (
-                        <span className="text-red-500 font-semibold">Not Started</span>
-                      )}
+                    <td className={`px-6 py-4 font-semibold ${statusClass}`}>
+                      {status}
                     </td>
                     <td className="px-6 py-4">
-                      {isSaved ? '—' : '—'}
+                      {status === 'Evaluated' && submittedAt
+                        ? new Date(submittedAt).toLocaleString('en-US', { timeZone: 'Asia/Manila' })
+                        : '—'}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => setExpandedInstructorId(isExpanded ? null : instructor.id)}
-                        className={`px-4 py-2 rounded-lg transition ${
-                          isSaved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
-                        } text-white`}
-                      >
-                        {isSaved ? 'Edit' : 'Evaluate'}
-                      </button>
+                      {status === 'Evaluated' ? (
+                        <button
+                          onClick={() => {
+                            setViewOnlyInstructorId(instructor.id);
+                            setExpandedInstructorId(instructor.id);
+                          }}
+                          className="px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-600 text-white"
+                        >
+                          View
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setViewOnlyInstructorId(null);
+                            setExpandedInstructorId(isExpanded ? null : instructor.id);
+                          }}
+                          className={`px-4 py-2 rounded-lg transition ${
+                            saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
+                          } text-white`}
+                        >
+                          {saved ? 'Edit' : 'Evaluate'}
+                        </button>
+                      )}
+
                     </td>
                   </tr>
                   {isExpanded && (
                     <tr>
                       <td colSpan={4} className="px-6 py-4">
-                        <EvaluationForm 
+                        <EvaluationForm
                           instructor={instructor}
                           questions={questions}
                           responses={responses}
@@ -135,6 +167,11 @@ const InstructorTable = ({
                           handleSaveEvaluation={handleSaveEvaluation}
                           savedEvaluations={savedEvaluations}
                           ratingOptions={ratingOptions}
+                          viewOnly={viewOnlyInstructorId === instructor.id}
+                          onClose={() => {
+                            setViewOnlyInstructorId(null);
+                            setExpandedInstructorId(null);
+                          }}
                         />
                       </td>
                     </tr>
@@ -145,16 +182,18 @@ const InstructorTable = ({
           </tbody>
         </table>
       </div>
-      {Object.keys(savedEvaluations).length > 0 && (
-        <div className="text-right mt-4">
-          <button
-            onClick={handleSubmitAll}
-            className="bg-[#1F3463] text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition"
-          >
-            Submit All Saved Evaluations
-          </button>
-        </div>
+      {Object.keys(savedEvaluations).length > 0 &&
+        instructors.some((instructor) => submissionInfo?.[instructor.id]?.status !== 'Evaluated') && (
+          <div className="text-right mt-4">
+            <button
+              onClick={handleSubmitAll}
+              className="bg-[#1F3463] text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition"
+            >
+              Submit All
+            </button>
+          </div>
       )}
+
     </>
   );
 };

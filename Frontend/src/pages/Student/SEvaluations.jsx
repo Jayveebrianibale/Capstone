@@ -12,59 +12,71 @@ const SEvaluations = () => {
   const [loading, setLoading] = useState(true);
   const [schoolYears, setSchoolYears] = useState([]);
   const [semesters, setSemesters] = useState([]);
-  const [selectedYear, setSelectedYear] = useState(() => 
-    sessionStorage.getItem('selectedYear') || ''
-  );
-  const [selectedSemester, setSelectedSemester] = useState(() => 
-    sessionStorage.getItem('selectedSemester') || ''
-  );
+  const [selectedYear, setSelectedYear] = useState(() => sessionStorage.getItem('selectedYear') || '');
+  const [selectedSemester, setSelectedSemester] = useState(() => sessionStorage.getItem('selectedSemester') || '');
   const [formReady, setFormReady] = useState(false);
   const [instructors, setInstructors] = useState([]);
   const [currentInstructors, setCurrentInstructors] = useState([]);
   const [expandedInstructorId, setExpandedInstructorId] = useState(null);
   const [responses, setResponses] = useState({});
   const [savedEvaluations, setSavedEvaluations] = useState(() => {
-    // Load saved evaluations from sessionStorage
     const saved = sessionStorage.getItem('savedEvaluations');
     return saved ? JSON.parse(saved) : {};
   });
+  const [viewOnlyInstructorId, setViewOnlyInstructorId] = useState(null);
   const [noInstructors, setNoInstructors] = useState(false);
   const [error, setError] = useState('');
   const [questions, setQuestions] = useState([]);
-  const [submissionInfo, setSubmissionInfo] = useState({});
+  const [submissionInfo, setSubmissionInfo] = useState(() => {
+    const saved = sessionStorage.getItem('submissionInfo');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  // Sync to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem('submissionInfo', JSON.stringify(submissionInfo));
+  }, [submissionInfo]);
 
   useEffect(() => {
     sessionStorage.setItem('savedEvaluations', JSON.stringify(savedEvaluations));
   }, [savedEvaluations]);
 
   useEffect(() => {
+    sessionStorage.setItem('selectedYear', selectedYear);
+  }, [selectedYear]);
+
+  useEffect(() => {
+    sessionStorage.setItem('selectedSemester', selectedSemester);
+  }, [selectedSemester]);
+
+  // Initialize school years and semesters
+  useEffect(() => {
     setSchoolYears(['2023-2024', '2024-2025']);
     setSemesters(['1st Semester', '2nd Semester']);
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    const initializeComponent = async () => {
-      if (selectedYear && selectedSemester) {
-        setFormReady(true);
-        await fetchAssignedInstructors();
-      }
-    };
-    initializeComponent();
-  }, [selectedYear, selectedSemester]);
-
+  // Fetch questions once
   useEffect(() => {
     const getQuestions = async () => {
       try {
         const fetchedQuestions = await fetchQuestions();
         setQuestions(fetchedQuestions);
-      } catch (error) {
-        console.error('Error fetching questions:', error);
+      } catch (err) {
+        console.error('Error fetching questions:', err);
         toast.error('Error fetching questions.');
       }
     };
     getQuestions();
   }, []);
+
+  // Fetch instructors when year/semester change and form is ready
+  useEffect(() => {
+    if (selectedYear && selectedSemester) {
+      setFormReady(true);
+      fetchAssignedInstructors();
+    }
+  }, [selectedYear, selectedSemester]);
 
   const mapYearLevelToNumber = (yearLevel) => {
     if (typeof yearLevel === 'number') return yearLevel;
@@ -97,13 +109,15 @@ const SEvaluations = () => {
 
     setLoading(true);
     try {
-      const response = await InstructorService.getInstructorsByProgramAndYear(
-        programId,
-        yearLevelNumber
-      );
+      const response = await InstructorService.getInstructorsByProgramAndYear(programId, yearLevelNumber);
       if (Array.isArray(response) && response.length > 0) {
-        setInstructors(response);
-        setCurrentInstructors(response);
+        const mergedInstructors = response.map((instructor) => ({
+          ...instructor,
+          status: submissionInfo[instructor.id]?.status || 'Not Started',
+          submittedAt: submissionInfo[instructor.id]?.evaluatedAt || null,
+        }));
+        setInstructors(mergedInstructors);
+        setCurrentInstructors(mergedInstructors);
         setNoInstructors(false);
       } else {
         setInstructors([]);
@@ -122,59 +136,55 @@ const SEvaluations = () => {
     }
   };
 
-    const handleResponseChange = (instructorId, questionId, value) => {
-      setResponses((prev) => ({
-        ...prev,
-        [instructorId]: {
-          ...prev[instructorId],
-          [questionId]: {
-            ...(prev[instructorId]?.[questionId] || {}),
-            rating: value,
-          },
+  const handleResponseChange = (instructorId, questionId, value) => {
+    setResponses((prev) => ({
+      ...prev,
+      [instructorId]: {
+        ...prev[instructorId],
+        [questionId]: {
+          ...(prev[instructorId]?.[questionId] || {}),
+          rating: value,
         },
-      }));
-    };
+      },
+    }));
+  };
 
-    const handleCommentChange = (instructorId, value) => {
-      setResponses((prev) => ({
-        ...prev,
-        [instructorId]: {
-          ...prev[instructorId],
-          comment: value,
-        },
-      }));
-    };
+  const handleCommentChange = (instructorId, value) => {
+    setResponses((prev) => ({
+      ...prev,
+      [instructorId]: {
+        ...prev[instructorId],
+        comment: value,
+      },
+    }));
+  };
 
   const handleSaveEvaluation = (instructorId) => {
-  const evaluationData = responses[instructorId];
-  console.log('Evaluation Data:', evaluationData);
+    const evaluationData = responses[instructorId];
+    if (!evaluationData) {
+      toast.error('Please answer the questions before saving.');
+      return;
+    }
 
-  if (!evaluationData) {
-    toast.error('Please answer the questions before saving.');
-    return;
-  }
+    setSavedEvaluations((prev) => {
+      const updated = { ...prev, [instructorId]: 'Done' };
+      return updated;
+    });
 
-  setSavedEvaluations((prev) => {
-    const updated = { ...prev, [instructorId]: 'Done' };
-    sessionStorage.setItem('savedEvaluations', JSON.stringify(updated)); 
-    return updated;
-  });
-
-  toast.success('Evaluation saved! Don\'t forget to submit All.');
-  setExpandedInstructorId(null);
-};
-
+    toast.success("Evaluation saved! Don't forget to submit All.");
+    setExpandedInstructorId(null);
+  };
 
   const handleSubmitAll = async () => {
-    if (Object.keys(savedEvaluations).length === 0) {
+    const savedIds = Object.keys(savedEvaluations);
+
+    if (savedIds.length === 0) {
       toast.error('No saved evaluations to submit');
       return;
     }
 
     try {
-      for (const instructorId of Object.keys(savedEvaluations)) {
-        if (savedEvaluations[instructorId] !== 'Done') continue;
-
+      const evaluations = savedIds.map((instructorId) => {
         const responseEntries = questions.map((q) => {
           const rating = parseInt(responses[instructorId]?.[q.id]?.rating);
           if (isNaN(rating)) {
@@ -186,46 +196,47 @@ const SEvaluations = () => {
           };
         });
 
-        const payload = {
-          instructor_id: instructorId,
+        return {
+          instructor_id: parseInt(instructorId),
           comment: responses[instructorId]?.comment || '',
           responses: responseEntries,
-          school_year: selectedYear,
-          semester: selectedSemester,
         };
+      });
 
-        const result = await InstructorService.submitEvaluation(payload);
-        const evaluatedAt = new Date().toISOString();
+      const payload = {
+        school_year: selectedYear,
+        semester: selectedSemester,
+        evaluations,
+      };
 
-        setSubmissionInfo((prev) => ({
-          ...prev,
-          [instructorId]: {
-            status: result.status || 'Evaluated',
-            evaluatedAt: result.evaluated_at || evaluatedAt,
-          },
-        }));
-      }
+      const result = await InstructorService.submitAllEvaluations(payload);
 
-      toast.success('All evaluations submitted successfully!');
+      const evaluatedAt = new Date().toISOString();
+      const updatedInfo = { ...submissionInfo };
+
+      result.submissions.forEach((submission) => {
+        updatedInfo[submission.instructor_id] = {
+          status: 'Evaluated',
+          evaluatedAt: submission.submitted_at || evaluatedAt,
+        };
+      });
+
+      setSubmissionInfo(updatedInfo);
       setSavedEvaluations({});
       sessionStorage.removeItem('savedEvaluations');
-    } catch (err) {
-      console.error('Error submitting evaluations:', err);
-      const errorMessage = err?.response?.data?.message || err.message;
 
-      if (errorMessage === 'You have already submitted an evaluation for this instructor.') {
-        toast.error('You have already submitted an evaluation.');
-      } else {
-        toast.error(errorMessage || 'An error occurred while submitting evaluations.');
-      }
+      toast.success('All evaluations submitted successfully!');
+    } catch (err) {
+      console.error('Error submitting all evaluations:', err);
+      const errorMessage = err?.response?.data?.message || err.message;
+      toast.error(errorMessage || 'An error occurred while submitting evaluations.');
     }
   };
 
   const handleSelectionChange = (year, semester) => {
-    if (year && semester) {
-      setFormReady(true);
-      fetchAssignedInstructors();
-    }
+    setSelectedYear(year);
+    setSelectedSemester(semester);
+    setFormReady(year && semester);
   };
 
   return (
@@ -269,6 +280,9 @@ const SEvaluations = () => {
                 savedEvaluations={savedEvaluations}
                 handleSubmitAll={handleSubmitAll}
                 questions={questions}
+                submissionInfo={submissionInfo}
+                viewOnlyInstructorId={viewOnlyInstructorId}
+                setViewOnlyInstructorId={setViewOnlyInstructorId}
               />
             )
           ) : (

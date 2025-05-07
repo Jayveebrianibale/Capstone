@@ -9,9 +9,19 @@ const EvaluationForm = ({
   handleSaveEvaluation,
   savedEvaluations,
   ratingOptions,
-  isEvaluated = false,
+  viewOnly = false,
+  onClose,
 }) => (
-  <div className="space-y-6 border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+  <div className="relative space-y-6 border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+    {viewOnly && (
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-500 hover:text-red-600 text-lg font-bold"
+          aria-label="Close view"
+        >
+          ✕
+        </button>
+      )}
     {questions.length > 0 ? (
       questions.map((q, idx) => (
         <div
@@ -24,16 +34,15 @@ const EvaluationForm = ({
           <p className="text-sm text-gray-600 dark:text-gray-300">{q.question}</p>
           <select
             value={responses[instructor.id]?.[q.id]?.rating || ''}
-            onChange={(e) => {
-              const value = e.target.value;
-              handleResponseChange(instructor.id, q.id, value);
-            }}
-            disabled={isEvaluated}
-            className="w-full mt-1 p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed"
+            onChange={(e) => handleResponseChange(instructor.id, q.id, e.target.value)}
+            disabled={viewOnly}
+            className={`w-full mt-1 p-2 border rounded-md focus:outline-none focus:ring-2 ${
+              viewOnly
+                ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed text-gray-500'
+                : 'bg-white dark:bg-gray-700 text-black dark:text-white border-gray-300 focus:ring-green-500'
+            }`}
           >
-            <option value="" disabled>
-              Select Rating
-            </option>
+            <option value="" disabled>Select Rating</option>
             {ratingOptions?.[q.category]?.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
@@ -51,28 +60,29 @@ const EvaluationForm = ({
         Additional Comments:
       </label>
       <textarea
-            className="w-full p-3 border border-gray-300 rounded-md bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed"
-            rows="4"
-            value={responses[instructor.id]?.comment || ''}
-            onChange={(e) => handleCommentChange(instructor.id, e.target.value)}
-            placeholder="Provide additional feedback..."
-            disabled={isEvaluated}
-            />
+        className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
+          viewOnly
+            ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed text-gray-500'
+            : 'bg-white dark:bg-gray-700 text-black dark:text-white border-gray-300 focus:ring-green-500'
+        }`}
+        rows="4"
+        value={responses[instructor.id]?.comment || ''}
+        onChange={(e) => handleCommentChange(instructor.id, e.target.value)}
+        placeholder="Provide additional feedback..."
+        disabled={viewOnly}
+      />
     </div>
 
-    <div className="flex justify-end">
-      <button
-        onClick={() => handleSaveEvaluation(instructor.id)}
-        disabled={isEvaluated}
-        className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-          isEvaluated
-            ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-            : 'bg-green-600 text-white hover:bg-green-700'
-        }`}
-      >
-        {savedEvaluations[instructor.id] ? 'Update Evaluation' : 'Save Evaluation'}
-      </button>
-    </div>
+    {!viewOnly && (
+      <div className="flex justify-end">
+        <button
+          onClick={() => handleSaveEvaluation(instructor.id)}
+          className="px-6 py-2 rounded-md text-sm font-medium transition-all bg-green-600 text-white hover:bg-green-700"
+        >
+          {savedEvaluations[instructor.id] ? 'Update Evaluation' : 'Save Evaluation'}
+        </button>
+      </div>
+    )}
   </div>
 );
 

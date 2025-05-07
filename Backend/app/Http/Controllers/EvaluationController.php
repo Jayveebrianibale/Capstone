@@ -84,7 +84,7 @@ class EvaluationController extends Controller {
 
     }
 
-        public function getEvaluationWithResponses($evaluationId) {
+    public function getEvaluationWithResponses($evaluationId) {
             
             $evaluation = Evaluation::with('responses.question')->find($evaluationId);
 
@@ -94,5 +94,66 @@ class EvaluationController extends Controller {
 
             return response()->json($evaluation);
         }
+
+        public function submitAll(Request $request) {
+            $user = auth()->user();
+
+            if ($user->role !== 'Student') {
+                return response()->json(['message' => 'Only students can submit evaluations.'], 403);
+            }
+
+            $validated = $request->validate([
+                'evaluations' => 'required|array|min:1',
+                'evaluations.*.instructor_id' => 'required|exists:instructors,id',
+                'evaluations.*.responses' => 'required|array|min:1',
+                'evaluations.*.responses.*.question_id' => 'required|exists:questions,id',
+                'evaluations.*.responses.*.rating' => 'required|integer|between:1,5',
+                'evaluations.*.comment' => 'nullable|string',
+                'school_year' => 'required|string',
+                'semester' => 'required|string',
+            ]);
+
+            $submitted = [];
+
+            foreach ($validated['evaluations'] as $eval) {
+                // Prevent duplicate evaluation
+                $existing = Evaluation::where('student_id', $user->id)
+                    ->where('instructor_id', $eval['instructor_id'])
+                    ->first();
+
+                if ($existing) {
+                    continue; // optionally collect these and return a message
+                }
+
+                $evaluation = Evaluation::create([
+                    'student_id' => $user->id,
+                    'instructor_id' => $eval['instructor_id'],
+                    'school_year' => $validated['school_year'],
+                    'semester' => $validated['semester'],
+                    'status' => 'Evaluated',
+                    'evaluated_at' => now(),
+                ]);
+
+                foreach ($eval['responses'] as $response) {
+                    EvaluationResponse::create([
+                        'evaluation_id' => $evaluation->id,
+                        'question_id' => $response['question_id'],
+                        'rating' => $response['rating'],
+                        'comment' => $eval['comment'] ?? null,
+                    ]);
+                }
+
+                $submitted[] = [
+                    'instructor_id' => $eval['instructor_id'],
+                    'submitted_at' => $evaluation->evaluated_at->toDateTimeString(),
+                ];
+            }
+
+            return response()->json([
+                'message' => 'Evaluations submitted successfully.',
+                'submissions' => $submitted,
+            ], 201);
+        }
+
 
 }

@@ -35,6 +35,8 @@ Route::middleware('auth:sanctum')->post('/evaluations', [EvaluationController::c
 Route::middleware('auth:sanctum')->get('/evaluations', [EvaluationController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/evaluations/{evaluation}/responses', [EvaluationController::class, 'getEvaluationWithResponses']);
 Route::get('/check-evaluation/{instructorId}', [EvaluationController::class, 'checkEvaluationStatus']);
+Route::post('/evaluations/submit-all', [EvaluationController::class, 'submitAll'])->middleware('auth:sanctum');
+
 
 // Course Routes
 Route::post('/courses', [CourseController::class, 'createCourse']); 

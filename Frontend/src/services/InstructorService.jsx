@@ -53,14 +53,21 @@ const InstructorService = {
     return response.data;
   },
 
-  checkIfEvaluated: async (instructorId) => {
-    try {
-      const response = await axios.get(`/api/check-evaluation/${instructorId}`);
-      return response.data.message;
-    } catch (error) {
-      throw new Error('Error checking evaluation status');
+  submitAllEvaluations: async (payload) => {
+  const token = localStorage.getItem('authToken');
+  const response = await axios.post(
+    'http://localhost:8000/api/evaluations/submit-all',
+    payload,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
     }
-  }
+  );
+
+  return response.data;
+}
 };
 
 export default InstructorService;
