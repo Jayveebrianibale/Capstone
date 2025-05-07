@@ -211,7 +211,13 @@ const SEvaluations = () => {
       sessionStorage.removeItem('savedEvaluations');
     } catch (err) {
       console.error('Error submitting evaluations:', err);
-      toast.error(err.message || 'An error occurred while submitting evaluations.');
+      const errorMessage = err?.response?.data?.message || err.message;
+
+      if (errorMessage === 'You have already submitted an evaluation for this instructor.') {
+        toast.error('You have already submitted an evaluation.');
+      } else {
+        toast.error(errorMessage || 'An error occurred while submitting evaluations.');
+      }
     }
   };
 
