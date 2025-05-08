@@ -154,6 +154,43 @@ class EvaluationController extends Controller {
                 'submissions' => $submitted,
             ], 201);
         }
+    
+    public function getAllInstructorResults() {
+        
+        $instructors = Instructor::with(['evaluations.responses.question'])->get();
+
+        $results = $instructors->map(function ($instructor) {
+            $responses = $instructor->evaluations->flatMap->responses;
+
+            $grouped = $responses->groupBy('question_id');
+
+            $questionAverages = [];
+            $totalSum = 0;
+            $totalCount = 0;
+
+            foreach ($grouped as $questionId => $responseGroup) {
+                $avg = $responseGroup->avg('rating');
+                $questionAverages[$questionId] = round($avg, 2);
+                $totalSum += $responseGroup->sum('rating');
+                $totalCount += $responseGroup->count();
+            }
+
+            $percentage = $totalCount > 0 ? ($totalSum / ($totalCount * 5)) * 100 : 0;
+
+            $comments = $responses->pluck('comment')->filter()->unique()->values();
+
+            return [
+                'instructor_id' => $instructor->id,
+                'instructor_name' => $instructor->name,
+                'question_averages' => $questionAverages,
+                'comments' => $comments->isEmpty() ? ['No comments'] : $comments,
+                'percentage' => round($percentage, 2),
+            ];
+        });
+
+        return response()->json($results);
+    }
+
 
 
 }
