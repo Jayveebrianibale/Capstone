@@ -140,7 +140,55 @@ class ProgramController extends Controller
 
         return response()->json($programs);
     }
+    
+    public function getInstructorResultsByProgram($code) {
 
+        $program = Program::where('code', $code)->firstOrFail();
+
+        $instructors = $program->instructors()->with(['evaluations.responses.question'])->get();
+
+        $results = $instructors->map(function ($instructor) {
+            $responses = $instructor->evaluations->flatMap->responses;
+
+            $grouped = $responses->groupBy('question_id');
+
+            $questionAverages = [];
+            $totalSum = 0;
+            $totalCount = 0;
+
+            foreach ($grouped as $questionId => $responseGroup) {
+                $ratingCounts = $responseGroup->groupBy('rating')->map->count();
+
+                $sum = 0;
+                $count = 0;
+                foreach (range(1, 5) as $rating) {
+                    $num = $ratingCounts->get($rating, 0);
+                    $sum += $rating * $num;
+                    $count += $num;
+                }
+
+                $average = $count > 0 ? $sum / $count : 0;
+                $questionAverages[$questionId] = round($average, 2);
+
+                $totalSum += $sum;
+                $totalCount += $count;
+            }
+
+            $percentage = $totalCount > 0 ? ($totalSum / ($totalCount * 5)) * 100 : 0;
+
+            $comments = $responses->pluck('comment')->filter()->unique()->values();
+
+            return [
+                'instructor_id' => $instructor->id,
+                'instructor_name' => $instructor->name,
+                'question_averages' => $questionAverages,
+                'comments' => $comments->isEmpty() ? ['No comments'] : $comments,
+                'percentage' => round($percentage, 2),
+            ];
+        });
+
+        return response()->json($results);
+    }   
     
 
 }

@@ -65,7 +65,17 @@ const ProgramService = {
       console.error(`Failed to fetch year levels for program ${programId}:`, error.response?.data || error.message);
       throw error;
     }
-  }
+  },
+
+  async getInstructorResultsByProgram(code) {
+    try {
+      const response = await axios.get(`${API_URL}/${code}/instructor-results`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch instructor results for ${code}:`, error.response?.data || error.message);
+      throw error;
+    }
+  },
   
 }
 
