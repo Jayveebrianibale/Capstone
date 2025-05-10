@@ -179,16 +179,27 @@ class ProgramController extends Controller
             $comments = $responses->pluck('comment')->filter()->unique()->values();
 
             return [
-                'instructor_id' => $instructor->id,
-                'instructor_name' => $instructor->name,
-                'question_averages' => $questionAverages,
-                'comments' => $comments->isEmpty() ? ['No comments'] : $comments,
-                'percentage' => round($percentage, 2),
+                'name' => $instructor->name,
+                'pivot' => [
+                    'yearLevel' => $instructor->pivot->yearLevel,
+                ],
+                'ratings' => [
+                    'q1' => $questionAverages[1] ?? null,
+                    'q2' => $questionAverages[2] ?? null,
+                    'q3' => $questionAverages[3] ?? null,
+                    'q4' => $questionAverages[4] ?? null,
+                    'q5' => $questionAverages[5] ?? null,
+                    'q6' => $questionAverages[6] ?? null,
+                    'q7' => $questionAverages[7] ?? null,
+                    'q8' => $questionAverages[8] ?? null,
+                    'q9' => $questionAverages[9] ?? null,
+                ],
+                'comments' => $comments->isEmpty() ? 'No comments' : $comments->join(', '),
+                'overallRating' => round($percentage, 2),
             ];
         });
 
-        return response()->json($results);
-    }   
-    
+    return response()->json($results);
+}
 
 }

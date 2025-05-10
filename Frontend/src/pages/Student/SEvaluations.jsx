@@ -209,6 +209,8 @@ const SEvaluations = () => {
         evaluations,
       };
 
+      console.log("Submitting:", payload);
+
       const result = await InstructorService.submitAllEvaluations(payload);
 
       const evaluatedAt = new Date().toISOString();

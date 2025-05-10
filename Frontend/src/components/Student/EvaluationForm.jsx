@@ -68,7 +68,7 @@ const EvaluationForm = ({
         rows="4"
         value={responses[instructor.id]?.comment || ''}
         onChange={(e) => handleCommentChange(instructor.id, e.target.value)}
-        placeholder="Provide additional feedback..."
+        placeholder="Share any additional comments or feedback for the instructor’s improvement..."
         disabled={viewOnly}
       />
     </div>

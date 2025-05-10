@@ -16,7 +16,7 @@ const InstructorTable = ({
   viewOnlyInstructorId,
   setViewOnlyInstructorId,
 }) => {
-  const ratingOptions = {
+   const ratingOptions = {
     "Learning Environment": [
       { value: '5', label: '5 - Extremely positive and significantly enhances learning' },
       { value: '4', label: '4 - Positive and slightly enhances learning' },
@@ -83,118 +83,161 @@ const InstructorTable = ({
   };
 
   return (
-    <>
-      <div className="mt-6 overflow-x-auto border rounded-lg shadow-sm">
-        <table className="min-w-full text-sm text-left bg-white dark:bg-gray-800">
-          <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-            <tr>
-              <th className="px-6 py-4 text-base">Instructor</th>
-              <th className="px-6 py-4 text-base">Evaluation Status</th>
-              <th className="px-6 py-4 text-base">Submitted At</th>
-              <th className="px-6 py-4 text-center text-base">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {instructors.map((instructor) => {
-              const isExpanded = expandedInstructorId === instructor.id;
-              const saved = savedEvaluations[instructor.id];
-
-              const submittedAt = submissionInfo?.[instructor.id]?.evaluatedAt || null;
-              let status = 'Not Started';
-              if (submissionInfo?.[instructor.id]?.status === 'Evaluated') {
-                status = 'Evaluated';
-              } else if (savedEvaluations[instructor.id]) {
-                status = 'Done';
-              }
-
-              let statusClass = 'text-red-500'; 
-              if (status === 'Evaluated') {
-                statusClass = 'text-green-600';
-              } else if (status === 'Done') {
-                statusClass = 'text-green-600';
-              }
-
-              return (
-                <React.Fragment key={instructor.id}>
-                  <tr className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                      {instructor.name}
-                    </td>
-                    <td className={`px-6 py-4 font-semibold ${statusClass}`}>
-                      {status}
-                    </td>
-                    <td className="px-6 py-4">
-                      {status === 'Evaluated' && submittedAt
-                        ? new Date(submittedAt).toLocaleString('en-US', { timeZone: 'Asia/Manila' })
-                        : '—'}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      {status === 'Evaluated' ? (
-                        <button
-                          onClick={() => {
-                            setViewOnlyInstructorId(instructor.id);
-                            setExpandedInstructorId(instructor.id);
-                          }}
-                          className="px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-600 text-white"
-                        >
-                          View
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setViewOnlyInstructorId(null);
-                            setExpandedInstructorId(isExpanded ? null : instructor.id);
-                          }}
-                          className={`px-4 py-2 rounded-lg transition ${
-                            saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
-                          } text-white`}
-                        >
-                          {saved ? 'Edit' : 'Evaluate'}
-                        </button>
-                      )}
-
-                    </td>
-                  </tr>
-                  {isExpanded && (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-4">
-                        <EvaluationForm
-                          instructor={instructor}
-                          questions={questions}
-                          responses={responses}
-                          handleResponseChange={handleResponseChange}
-                          handleCommentChange={handleCommentChange}
-                          handleSaveEvaluation={handleSaveEvaluation}
-                          savedEvaluations={savedEvaluations}
-                          ratingOptions={ratingOptions}
-                          viewOnly={viewOnlyInstructorId === instructor.id}
-                          onClose={() => {
-                            setViewOnlyInstructorId(null);
-                            setExpandedInstructorId(null);
-                          }}
-                        />
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+    <div className="mt-6 border rounded-lg shadow-sm bg-white dark:bg-gray-800">
+      {/* Desktop Header */}
+      <div className="hidden md:grid md:grid-cols-4 gap-4 p-4 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-b dark:border-gray-700">
+        <div className="font-semibold">Instructor</div>
+        <div className="font-semibold">Status</div>
+        <div className="font-semibold">Submitted At</div>
+        <div className="font-semibold text-center">Actions</div>
       </div>
-      {Object.keys(savedEvaluations).length > 0 &&
-        instructors.some((instructor) => submissionInfo?.[instructor.id]?.status !== 'Evaluated') && (
-          <div className="text-right mt-4">
-            <button
-              onClick={handleSubmitAll}
-              className="bg-[#1F3463] text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition"
-            >
-              Submit All
-            </button>
-          </div>
-      )}
 
-    </>
+      {instructors.map((instructor) => {
+        const isExpanded = expandedInstructorId === instructor.id;
+        const saved = savedEvaluations[instructor.id];
+        const submittedAt = submissionInfo?.[instructor.id]?.evaluatedAt || null;
+        
+        let status = 'Not Started';
+        let statusClass = 'text-red-500';
+        
+        if (submissionInfo?.[instructor.id]?.status === 'Evaluated') {
+          status = 'Evaluated';
+          statusClass = 'text-green-600';
+        } else if (saved) {
+          status = 'Done';
+          statusClass = 'text-green-600';
+        }
+
+        return (
+          <div key={instructor.id} className="border-b dark:border-gray-700">
+            {/* Mobile Layout */}
+            <div className="md:hidden p-4 space-y-2">
+              <div className="font-semibold text-gray-900 dark:text-white">
+                {instructor.name}
+              </div>
+              
+              <div className="flex justify-between items-center">
+                <div className={`${statusClass} font-medium`}>
+                  {status}
+                </div>
+                <div>
+                  {status === 'Evaluated' ? (
+                    <button
+                      onClick={() => {
+                        setViewOnlyInstructorId(instructor.id);
+                        setExpandedInstructorId(instructor.id);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-gray-500 hover:bg-gray-600 text-white text-sm"
+                    >
+                      View
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setViewOnlyInstructorId(null);
+                        setExpandedInstructorId(isExpanded ? null : instructor.id);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-sm ${
+                        saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
+                      } text-white`}
+                    >
+                      {saved ? 'Edit' : 'Evaluate'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {status === 'Evaluated' && submittedAt && (
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Submitted: {new Date(submittedAt).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Layout */}
+            <div className="hidden md:grid md:grid-cols-4 gap-4 p-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700">
+              <div className="font-semibold text-gray-900 dark:text-white">
+                {instructor.name}
+              </div>
+              
+              <div className={`font-semibold ${statusClass}`}>
+                {status}
+              </div>
+              
+              <div>
+                {status === 'Evaluated' && submittedAt
+                  ? new Date(submittedAt).toLocaleString('en-US', { timeZone: 'Asia/Manila' })
+                  : '—'}
+              </div>
+              
+              <div className="flex justify-center">
+                {status === 'Evaluated' ? (
+                  <button
+                    onClick={() => {
+                      setViewOnlyInstructorId(instructor.id);
+                      setExpandedInstructorId(instructor.id);
+                    }}
+                    className="px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-600 text-white"
+                  >
+                    View
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setViewOnlyInstructorId(null);
+                      setExpandedInstructorId(isExpanded ? null : instructor.id);
+                    }}
+                    className={`px-4 py-2 rounded-lg transition ${
+                      saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
+                    } text-white`}
+                  >
+                    {saved ? 'Edit' : 'Evaluate'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Expanded Form Section */}
+            {isExpanded && (
+              <div className="col-span-full p-4 border-t dark:border-gray-700">
+                <EvaluationForm
+                  instructor={instructor}
+                  questions={questions}
+                  responses={responses}
+                  handleResponseChange={handleResponseChange}
+                  handleCommentChange={handleCommentChange}
+                  handleSaveEvaluation={handleSaveEvaluation}
+                  savedEvaluations={savedEvaluations}
+                  ratingOptions={ratingOptions}
+                  viewOnly={viewOnlyInstructorId === instructor.id}
+                  onClose={() => {
+                    setViewOnlyInstructorId(null);
+                    setExpandedInstructorId(null);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Submit All Button */}
+      {Object.keys(savedEvaluations).length > 0 && (
+        <div className="p-4 border-t dark:border-gray-700">
+          <button
+            onClick={handleSubmitAll}
+            className="w-full md:w-auto bg-[#1F3463] text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition"
+          >
+            Submit All Evaluations
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -1,8 +1,7 @@
 const YearSemesterSelector = ({ 
   selectedYear, setSelectedYear, 
   selectedSemester, setSelectedSemester, 
-  setFormReady, fetchAssignedInstructors,
-  onSelectionChange
+  setFormReady, fetchAssignedInstructors
 }) => {
   const schoolYears = ['2023-2024', '2024-2025', '2025-2026'];
   const semesters = ['1st Semester', '2nd Semester',];
