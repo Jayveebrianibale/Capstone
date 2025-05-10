@@ -10,7 +10,7 @@ import SEvaluations from "./pages/Student/SEvaluations";
 import StudentProfileSetup from "./pages/Student/StudentProfileSetup";
 // Admin Pages
 import AdminDashboard from "./pages/Admin/ADashboard";
-import InstructorDashboard from "./pages/Instructor/InstrucDashboard";
+import InstructorDashboard from "./pages/Instructor/InstructorDashboard";
 import Accounts from "./pages/Admin/Accounts";
 import Questionnaires from "./pages/Admin/Questionnaires";
 import Instructors from "./pages/Admin/Instructors";
