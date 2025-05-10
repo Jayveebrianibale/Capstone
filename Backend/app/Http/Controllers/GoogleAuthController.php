@@ -39,7 +39,7 @@ class GoogleAuthController extends Controller
                 } elseif (str_contains($googleUser->email, 'evaluationsystem2025@gmailcom.')) {
                     $role = 'Admin';
                 } else {
-                    $role = 'Student'; // Default role
+                    $role = 'Student';
                 }
 
                 // Create a new user
