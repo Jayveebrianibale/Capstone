@@ -110,7 +110,7 @@ useEffect(() => {
         />
       )}
       <div
-        className={`flex-grow ${!isProfileSetupPage && sidebarOpen ? "ml-56" : "ml-0"} transition-all duration-300`}
+        className={`flex-grow ${!isProfileSetupPage && sidebarOpen ? "ml-64" : "ml-0"} transition-all duration-300`}
       >
         {!isProfileSetupPage && (
           <Navbar
@@ -127,7 +127,6 @@ useEffect(() => {
         <Outlet />
       </div>
 
-     
       <LogoutModal
         isOpen={logoutModalOpen}
         onClose={() => setLogoutModalOpen(false)}

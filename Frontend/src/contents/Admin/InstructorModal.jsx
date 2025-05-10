@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, User, Mail } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 
@@ -12,6 +12,8 @@ export default function InstructorModal({
 }) {
   const [formData, setFormData] = useState({ name: "", email: "" });
   const [isSaving, setIsSaving] = useState(false);
+  const primaryColor = "#1F3463";
+  const hoverColor = "#172a4d";
 
   useEffect(() => {
     if (isEditing && instructor) {
@@ -40,20 +42,15 @@ export default function InstructorModal({
 
     try {
       let response;
-      if (isEditing && instructor?.id) {
-        response = await axios.put(
-          `http://localhost:8000/api/instructors/${instructor.id}`,
-          formData
-        );
-        toast.success("Instructor updated successfully!");
-      } else {
-        response = await axios.post(
-          "http://localhost:8000/api/instructors",
-          formData
-        );
-        toast.success("Instructor added successfully!");
-      }
+      const apiUrl = isEditing && instructor?.id 
+        ? `http://localhost:8000/api/instructors/${instructor.id}`
+        : "http://localhost:8000/api/instructors";
 
+      const method = isEditing ? "put" : "post";
+      
+      response = await axios[method](apiUrl, formData);
+      toast.success(`Instructor ${isEditing ? 'updated' : 'added'} successfully!`);
+      
       onSave(response.data);
       onClose();
     } catch (error) {
@@ -66,78 +63,95 @@ export default function InstructorModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-6 z-50">
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-[500px] max-w-full transform transition-all duration-300 ease-in-out">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 z-50">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-md transform transition-all duration-300 ease-out">
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            {isEditing ? "Edit Instructor" : "Add Instructor"}
-          </h2>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              {isEditing ? "Edit Instructor" : "New Instructor"}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {isEditing ? "Update instructor details" : "Add a new instructor to the system"}
+            </p>
+          </div>
           <button
             onClick={onClose}
-            aria-label="Close modal"
-            className="text-gray-600 dark:text-gray-400 hover:text-red-500"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 transition-colors"
           >
-            <X size={24} />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label
-              htmlFor="name"
-              className="block font-semibold text-gray-700 dark:text-gray-300"
-            >
-              Name
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name Input */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Full Name
             </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Instructor Name"
-              className="w-full border dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              required
-            />
+            <div className="relative">
+              <User className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="John Doe"
+                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all"
+                required
+              />
+            </div>
           </div>
 
-          <div className="mb-6">
-            <label
-              htmlFor="email"
-              className="block font-semibold text-gray-700 dark:text-gray-300"
-            >
-              Email
+          {/* Email Input */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Email Address
             </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Email"
-              className="w-full border dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              required
-            />
+            <div className="relative">
+              <Mail className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="john.doe@example.com"
+                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all"
+                required
+              />
+            </div>
           </div>
 
-          <div className="flex justify-end space-x-4">
+          {/* Form Actions */}
+          <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-md text-sm font-semibold transition"
+              className="px-5 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors border border-gray-300 dark:border-gray-600"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={`px-6 py-2 rounded-md text-sm font-semibold transition ${
-                isSaving
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-[#1F3463] hover:bg-indigo-700 text-white"
-              }`}
               disabled={isSaving}
+              className={`px-5 py-2.5 text-white rounded-lg transition-colors flex items-center gap-2 ${
+                isSaving 
+                  ? "bg-gray-400 cursor-not-allowed" 
+                  : `bg-[${primaryColor}] hover:bg-[${hoverColor}]`
+              }`}
             >
-              {isSaving ? "Saving..." : isEditing ? "Update" : "Save"}
+              {isSaving ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {isEditing ? "Updating..." : "Saving..."}
+                </>
+              ) : (
+                <>{isEditing ? "Update" : "Save"}</>
+              )}
             </button>
           </div>
         </form>

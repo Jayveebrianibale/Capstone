@@ -4,7 +4,7 @@ import { CircularProgress, Box } from "@mui/material";
 const CompletionIndicator = ({ value, size = 200 }) => {
   return (
     <div
-      className="flex flex-col items-center"
+      className="flex flex-col items-center mt-8"
       style={{ width: size, height: size }}
     >
       <Box position="relative" display="inline-flex" width={size} height={size}>
