@@ -11,10 +11,10 @@ function ADashboard() {
   const [studentsCount, setStudentsCount] = useState(0);
   const currentHour = new Date().getHours();
 
-  const greeting = () => {
-    if (currentHour < 12) return "Good Morning, Admin!";
-    if (currentHour < 18) return "Good Afternoon, Admin!";
-    return "Good Evening, Admin!";
+   const greeting = () => {
+    if (currentHour < 12) return "Good Morning, Admin! ☀️";
+    if (currentHour < 18) return "Good Afternoon, Admin! 🌤";
+    return "Good Evening, Admin! 🌙";
   };
 
   useEffect(() => {
