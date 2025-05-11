@@ -10,6 +10,7 @@ export default function CustomPieChart() {
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [hoveredSlice, setHoveredSlice] = useState(null);
   const chartRef = useRef(null);
+  const [isDarkMode, setIsDarkMode] = useState(window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   const data = [
     { label: '5', value: 10, color: '#1F3463', description: 'Exceedingly Well' },
@@ -37,6 +38,7 @@ export default function CustomPieChart() {
         enabled: false,
       },
       datalabels: {
+        color: 'white',
         formatter: (value) => `${value}%`,
         font: {
           weight: 'bold',
@@ -84,6 +86,7 @@ export default function CustomPieChart() {
   useEffect(() => {
     const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const darkModeChangeHandler = (e) => {
+      setIsDarkMode(e.matches);
       if (e.matches) {
         document.documentElement.classList.add('dark');
       } else {
@@ -92,13 +95,16 @@ export default function CustomPieChart() {
     };
     darkModeMediaQuery.addEventListener('change', darkModeChangeHandler);
 
+    // Set initial state
+    setIsDarkMode(darkModeMediaQuery.matches);
+
     return () => {
       darkModeMediaQuery.removeEventListener('change', darkModeChangeHandler);
     };
   }, []);
 
   return (
-    <div className="relative flex justify-center items-center p-6 rounded-lg dark:bg-gray-800 dark:text-white bg-white text-black">
+    <div className="relative flex justify-center items-center p-6 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white">
       <div style={{ position: 'relative', width: '250px', height: '250px' }}>
         <Pie ref={chartRef} data={chartData} options={options} />
         {tooltip && (

@@ -18,7 +18,10 @@ const SEvaluations = () => {
   const [instructors, setInstructors] = useState([]);
   const [currentInstructors, setCurrentInstructors] = useState([]);
   const [expandedInstructorId, setExpandedInstructorId] = useState(null);
-  const [responses, setResponses] = useState({});
+  const [responses, setResponses] = useState(() => {
+    const saved = sessionStorage.getItem('evaluationResponses');
+    return saved ? JSON.parse(saved) : {};
+  });
   const [savedEvaluations, setSavedEvaluations] = useState(() => {
     const saved = sessionStorage.getItem('savedEvaluations');
     return saved ? JSON.parse(saved) : {};
@@ -29,6 +32,10 @@ const SEvaluations = () => {
   const [questions, setQuestions] = useState([]);
   const [submissionInfo, setSubmissionInfo] = useState(() => {
     const saved = sessionStorage.getItem('submissionInfo');
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [evaluationHistory, setEvaluationHistory] = useState(() => {
+    const saved = sessionStorage.getItem('evaluationHistory');
     return saved ? JSON.parse(saved) : {};
   });
 
@@ -42,12 +49,20 @@ const SEvaluations = () => {
   }, [savedEvaluations]);
 
   useEffect(() => {
+    sessionStorage.setItem('evaluationResponses', JSON.stringify(responses));
+  }, [responses]);
+
+  useEffect(() => {
     sessionStorage.setItem('selectedYear', selectedYear);
   }, [selectedYear]);
 
   useEffect(() => {
     sessionStorage.setItem('selectedSemester', selectedSemester);
   }, [selectedSemester]);
+
+  useEffect(() => {
+    sessionStorage.setItem('evaluationHistory', JSON.stringify(evaluationHistory));
+  }, [evaluationHistory]);
 
   // Initialize school years and semesters
   useEffect(() => {
@@ -78,44 +93,177 @@ const SEvaluations = () => {
     }
   }, [selectedYear, selectedSemester]);
 
+  // Add function to fetch existing evaluations
+  const fetchExistingEvaluations = async () => {
+    try {
+      const response = await InstructorService.getEvaluations();
+      if (response) {
+        const evaluatedInstructors = {};
+        const evaluationResponses = {};
+        const history = {};
+        
+        // Handle the new response format
+        Object.entries(response).forEach(([instructorId, evaluations]) => {
+          if (evaluations && evaluations.length > 0) {
+            const latestEvaluation = evaluations[0];
+            evaluatedInstructors[instructorId] = {
+              status: latestEvaluation.status || 'Evaluated',
+              evaluatedAt: latestEvaluation.evaluated_at
+            };
+            
+            // Store evaluation history with instructor details
+            history[instructorId] = {
+              schoolYear: latestEvaluation.school_year,
+              semester: latestEvaluation.semester,
+              evaluatedAt: latestEvaluation.evaluated_at,
+              instructor: latestEvaluation.instructor,
+              status: latestEvaluation.status
+            };
+
+            // If there are responses in the evaluation, store them
+            if (latestEvaluation.responses) {
+              evaluationResponses[instructorId] = latestEvaluation.responses.reduce((acc, response) => {
+                acc[response.question_id] = { rating: response.rating };
+                return acc;
+              }, {});
+              evaluationResponses[instructorId].comment = latestEvaluation.comment;
+            }
+          }
+        });
+
+        setSubmissionInfo(evaluatedInstructors);
+        setResponses(evaluationResponses);
+        setEvaluationHistory(history);
+
+        // If there are existing evaluations, set the year and semester
+        if (Object.keys(history).length > 0) {
+          const firstEvaluation = Object.values(history)[0];
+          setSelectedYear(firstEvaluation.schoolYear);
+          setSelectedSemester(firstEvaluation.semester);
+          setFormReady(true);
+        }
+
+        // Update instructors list with evaluation history
+        setInstructors(prevInstructors => 
+          prevInstructors.map(instructor => ({
+            ...instructor,
+            status: evaluatedInstructors[instructor.id]?.status || 'Not Started',
+            submittedAt: evaluatedInstructors[instructor.id]?.evaluatedAt || null,
+            evaluationHistory: history[instructor.id] || null
+          }))
+        );
+        setCurrentInstructors(prevInstructors => 
+          prevInstructors.map(instructor => ({
+            ...instructor,
+            status: evaluatedInstructors[instructor.id]?.status || 'Not Started',
+            submittedAt: evaluatedInstructors[instructor.id]?.evaluatedAt || null,
+            evaluationHistory: history[instructor.id] || null
+          }))
+        );
+      }
+    } catch (error) {
+      console.error('Error fetching existing evaluations:', error);
+      toast.error('Error fetching evaluation history');
+    }
+  };
+
+  // Add useEffect to check user data on component mount
+  useEffect(() => {
+    const checkUserData = () => {
+      const userData = sessionStorage.getItem('user');
+      if (!userData) {
+        setError('User data not found. Please log in again.');
+        toast.error('User data not found. Please log in again.');
+        setLoading(false);
+        return false;
+      }
+      return true;
+    };
+
+    if (checkUserData()) {
+      fetchExistingEvaluations();
+    }
+  }, []);
+
   const mapYearLevelToNumber = (yearLevel) => {
     if (typeof yearLevel === 'number') return yearLevel;
-    switch (yearLevel) {
-      case '1st Year': return 1;
-      case '2nd Year': return 2;
-      case '3rd Year': return 3;
-      case '4th Year': return 4;
-      default: return null;
+    
+    // Convert to string and lowercase for consistent comparison
+    const level = String(yearLevel).toLowerCase().trim();
+    
+    switch (level) {
+      case '1st year':
+      case 'first year':
+      case '1':
+        return 1;
+      case '2nd year':
+      case 'second year':
+      case '2':
+        return 2;
+      case '3rd year':
+      case 'third year':
+      case '3':
+        return 3;
+      case '4th year':
+      case 'fourth year':
+      case '4':
+        return 4;
+      default:
+        console.log('Invalid year level:', yearLevel); // For debugging
+        return null;
     }
   };
 
   const fetchAssignedInstructors = async () => {
-    const user = JSON.parse(sessionStorage.getItem('user'));
-    const programId = user?.program_id;
-    const yearLevel = user?.yearLevel;
-
-    if (!programId || !yearLevel) {
-      setError('Program ID or Year Level is missing');
-      toast.error('Program ID or Year Level is missing');
-      return;
-    }
-
-    const yearLevelNumber = mapYearLevelToNumber(yearLevel);
-    if (!yearLevelNumber) {
-      setError('Invalid Year Level');
-      toast.error('Invalid Year Level');
-      return;
-    }
-
-    setLoading(true);
     try {
-      const response = await InstructorService.getInstructorsByProgramAndYear(programId, yearLevelNumber);
+      // Get user data from sessionStorage instead of localStorage
+      const userData = sessionStorage.getItem('user');
+      if (!userData) {
+        setError('User data not found. Please log in again.');
+        toast.error('User data not found. Please log in again.');
+        setLoading(false);
+        return;
+      }
+
+      const user = JSON.parse(userData);
+      console.log('User data:', user); // For debugging
+
+      // Check if required fields exist
+      if (!user.program_id) {
+        setError('Program ID is missing from user data');
+        toast.error('Program ID is missing from user data');
+        setLoading(false);
+        return;
+      }
+
+      if (!user.yearLevel) {
+        setError('Year Level is missing from user data');
+        toast.error('Year Level is missing from user data');
+        setLoading(false);
+        return;
+      }
+
+      const yearLevelNumber = mapYearLevelToNumber(user.yearLevel);
+      if (!yearLevelNumber) {
+        setError('Invalid Year Level format');
+        toast.error('Invalid Year Level format');
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      const response = await InstructorService.getInstructorsByProgramAndYear(user.program_id, yearLevelNumber);
+      
       if (Array.isArray(response) && response.length > 0) {
-        const mergedInstructors = response.map((instructor) => ({
-          ...instructor,
-          status: submissionInfo[instructor.id]?.status || 'Not Started',
-          submittedAt: submissionInfo[instructor.id]?.evaluatedAt || null,
-        }));
+        const mergedInstructors = response.map((instructor) => {
+          const history = evaluationHistory[instructor.id];
+          return {
+            ...instructor,
+            status: history ? 'Evaluated' : (submissionInfo[instructor.id]?.status || 'Not Started'),
+            submittedAt: history?.evaluatedAt || submissionInfo[instructor.id]?.evaluatedAt || null,
+            evaluationHistory: history
+          };
+        });
         setInstructors(mergedInstructors);
         setCurrentInstructors(mergedInstructors);
         setNoInstructors(false);
@@ -209,29 +357,67 @@ const SEvaluations = () => {
         evaluations,
       };
 
-      console.log("Submitting:", payload);
-
       const result = await InstructorService.submitAllEvaluations(payload);
 
       const evaluatedAt = new Date().toISOString();
       const updatedInfo = { ...submissionInfo };
+      const updatedHistory = { ...evaluationHistory };
 
       result.submissions.forEach((submission) => {
         updatedInfo[submission.instructor_id] = {
           status: 'Evaluated',
           evaluatedAt: submission.submitted_at || evaluatedAt,
         };
+
+        // Update evaluation history
+        updatedHistory[submission.instructor_id] = {
+          schoolYear: selectedYear,
+          semester: selectedSemester,
+          evaluatedAt: submission.submitted_at || evaluatedAt,
+          responses: responses[submission.instructor_id],
+          comment: responses[submission.instructor_id]?.comment || ''
+        };
       });
 
       setSubmissionInfo(updatedInfo);
-      setSavedEvaluations({});
-      sessionStorage.removeItem('savedEvaluations');
+      setEvaluationHistory(updatedHistory);
+      
+      // Update the instructors list to reflect the new evaluation status
+      setInstructors(prevInstructors => 
+        prevInstructors.map(instructor => ({
+          ...instructor,
+          status: updatedInfo[instructor.id]?.status || instructor.status,
+          submittedAt: updatedInfo[instructor.id]?.evaluatedAt || instructor.submittedAt,
+          evaluationHistory: updatedHistory[instructor.id] || instructor.evaluationHistory
+        }))
+      );
+      setCurrentInstructors(prevInstructors => 
+        prevInstructors.map(instructor => ({
+          ...instructor,
+          status: updatedInfo[instructor.id]?.status || instructor.status,
+          submittedAt: updatedInfo[instructor.id]?.evaluatedAt || instructor.submittedAt,
+          evaluationHistory: updatedHistory[instructor.id] || instructor.evaluationHistory
+        }))
+      );
 
       toast.success('All evaluations submitted successfully!');
     } catch (err) {
       console.error('Error submitting all evaluations:', err);
-      const errorMessage = err?.response?.data?.message || err.message;
-      toast.error(errorMessage || 'An error occurred while submitting evaluations.');
+      
+      if (err.response?.status === 409) {
+        const evaluatedInstructors = err.response.data.evaluated_instructors;
+        const instructorNames = currentInstructors
+          .filter(instructor => evaluatedInstructors.includes(instructor.id))
+          .map(instructor => instructor.name)
+          .join(', ');
+
+        toast.error(
+          `You have already evaluated the following instructors: ${instructorNames}. Please remove them from your submission.`
+        );
+      } else {
+        const errorMessage = err?.response?.data?.message || err.message;
+        toast.error(errorMessage || 'An error occurred while submitting evaluations.');
+      }
     }
   };
 
@@ -255,17 +441,20 @@ const SEvaluations = () => {
             </p>
           </div>
 
-          <YearSemesterSelector
-            selectedYear={selectedYear}
-            setSelectedYear={setSelectedYear}
-            selectedSemester={selectedSemester}
-            setSelectedSemester={setSelectedSemester}
-            setFormReady={setFormReady}
-            fetchAssignedInstructors={fetchAssignedInstructors}
-            schoolYears={schoolYears}
-            semesters={semesters}
-            onSelectionChange={handleSelectionChange}
-          />
+          {!Object.values(submissionInfo).some(info => info.status === 'Evaluated') && (
+            <YearSemesterSelector
+              selectedYear={selectedYear}
+              setSelectedYear={setSelectedYear}
+              selectedSemester={selectedSemester}
+              setSelectedSemester={setSelectedSemester}
+              setFormReady={setFormReady}
+              fetchAssignedInstructors={fetchAssignedInstructors}
+              schoolYears={schoolYears}
+              semesters={semesters}
+              onSelectionChange={handleSelectionChange}
+              submissionInfo={submissionInfo}
+            />
+          )}
 
           {formReady ? (
             noInstructors ? (

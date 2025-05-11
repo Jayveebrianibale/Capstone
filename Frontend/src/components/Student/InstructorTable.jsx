@@ -95,12 +95,15 @@ const InstructorTable = ({
       {instructors.map((instructor) => {
         const isExpanded = expandedInstructorId === instructor.id;
         const saved = savedEvaluations[instructor.id];
-        const submittedAt = submissionInfo?.[instructor.id]?.evaluatedAt || null;
+        const submittedAt = instructor.evaluationHistory?.evaluatedAt || submissionInfo?.[instructor.id]?.evaluatedAt || null;
         
         let status = 'Not Started';
         let statusClass = 'text-red-500';
         
-        if (submissionInfo?.[instructor.id]?.status === 'Evaluated') {
+        if (instructor.evaluationHistory) {
+          status = 'Evaluated';
+          statusClass = 'text-green-600';
+        } else if (submissionInfo?.[instructor.id]?.status === 'Evaluated') {
           status = 'Evaluated';
           statusClass = 'text-green-600';
         } else if (saved) {
@@ -226,8 +229,12 @@ const InstructorTable = ({
         );
       })}
 
-      {/* Submit All Button */}
-      {Object.keys(savedEvaluations).length > 0 && (
+      {/* Submit All Button - Only show if there are saved evaluations and not all are submitted */}
+      {Object.keys(savedEvaluations).length > 0 && 
+       !instructors.every(instructor => 
+         instructor.evaluationHistory || 
+         submissionInfo?.[instructor.id]?.status === 'Evaluated'
+       ) && (
         <div className="p-4 border-t dark:border-gray-700">
           <button
             onClick={handleSubmitAll}

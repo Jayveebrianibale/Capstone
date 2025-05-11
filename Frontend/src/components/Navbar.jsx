@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaBars } from "react-icons/fa";
+import { FaBars, FaBell } from "react-icons/fa";
 import DarkModeToggle from "../components/DarkmodeToggle";
 
 function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, activePage}) {
@@ -21,6 +21,11 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, ac
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    console.log("User object:", user);
+    console.log("User role:", user?.role);
+  }, [user]);
+
   const displayTitle = windowWidth < 768 ? abbreviationMap[title] || title : title;
 
   return (
@@ -38,6 +43,14 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, ac
       </div>
       <div className="flex items-center gap-2 mr-2">
         <DarkModeToggle darkMode={darkMode} handleDarkModeToggle={handleDarkModeToggle} />
+        {user && (user.role === "admin" || user.role === "Admin" || user.role === "ADMIN") && (
+          <button className="relative p-2 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white focus:outline-none">
+            <FaBell className="h-5 w-5" />
+            <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
+              3
+            </span>
+          </button>
+        )}
         <div
           className="relative"
           onMouseEnter={() => setShowDropdown(true)}

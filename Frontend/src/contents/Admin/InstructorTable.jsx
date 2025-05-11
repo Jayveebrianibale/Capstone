@@ -1,6 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
+import ViewResultsModal from "./Modals/ViewResultsModal";
 
-function InstructorTable({ instructors }) {
+function InstructorTable({ instructors, questions }) {
+  const [selectedInstructor, setSelectedInstructor] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewAll = (instructor) => {
+    setSelectedInstructor(instructor);
+    setIsModalOpen(true);
+  };
+
+  const truncateText = (text, maxLength = 50) => {
+    if (!text) return "No comments";
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
+
   return (
     <div className="overflow-x-auto rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
       <div className="bg-[#1F3463] text-white text-center p-4 font-bold rounded-t-lg dark:bg-[#1F3463]">
@@ -18,6 +32,7 @@ function InstructorTable({ instructors }) {
               ))}
               <th className="px-6 py-3 font-semibold w-1/4">Comments</th>
               <th className="px-6 py-3 font-semibold text-center">Percentage</th>
+              <th className="px-6 py-3 font-semibold text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -33,7 +48,7 @@ function InstructorTable({ instructors }) {
                     index % 2 === 0
                       ? "bg-white dark:bg-gray-900"
                       : "dark:bg-gray-800"
-                  } hover:bg-gray-200 dark:hover:bg-gray-700`}
+                  } hover:bg-gray-200 dark:hover:bg-gray-700 h-16`}
                 >
                   <td className="px-6 py-3 font-medium">{instructor.name}</td>
                   {[...Array(9)].map((_, i) => (
@@ -41,8 +56,10 @@ function InstructorTable({ instructors }) {
                       {ratings[`q${i + 1}`]?.toFixed(2) || "-"}
                     </td>
                   ))}
-                  <td className="px-6 py-3 italic text-gray-600 dark:text-gray-400 w-1/4 max-w-xs whitespace-normal break-words">
-                    {comments}
+                  <td className="px-6 py-3 text-gray-600 dark:text-gray-400 w-1/4">
+                    <div className="truncate max-w-xs" title={comments}>
+                      {truncateText(comments)}
+                    </div>
                   </td>
                   <td
                     className={`px-6 py-3 text-center font-bold ${
@@ -52,6 +69,14 @@ function InstructorTable({ instructors }) {
                     }`}
                   >
                     {percentage.toFixed(2)}%
+                  </td>
+                  <td className="px-6 py-3 text-center">
+                    <button
+                      onClick={() => handleViewAll(instructor)}
+                      className="bg-[#1F3463] text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                    >
+                      View All
+                    </button>
                   </td>
                 </tr>
               );
@@ -75,7 +100,7 @@ function InstructorTable({ instructors }) {
                 {instructor.name}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 text-sm italic">
-                {comments}
+                {truncateText(comments, 100)}
               </p>
               <div className="grid grid-cols-3 gap-4 mt-3">
                 {[...Array(9)].map((_, i) => (
@@ -93,10 +118,26 @@ function InstructorTable({ instructors }) {
               >
                 {percentage.toFixed(2)}%
               </div>
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => handleViewAll(instructor)}
+                  className="bg-[#1F3463] text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition w-full"
+                >
+                  View All
+                </button>
+              </div>
             </div>
           );
         })}
       </div>
+
+      {/* Modal */}
+      <ViewResultsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        instructor={selectedInstructor}
+        questions={questions}
+      />
     </div>
   );
 }

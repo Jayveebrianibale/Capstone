@@ -55,7 +55,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
       { name: "Instructors", icon: SlPeople, path: "/Instructors" },
       { name: "Programs/Levels", icon: MdOutlineCastForEducation, path: "/Programs" },
     ],
-    Instructor: [{ name: "Dashboard", icon: CiHome, path: "/InstructorDashboard" }],
+    Instructor: [{ name: "Evaluation Results", icon: CiHome, path: "/InstructorDashboard" }],
   };
 
   const menuItems = menus[role] || [];
@@ -109,7 +109,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
                     {openDropdown === item.name ? <MdExpandLess className="ml-auto" /> : <MdExpandMore className="ml-auto" />}
                   </button>
                   {openDropdown === item.name && (
-                    <div className="ml-8 pl-2 max-h-[200px] overflow-y-auto scrollbar-hide">
+                    <div className="ml-8 pl-2">
                       {item.submenu.map((sub) => (
                         <button
                           key={sub.name}

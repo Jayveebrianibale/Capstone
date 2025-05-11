@@ -67,7 +67,26 @@ const InstructorService = {
   );
 
   return response.data;
-}
+},
+
+  getEvaluations: async () => {
+    const token = localStorage.getItem('authToken');
+    try {
+      const response = await axios.get(
+        'http://localhost:8000/api/evaluations',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching evaluations:', error);
+      throw error;
+    }
+  },
 };
 
 export default InstructorService;

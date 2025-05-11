@@ -34,9 +34,9 @@ class GoogleAuthController extends Controller
                 // Set role based on email domain
                 if (str_contains($googleUser->email, '@student')) {
                     $role = 'Student';
-                } elseif (str_contains($googleUser->email, 'jayveebrianibale29@gmail.com')) {
+                } elseif (str_contains($googleUser->email, '@laverdad')) {
                     $role = 'Instructor';
-                } elseif (str_contains($googleUser->email, 'evaluationsystem2025@gmailcom.')) {
+                } elseif (str_contains($googleUser->email, '@gmail')) {
                     $role = 'Admin';
                 } else {
                     $role = 'Student';

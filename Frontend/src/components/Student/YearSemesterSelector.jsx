@@ -1,10 +1,11 @@
 const YearSemesterSelector = ({ 
   selectedYear, setSelectedYear, 
   selectedSemester, setSelectedSemester, 
-  setFormReady, fetchAssignedInstructors
+  setFormReady, fetchAssignedInstructors,
+  submissionInfo
 }) => {
   const schoolYears = ['2023-2024', '2024-2025', '2025-2026'];
-  const semesters = ['1st Semester', '2nd Semester',];
+  const semesters = ['1st Semester', '2nd Semester'];
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg mb-6">
@@ -15,7 +16,7 @@ const YearSemesterSelector = ({
             value={selectedYear}
             onChange={(e) => {
               setSelectedYear(e.target.value);
-              sessionStorage.setItem('selectedYear', e.target.value);
+              localStorage.setItem('selectedYear', e.target.value);
               if (e.target.value && selectedSemester) {
                 fetchAssignedInstructors();
                 setFormReady(true);
@@ -36,7 +37,7 @@ const YearSemesterSelector = ({
             value={selectedSemester}
             onChange={(e) => {
               setSelectedSemester(e.target.value);
-              sessionStorage.setItem('selectedSemester', e.target.value);
+              localStorage.setItem('selectedSemester', e.target.value);
               if (selectedYear && e.target.value) {
                 fetchAssignedInstructors();
                 setFormReady(true);

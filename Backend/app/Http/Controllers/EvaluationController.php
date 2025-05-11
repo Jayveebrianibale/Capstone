@@ -113,18 +113,24 @@ class EvaluationController extends Controller {
                 'semester' => 'required|string',
             ]);
 
+            // Check for existing evaluations
+            $instructorIds = collect($validated['evaluations'])->pluck('instructor_id');
+            $existingEvaluations = Evaluation::where('student_id', $user->id)
+                ->whereIn('instructor_id', $instructorIds)
+                ->get();
+
+            if ($existingEvaluations->isNotEmpty()) {
+                $evaluatedInstructors = $existingEvaluations->pluck('instructor_id');
+                return response()->json([
+                    'message' => 'You have already evaluated some instructors.',
+                    'evaluated_instructors' => $evaluatedInstructors,
+                    'error' => 'DUPLICATE_EVALUATION'
+                ], 409);
+            }
+
             $submitted = [];
 
             foreach ($validated['evaluations'] as $eval) {
-                // Prevent duplicate evaluation
-                $existing = Evaluation::where('student_id', $user->id)
-                    ->where('instructor_id', $eval['instructor_id'])
-                    ->first();
-
-                if ($existing) {
-                    continue; // optionally collect these and return a message
-                }
-
                 $evaluation = Evaluation::create([
                     'student_id' => $user->id,
                     'instructor_id' => $eval['instructor_id'],
