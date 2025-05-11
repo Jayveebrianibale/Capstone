@@ -11,10 +11,16 @@ function ADashboard() {
   const [studentsCount, setStudentsCount] = useState(0);
   const currentHour = new Date().getHours();
 
-   const greeting = () => {
+  const greeting = () => {
     if (currentHour < 12) return "Good Morning, Admin! ☀️";
     if (currentHour < 18) return "Good Afternoon, Admin! 🌤";
     return "Good Evening, Admin! 🌙";
+  };
+
+  const getBackgroundColor = () => {
+    if (currentHour < 12) return "bg-[#4B5563]"; // Morning - lighter color
+    if (currentHour < 18) return "bg-[#1F3463]"; // Afternoon - medium color
+    return "bg-[#1F3463]"; // Evening - dark color
   };
 
   useEffect(() => {
@@ -41,7 +47,7 @@ function ADashboard() {
   return (
     <main className="p-5 min-h-screen dark:bg-gray-900 space-y-6">
       <div
-        className="relative rounded-2xl overflow-hidden shadow-md bg-[#1F3463] p-6 sm:p-8 text-white"
+        className={`relative rounded-2xl overflow-hidden shadow-md ${getBackgroundColor()} p-6 sm:p-8 text-white`}
         style={{
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
@@ -55,7 +61,7 @@ function ADashboard() {
             {greeting()}
           </h1>
           <p className="mt-1 text-sm sm:text-base text-gray-200">
-            Here’s an overview of today’s system stats.
+            Here's an overview of today's system stats.
           </p>
         </div>
       </div>
@@ -89,7 +95,7 @@ function ADashboard() {
         </div>
       </div>
 
-        <CompletionandPerformingInstructors />
+      <CompletionandPerformingInstructors />
     </main>
   );
 }

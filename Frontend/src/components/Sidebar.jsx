@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Logo from "../assets/Updated-logo.png";
 import { CiHome, CiCreditCard2, CiLogout } from "react-icons/ci";
 import { PiStudent } from "react-icons/pi";
@@ -13,14 +13,18 @@ import axios from "axios";
 
 function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role, isMobile, openLogoutModal }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [openDropdown, setOpenDropdown] = useState(null);
 
   useEffect(() => {
     const savedActivePage = localStorage.getItem("activePage");
     if (savedActivePage) {
       setActivePage(savedActivePage);
+    } else if (role === "Instructor" && location.pathname === "/InstructorDashboard") {
+      setActivePage("Evaluation Results");
+      localStorage.setItem("activePage", "Evaluation Results");
     }
-  }, [setActivePage]);
+  }, [setActivePage, role, location.pathname]);
 
   const menus = {
     Student: [
@@ -90,8 +94,8 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
             <div key={item.name}>
               {!item.submenu ? (
                 <button
-                  className={`flex w-full items-center gap-3 text-sm p-3 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 ${
-                    activePage === item.name ? "bg-indigo-700 dark:bg-indigo-600" : ""
+                  className={`flex w-full items-center gap-3 text-sm p-3 rounded-lg hover:bg-[#2a4585] dark:hover:bg-[#2a4585] transition-colors duration-200 ${
+                    activePage === item.name ? "bg-[#2a4585] dark:bg-[#2a4585]" : ""
                   }`}
                   onClick={() => handleNavigation(item.path, item.name)}
                 >
@@ -101,7 +105,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
               ) : (
                 <div>
                   <button
-                    className="flex w-full items-center gap-3 text-sm p-3 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200"
+                    className="flex w-full items-center gap-3 text-sm p-3 rounded-lg hover:bg-[#2a4585] dark:hover:bg-[#2a4585] transition-colors duration-200"
                     onClick={() => handleDropdownToggle(item.name)}
                   >
                     <item.icon className="w-5 h-5 min-w-[1.25rem]" />
@@ -113,8 +117,8 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
                       {item.submenu.map((sub) => (
                         <button
                           key={sub.name}
-                          className={`flex w-full items-center gap-3 text-sm p-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-700 transition-colors duration-200 ${
-                            (activePage === sub.fullName || activePage === sub.name) ? "bg-indigo-600 dark:bg-indigo-500" : ""
+                          className={`flex w-full items-center gap-3 text-sm p-2 rounded-lg hover:bg-[#2a4585] dark:hover:bg-[#2a4585] transition-colors duration-200 ${
+                            (activePage === sub.fullName || activePage === sub.name) ? "bg-[#2a4585] dark:bg-[#2a4585]" : ""
                           }`}
                           onClick={() => handleNavigation(sub.path, sub.name, sub.fullName)}
                         >

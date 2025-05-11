@@ -23,10 +23,28 @@ const InstructorService = {
   },
 
   assignPrograms: async (instructorId, programs) => {
-    const res = await axios.post(`${API_URL}/${instructorId}/assign-programs`, {
-      programs: programs,
-    });
-    return res.data;
+    try {
+      console.log('Sending programs data:', {
+        instructorId,
+        programs
+      });
+
+      const validatedPrograms = programs.map(program => ({
+        ...program,
+        yearLevel: parseInt(program.yearLevel, 10)
+      }));
+
+      const response = await axios.post(`${API_URL}/${instructorId}/assign-programs`, {
+        programs: validatedPrograms
+      });
+
+      console.log('Program assignment response:', response.data);
+
+      return response.data;
+    } catch (error) {
+      console.error('Error assigning programs:', error.response?.data || error.message);
+      throw error;
+    }
   },
   
   getInstructorsByProgramAndYear: async (programId, yearLevel) => {

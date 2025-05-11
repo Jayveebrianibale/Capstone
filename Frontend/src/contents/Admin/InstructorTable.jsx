@@ -27,7 +27,7 @@ function InstructorTable({ instructors, questions }) {
               <th className="px-6 py-3 font-semibold">Instructor Name</th>
               {[...Array(9)].map((_, i) => (
                 <th key={i} className="px-6 py-3 font-semibold text-center">
-                  Q{i + 1}
+                  #{i + 1}
                 </th>
               ))}
               <th className="px-6 py-3 font-semibold w-1/4">Comments</th>

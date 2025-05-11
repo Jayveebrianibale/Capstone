@@ -52,50 +52,55 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
   };
 
   const handleYearLevelChange = (programId, newYearLevel) => {
+    // Convert to number and validate
     const intYearLevel = parseInt(newYearLevel, 10);
-    if (intYearLevel >= 1 && intYearLevel <= 4) {
-      setSelectedPrograms((prev) =>
-        prev.map((p) =>
-          p.id === programId
-            ? { ...p, yearLevel: intYearLevel }
-            : p
-        )
-      );
-    } else {
+    if (isNaN(intYearLevel) || intYearLevel < 1 || intYearLevel > 4) {
       toast.error("Year level must be a number between 1 and 4.");
-    }
-  };
-
-  const handleSave = async () => {
-    const invalidPrograms = selectedPrograms.filter((program) => {
-      const intYearLevel = program.yearLevel;
-      return intYearLevel === null || isNaN(intYearLevel) || intYearLevel < 1 || intYearLevel > 4;
-    });
-
-    if (invalidPrograms.length > 0) {
-      toast.error("Please select a valid year level (1-4) for all selected programs.");
       return;
     }
 
-    const payload = {
-      programs: selectedPrograms.map((program) => ({
-        id: program.id,
-        yearLevel: parseInt(program.yearLevel, 10),
-      })),
-    };
+    setSelectedPrograms((prev) =>
+      prev.map((p) =>
+        p.id === programId
+          ? { ...p, yearLevel: intYearLevel }
+          : p
+      )
+    );
 
+    // Log the change
+    console.log('Year level changed:', {
+      programId,
+      newYearLevel: intYearLevel,
+      selectedPrograms: selectedPrograms
+    });
+  };
+
+  const handleSave = async () => {
     try {
-      await InstructorService.assignPrograms(instructor.id, payload.programs);
-      toast.success("Programs assigned successfully!");
+      // Validate that all selected programs have a year level
+      const invalidPrograms = selectedPrograms.filter(p => !p.yearLevel);
+      if (invalidPrograms.length > 0) {
+        toast.error("Please select a year level for all programs");
+        return;
+      }
+
+      // Format the data for the API
+      const formattedData = {
+        programs: selectedPrograms.map(p => ({
+          id: p.id,
+          yearLevel: parseInt(p.yearLevel, 10)
+        }))
+      };
+
+      // Log the data being sent
+      console.log('Sending data to backend:', formattedData);
+
+      await InstructorService.assignPrograms(instructor.id, formattedData.programs);
+      toast.success("Programs assigned successfully");
       onClose();
     } catch (error) {
-      if (error.response) {
-        console.error("Error response:", error.response.data);
-        toast.error(error.response.data.message || "Failed to assign programs.");
-      } else {
-        console.error("Network error:", error);
-        toast.error("Failed to assign programs.");
-      }
+      console.error("Error assigning programs:", error);
+      toast.error(error.response?.data?.message || "Failed to assign programs");
     }
   };
 

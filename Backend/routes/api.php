@@ -15,6 +15,7 @@ use App\Http\Controllers\StudentProfileController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\ProgramController;
 use App\Models\Program;
+use App\Http\Controllers\PDFController;
 
 // Authentication Routes
 Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'getUser']);
@@ -39,8 +40,6 @@ Route::post('/evaluations/submit-all', [EvaluationController::class, 'submitAll'
 Route::get('/programs/{code}/instructor-results', [ProgramController::class, 'getInstructorResultsByProgram']);
 
 
-
-
 // Course Routes
 Route::post('/courses', [CourseController::class, 'createCourse']); 
 Route::get('/courses', [CourseController::class, 'getAllCourses']);
@@ -55,6 +54,9 @@ Route::get('/instructors', [InstructorController::class, 'index']);
 Route::post('/instructors', [InstructorController::class, 'store']);
 Route::put('/instructors/{id}', [InstructorController::class, 'update']);
 Route::delete('/instructors/{id}', [InstructorController::class, 'destroy']);
+//PDF Routes
+Route::get('/instructors/{id}/pdf', [PDFController::class, 'generatePDF']);
+
 
 //Programs Routes
 Route::get('/programs', [ProgramController::class, 'index']);

@@ -119,12 +119,24 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-800 p-4 rounded-b-xl border-t dark:border-gray-700">
-          <button
-            onClick={onClose}
-            className="w-full bg-[#1F3463] text-white py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            Close
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={onClose}
+              className="flex-1 bg-[#1F3463] text-white py-3 px-6 rounded-xl font-medium
+                shadow-lg shadow-[#1F3463]/20 hover:shadow-xl hover:shadow-[#1F3463]/30
+                hover:bg-[#2a4585] active:scale-[0.98] transform transition-all duration-200
+                focus:outline-none focus:ring-2 focus:ring-[#1F3463] focus:ring-offset-2"
+            >
+              Close
+            </button>
+            <button
+              onClick={() => window.open(`http://localhost:8000/api/instructors/${instructor.id}/pdf`, '_blank')}
+              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-xl font-medium
+                shadow-lg hover:shadow-xl hover:from-green-600 hover:to-green-700 transition-all"
+            >
+              View PDF
+            </button>
+          </div>
         </div>
       </div>
     </div>

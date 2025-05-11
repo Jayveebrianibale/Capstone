@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Instructor;
 use App\Models\Program;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 
 
@@ -30,7 +31,7 @@ class InstructorController extends Controller
         return response()->json($instructor, 201);
     }
 
-    // Update an instructor’s information
+    // Update an instructor's information
     public function update(Request $request, $id)
     {
         
@@ -56,28 +57,64 @@ class InstructorController extends Controller
     // Assign one or more programs with year levels to an instructor
     public function assignProgram(Request $request, $id)
     {
-        $instructor = Instructor::findOrFail($id);
-        $request->validate([
-            'programs' => 'required|array',
-            'programs.*.id' => 'required|exists:programs,id',
-            'programs.*.yearLevel' => 'required|integer|between:1,4',
-        ]);
+        try {
+            $instructor = Instructor::findOrFail($id);
+            
+            // Log the incoming request data
+            Log::info('Assign Program Request:', [
+                'instructor_id' => $id,
+                'request_data' => $request->all()
+            ]);
 
-        foreach ($request->programs as $program) {
-            $exists = $instructor->programs()
-                ->wherePivot('program_id', $program['id'])
-                ->wherePivot('yearLevel', $program['yearLevel'])
-                ->exists();
+            $request->validate([
+                'programs' => 'required|array',
+                'programs.*.id' => 'required|exists:programs,id',
+                'programs.*.yearLevel' => 'required|integer|min:1|max:4'
+            ]);
 
-            if (!$exists) {
-                $instructor->programs()->attach($program['id'], ['yearLevel' => $program['yearLevel']]);
-            }
+            // Format the programs data and validate year levels
+            $programsData = collect($request->programs)->mapWithKeys(function ($program) {
+                $yearLevel = (int)$program['yearLevel'];
+                if ($yearLevel < 1 || $yearLevel > 4) {
+                    throw new \Exception("Invalid year level: {$yearLevel}. Must be between 1 and 4.");
+                }
+                return [$program['id'] => ['yearLevel' => $yearLevel]];
+            })->all();
+
+            // Log the formatted data
+            Log::info('Formatted Programs Data:', [
+                'programs_data' => $programsData
+            ]);
+
+            // Sync the programs with their year levels
+            $instructor->programs()->sync($programsData);
+
+            // Verify the data was saved correctly
+            $savedPrograms = $instructor->programs()->withPivot('yearLevel')->get();
+            Log::info('Saved Programs Data:', [
+                'programs' => $savedPrograms->map(function($program) {
+                    return [
+                        'id' => $program->id,
+                        'name' => $program->name,
+                        'year_level' => $program->pivot->yearLevel,
+                        'year_level_type' => gettype($program->pivot->yearLevel)
+                    ];
+                })->toArray()
+            ]);
+
+            return response()->json([
+                'message' => 'Programs assigned successfully',
+                'programs' => $savedPrograms
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error Assigning Programs:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'instructor_id' => $id,
+                'request_data' => $request->all()
+            ]);
+            return response()->json(['message' => $e->getMessage()], 500);
         }
-
-        return response()->json([
-            'message' => 'Programs assigned successfully',
-            'instructor' => $instructor->load('programs')
-        ]);
     }
 
     // Get all instructors assigned to a specific program by program code
