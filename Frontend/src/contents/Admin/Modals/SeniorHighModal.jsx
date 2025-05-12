@@ -6,25 +6,22 @@ import { toast } from "react-toastify";
 
 export default function SeniorHighModal({ isOpen, onClose, onSave, isEditing, program }) {
   const [formData, setFormData] = useState({
-    name: "",
-    code: "SHS",
     strand: "",
+    code: "SHS",
     gradeLevel: ""
   });
 
   useEffect(() => {
     if (isEditing && program) {
       setFormData({
-        name: program.name || "",
-        code: program.code || "SHS",
         strand: program.strand || "",
-        gradeLevel: program.gradeLevel || "",
+        code: program.code || "SHS",
+        gradeLevel: program.gradeLevel || ""
       });
     } else {
       setFormData({
-        name: "",
-        code: "SHS",
         strand: "",
+        code: "SHS",
         gradeLevel: ""
       });
     }
@@ -32,56 +29,51 @@ export default function SeniorHighModal({ isOpen, onClose, onSave, isEditing, pr
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value.trimStart() }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.gradeLevel) {
+      toast.warning("Please select a grade level.");
+      return;
+    }
+
+    const programName = `${formData.strand} - ${formData.gradeLevel}`;
+
+    const programData = {
+      name: programName,
+      code: formData.code,
+      category: "SHS",
+      yearLevel: formData.gradeLevel
+    };
+
     try {
-      // Create programs and grade levels for both Grade 11 and Grade 12
-      const gradeLevels = ["Grade 11", "Grade 12"];
-      const createdPrograms = [];
-
-      for (const gradeLevel of gradeLevels) {
-        // Format the program name to include both strand and grade level
-        const programName = `${formData.strand} - ${gradeLevel}`;
-        
-        // Create the program
-        const programData = {
-          name: programName,
-          code: formData.code,
-          category: "SHS",
-          yearLevel: gradeLevel
-        };
-
-        let programResponse;
-        if (isEditing && program) {
-          programResponse = await ProgramService.update(program.id, programData);
-        } else {
-          programResponse = await ProgramService.create(programData);
-        }
-
-        // Create the grade level
-        const gradeLevelData = {
-          program_id: programResponse.program.id,
-          name: gradeLevel
-        };
-
-        if (isEditing && program.gradeLevelId) {
-          await GradeLevelService.update(program.gradeLevelId, gradeLevelData);
-        } else {
-          await GradeLevelService.create(gradeLevelData);
-        }
-
-        createdPrograms.push(programData);
+      let programResponse;
+      if (isEditing && program) {
+        programResponse = await ProgramService.update(program.id, programData);
+      } else {
+        programResponse = await ProgramService.create(programData);
       }
 
-      toast.success(isEditing ? "Programs updated successfully" : "Programs added successfully");
-      onSave(createdPrograms);
+      const gradeLevelData = {
+        program_id: programResponse.program.id,
+        name: formData.gradeLevel
+      };
+
+      if (isEditing && program.gradeLevelId) {
+        await GradeLevelService.update(program.gradeLevelId, gradeLevelData);
+      } else {
+        await GradeLevelService.create(gradeLevelData);
+      }
+
+      toast.success(isEditing ? "Program updated successfully" : "Program added successfully");
+      onSave(programData);
       onClose();
     } catch (error) {
-      console.error("Error saving programs:", error);
-      toast.error(error.response?.data?.message || "Failed to save programs");
+      console.error("Error saving program:", error);
+      toast.error(error.response?.data?.message || "Failed to save program");
     }
   };
 
@@ -100,12 +92,23 @@ export default function SeniorHighModal({ isOpen, onClose, onSave, isEditing, pr
             required
           />
         </div>
+
         <div className="mb-6">
-          <label className="block font-semibold text-gray-700 dark:text-gray-300">Grade Levels</label>
-          <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-            Both Grade 11 and Grade 12 will be created for this strand
-          </div>
+          <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Grade Level</label>
+          <select
+            name="gradeLevel"
+            value={formData.gradeLevel}
+            onChange={handleChange}
+            className="w-full border dark:border-gray-600 rounded-lg p-3"
+            required
+          >
+            <option value="" disabled>Select grade level</option>
+            <option value="Grade 11">Grade 11</option>
+            <option value="Grade 12">Grade 12</option>
+            <option value="All Levels">All Levels</option>
+          </select>
         </div>
+
         <button type="submit" className="bg-[#1F3463] text-white p-3 rounded w-full">
           {isEditing ? "Update" : "Save"}
         </button>
