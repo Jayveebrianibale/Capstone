@@ -21,16 +21,8 @@ class Instructor extends Model
                     ->withTimestamps();
     }
 
-    public function yearLevel() {
-        return $this->belongsTo(YearLevel::class);
-    }
-
     public function evaluations() {
         return $this->hasMany(Evaluation::class);
     }
-    
-
-
-
 }
 

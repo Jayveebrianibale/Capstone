@@ -86,8 +86,18 @@ class InstructorController extends Controller
                 'programs_data' => $programsData
             ]);
 
-            // Sync the programs with their year levels
-            $instructor->programs()->sync($programsData);
+            // Instead of sync, we'll use attach to add new assignments
+            foreach ($programsData as $programId => $data) {
+                // Check if this program-year combination already exists
+                $existingAssignment = $instructor->programs()
+                    ->where('program_id', $programId)
+                    ->wherePivot('yearLevel', $data['yearLevel'])
+                    ->exists();
+
+                if (!$existingAssignment) {
+                    $instructor->programs()->attach($programId, ['yearLevel' => $data['yearLevel']]);
+                }
+            }
 
             // Verify the data was saved correctly
             $savedPrograms = $instructor->programs()->withPivot('yearLevel')->get();
