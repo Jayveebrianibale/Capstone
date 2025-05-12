@@ -21,7 +21,13 @@ const ProgramService = {
       return response.data;
     } catch (error) {
       console.error("Error creating program:", error.response?.data || error.message);
-      throw error;
+      throw {
+        ...error,
+        response: {
+          ...error.response,
+          data: error.response?.data || { message: "Failed to create program" }
+        }
+      };
     }
   },
 

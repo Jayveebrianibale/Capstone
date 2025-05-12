@@ -110,8 +110,10 @@ function Programs() {
       await fetchGradeLevels();
       setActiveModal(null);
     } catch (error) {
-      console.error("Error saving program:", error);
-      toast.error("Error saving program.");
+      console.error("Error in handleSaveProgram:", error);
+      if (!error.response?.data?.message?.includes("already exists")) {
+        setActiveModal(null);
+      }
     }
   };
 
@@ -290,16 +292,6 @@ function Programs() {
         </div>
       )}
 
-      {/* Floating Action Button
-      <button
-        className="fixed bottom-8 right-8 bg-[#1F3463] hover:bg-[#172a4d] text-white p-4 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-2"
-        onClick={openAddProgramModal}
-      >
-        <FaPlus className="w-5 h-5" />
-        <span className="hidden sm:inline-block">Add Program</span>
-      </button> */}
-
-      {/* Modals */}
       {activeModal && (
         <>
           {activeTab === "Higher Education" && (
