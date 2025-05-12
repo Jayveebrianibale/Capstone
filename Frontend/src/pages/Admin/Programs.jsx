@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaEdit, FaTrash, FaSearch, FaPlus } from "react-icons/fa";
 import ProgramService from "../../services/ProgramService";
+import GradeLevelService from "../../services/GradeLevelService";
 import { toast, ToastContainer } from "react-toastify";
 import FullScreenLoader from "../../components/FullScreenLoader";
 import { useLoading } from "../../components/LoadingContext";
@@ -12,6 +13,7 @@ import IntermediateModal from "../../contents/Admin/Modals/IntermediateModal";
 
 function Programs() {
   const [programs, setPrograms] = useState([]);
+  const [gradeLevels, setGradeLevels] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const { loading, setLoading } = useLoading();
   const [activeTab, setActiveTab] = useState("Higher Education");
@@ -25,29 +27,63 @@ function Programs() {
 
   useEffect(() => {
     fetchPrograms();
+    fetchGradeLevels();
   }, []);
+
+  const fetchGradeLevels = async () => {
+    setLoading(true);
+    try {
+      const response = await GradeLevelService.getAll();
+      console.log("Fetched grade levels:", response);
+      setGradeLevels(Array.isArray(response) ? response : []);
+    } catch (error) {
+      console.error("Error fetching grade levels:", error);
+      toast.error("Failed to load grade levels.");
+      setGradeLevels([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchPrograms = async () => {
     setLoading(true);
     try {
-        const response = await ProgramService.getAll();
-        console.log("Fetched programs:", response);
-        setPrograms(Array.isArray(response.programs) ? response.programs : []);
+      const response = await ProgramService.getAll();
+      console.log("Fetched programs:", response);
+      setPrograms(Array.isArray(response.programs) ? response.programs : []);
     } catch (error) {
-        console.error("Error fetching programs:", error);
-        toast.error("Failed to load programs.");
-        setPrograms([]);
+      console.error("Error fetching programs:", error);
+      toast.error("Failed to load programs.");
+      setPrograms([]);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
-  const filteredPrograms = programs
-  .filter((prog) => prog.category.toLowerCase() === activeTab.toLowerCase())
-  .filter((prog) =>
-      prog.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-      console.log("Filtered programs:", filteredPrograms);
+  const getFilteredItems = () => {
+    const category = activeTab.toLowerCase();
+    
+    if (category === "higher education") {
+      return programs.filter(prog => 
+        prog.category.toLowerCase() === category &&
+        prog.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Map the tab name to the correct category code
+    const categoryMap = {
+      "senior high": "shs",
+      "junior high": "jhs",
+      "intermediate": "intermediate"
+    };
+
+    // For Basic Education (SHS, JHS, Intermediate)
+    return gradeLevels.filter(level => {
+      const program = programs.find(p => p.id === level.program_id);
+      return program?.category?.toLowerCase() === categoryMap[category] &&
+             level.name.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  };
 
   const openAddProgramModal = () => {
     setSelectedProgram(null);
@@ -61,38 +97,44 @@ function Programs() {
 
   const handleSaveProgram = async (programData, isEditing, programId) => {
     try {
-        if (isEditing) {
-            const updatedProgram = await ProgramService.update(programId, programData);
-            console.log("Updated program:", updatedProgram);
-            toast.success("Program updated successfully!");
-        } else {
-            await ProgramService.create(programData);
-            toast.success("Program added successfully!");
-        }
+      if (isEditing) {
+        const updatedProgram = await ProgramService.update(programId, programData);
+        console.log("Updated program:", updatedProgram);
+        toast.success("Program updated successfully!");
+      } else {
+        await ProgramService.create(programData);
+        toast.success("Program added successfully!");
+      }
 
-        await fetchPrograms(); 
-        setActiveModal(null); 
+      await fetchPrograms();
+      await fetchGradeLevels();
+      setActiveModal(null);
     } catch (error) {
-        console.error("Error saving program:", error);
-        toast.error("Error saving program.");
+      console.error("Error saving program:", error);
+      toast.error("Error saving program.");
     }
-};
+  };
 
-const handleDeleteProgram = async () => {
-  if (!deleteProgramId) return;
+  const handleDeleteProgram = async () => {
+    if (!deleteProgramId) return;
 
-  try {
-    await ProgramService.delete(deleteProgramId);
-    toast.success("Program deleted successfully!");
-    await fetchPrograms();
-  } catch (error) {
-    console.error("Error deleting program:", error);
-    toast.error("Failed to delete program.");
-  } finally {
-    setIsConfirmModalOpen(false);
-    setDeleteProgramId(null);
-  }
-};
+    try {
+      if (activeTab === "Higher Education") {
+        await ProgramService.delete(deleteProgramId);
+      } else {
+        await GradeLevelService.delete(deleteProgramId);
+      }
+      toast.success("Item deleted successfully!");
+      await fetchPrograms();
+      await fetchGradeLevels();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      toast.error("Failed to delete item.");
+    } finally {
+      setIsConfirmModalOpen(false);
+      setDeleteProgramId(null);
+    }
+  };
 
   return (
     <main className="p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -151,13 +193,13 @@ const handleDeleteProgram = async () => {
       </div>
 
       {/* Content Section */}
-      {filteredPrograms.length === 0 ? (
+      {getFilteredItems().length === 0 ? (
         <div className="flex flex-col items-center justify-center h-96 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
           <div className="w-20 h-20 bg-[#1F3463]/10 dark:bg-[#1F3463]/20 rounded-full flex items-center justify-center mb-4">
             <FaPlus className="w-8 h-8 text-[#1F3463] dark:text-[#1F3463]/80" />
           </div>
           <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-            No Programs Found
+            No {activeTab} Programs Found
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-center mb-4">
             Start by adding new programs to {activeTab}
@@ -188,45 +230,60 @@ const handleDeleteProgram = async () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredPrograms.map((prog) => (
-                  <tr key={prog.id} className="hover:bg-gray-50 dark:hover:bg-gray-600/30 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-2 h-10 bg-[${primaryColor}] rounded-full`}></div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-gray-200">{prog.name}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{prog.code || "N/A"}</p>
+                {getFilteredItems().map((item) => {
+                  const isProgram = activeTab === "Higher Education";
+                  const program = isProgram ? item : programs.find(p => p.id === item.program_id);
+                  
+                  return (
+                    <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-600/30 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-2 h-10 bg-[${primaryColor}] rounded-full`}></div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-200">
+                              {isProgram ? item.name : program?.name.split(' - ')[0]}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {isProgram ? item.code : program?.code || "N/A"}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                      <div className="flex flex-col gap-1">
-                        <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm">
-                          Year Level: {prog.yearLevel || "N/A"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end items-center gap-3">
-                        <button
-                          onClick={() => openEditProgramModal(prog)}
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <FaEdit className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setDeleteProgramId(prog.id);
-                            setIsConfirmModalOpen(true);
-                          }}
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <FaTrash className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
+                        <div className="flex flex-col gap-1">
+                          {isProgram ? (
+                            <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm">
+                              Year Level: {item.yearLevel || "N/A"}
+                            </span>
+                          ) : (
+                            <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm">
+                              Grade Level: {item.name}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end items-center gap-3">
+                          <button
+                            onClick={() => openEditProgramModal(item)}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors"
+                          >
+                            <FaEdit className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDeleteProgramId(item.id);
+                              setIsConfirmModalOpen(true);
+                            }}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 transition-colors"
+                          >
+                            <FaTrash className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

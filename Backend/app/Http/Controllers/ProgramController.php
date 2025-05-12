@@ -18,7 +18,7 @@ class ProgramController extends Controller
     }
 
    
-    // Stores a new program if it doesn’t already exist.
+    // Stores a new program if it doesn't already exist.
     public function store(Request $request)
     {
         // Validate request data
@@ -29,15 +29,22 @@ class ProgramController extends Controller
             'category' => 'nullable|string',
         ]);
 
-        // Check if the program already exists
-        $existingProgram = Program::where('name', $request->name)
-                                ->where('code', $request->code)
-                                ->where('yearLevel', $request->yearLevel)
-                                ->first();
+        // For Senior High programs, check only by name and category
+        if ($request->category === 'SHS') {
+            $existingProgram = Program::where('name', $request->name)
+                                    ->where('category', 'SHS')
+                                    ->first();
+        } else {
+            // For other programs, check by name, code, and year level
+            $existingProgram = Program::where('name', $request->name)
+                                    ->where('code', $request->code)
+                                    ->where('yearLevel', $request->yearLevel)
+                                    ->first();
+        }
 
         if ($existingProgram) {
             return response()->json([
-                'message' => 'Program with the same name, code, and year level already exists'
+                'message' => 'Program with the same name already exists'
             ], 422);
         }
 

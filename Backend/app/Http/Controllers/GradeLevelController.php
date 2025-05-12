@@ -20,8 +20,19 @@ class GradeLevelController extends Controller
     {
         $request->validate([
             'program_id' => 'required|exists:programs,id',
-            'name' => 'required|string|unique:grade_levels,name'
+            'name' => 'required|string'
         ]);
+
+        // Check if this grade level already exists for this program
+        $existingGradeLevel = GradeLevel::where('program_id', $request->program_id)
+            ->where('name', $request->name)
+            ->first();
+
+        if ($existingGradeLevel) {
+            return response()->json([
+                'message' => 'This grade level already exists for this program'
+            ], 422);
+        }
 
         $gradeLevel = GradeLevel::create([
             'program_id' => $request->program_id,
@@ -44,9 +55,21 @@ class GradeLevelController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|unique:grade_levels,name,' . $id,
+            'name' => 'required|string',
             'program_id' => 'required|exists:programs,id'
         ]);
+
+        // Check if this grade level already exists for this program (excluding current grade level)
+        $existingGradeLevel = GradeLevel::where('program_id', $request->program_id)
+            ->where('name', $request->name)
+            ->where('id', '!=', $id)
+            ->first();
+
+        if ($existingGradeLevel) {
+            return response()->json([
+                'message' => 'This grade level already exists for this program'
+            ], 422);
+        }
 
         $gradeLevel->update([
             'program_id' => $request->program_id,
