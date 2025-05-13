@@ -49,12 +49,19 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       } else {
         // For non-Higher Education programs, set yearLevel to 1 by default
         const isHigherEducation = program.category === "Higher Education";
+        const isSeniorHigh = program.category === "SHS";
+
+        let yearLevel = 1; // Default year level
+        if (isSeniorHigh) {
+          yearLevel = program.name.includes("Grade 11") ? 1 : 2;
+        }
+
         console.log("Is Higher Education:", isHigherEducation);
         return [
           ...prev,
           { 
             id: program.id, 
-            yearLevel: isHigherEducation ? null : 1 
+            yearLevel: isHigherEducation ? null : yearLevel 
           },
         ];
       }

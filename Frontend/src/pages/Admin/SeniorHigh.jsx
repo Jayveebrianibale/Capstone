@@ -34,8 +34,11 @@ function SeniorHigh() {
             const grouped = [[], []];
             data.forEach((instructor) => {
               const grade = instructor?.pivot?.yearLevel;
-              if (grade === 11) grouped[0].push(instructor);
-              else if (grade === 12) grouped[1].push(instructor);
+              if (grade === 1) grouped[0].push(instructor); // Map 1 to Grade 11
+              else if (grade === 2) grouped[1].push(instructor); // Map 2 to Grade 12
+              else {
+                console.warn(`Unexpected yearLevel: ${grade}`);
+              }
             });
             setInstructorsByGrade(grouped);
           }
@@ -73,7 +76,7 @@ function SeniorHigh() {
       ) : (
         <>
           <ContentHeader
-            title="Senior High Instructors"
+            title="Instructors"
             stats={["Students: 0", "Submitted: 0"]}
             onSearch={(q) => console.log("Search:", q)}
             onExport={() => console.log("Export to PDF")}
