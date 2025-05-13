@@ -11,7 +11,7 @@ export default function SeniorHighModal({ isOpen, onClose, onSave, isEditing, pr
       ABM: false,
       HUMSS: false,
       GAS: false,
-      TVL: false
+      ICT: false
     }
   });
 
@@ -34,7 +34,7 @@ export default function SeniorHighModal({ isOpen, onClose, onSave, isEditing, pr
           ABM: existingStrands.includes('ABM'),
           HUMSS: existingStrands.includes('HUMSS'),
           GAS: existingStrands.includes('GAS'),
-          TVL: existingStrands.includes('TVL')
+          TVL: existingStrands.includes('ICT')
         };
 
         setFormData({
@@ -49,7 +49,7 @@ export default function SeniorHighModal({ isOpen, onClose, onSave, isEditing, pr
             ABM: false,
             HUMSS: false,
             GAS: false,
-            TVL: false
+            ICT: false
           }
         });
       }
