@@ -200,15 +200,6 @@ function Instructors() {
         </div>
       )}
 
-      {/* Floating Action Button
-      <button
-        onClick={handleAddInstructor}
-        className="fixed bottom-8 right-8 bg-[#1F3463] hover:bg-[#172a4d] text-white p-4 rounded-full shadow-lg transition-all hover:scale-105"
-        title="Add Instructor"
-      >
-        <FaPlus className="w-6 h-6" />
-      </button> */}
-
       {/* Modals */}
       <InstructorModal
         isOpen={showModal}
