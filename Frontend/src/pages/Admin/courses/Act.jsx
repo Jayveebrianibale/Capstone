@@ -6,15 +6,16 @@ import ProgramService from "../../../services/ProgramService";
 import { toast } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
-import { Users } from "lucide-react";
+import { Users, UserX } from "lucide-react";
 
 function Act() {
   const [activeTab, setActiveTab] = useState(0);
-  const [instructorsByYear, setInstructorsByYear] = useState([[], []]); 
+  const [mergedInstructorsByYear, setMergedInstructorsByYear] = useState([[], []]);
   const [noInstructors, setNoInstructors] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const { loading, setLoading } = useLoading();
 
-  const tabLabels = ["1st Year", "2nd Year"]; 
+  const tabLabels = ["1st Year", "2nd Year"];
   const programCode = "ACT";
 
   const handleSearch = (query) => {
@@ -29,53 +30,75 @@ function Act() {
     console.log("Add Instructor");
   };
 
-  useEffect(() => {
-    const fetchInstructors = async () => {
+  const fetchData = async () => {
+    try {
       setLoading(true);
-      try {
-        const data = await ProgramService.getInstructorsByProgramCode(programCode);
+      const [instructorsData, resultsData] = await Promise.all([
+        ProgramService.getInstructorsByProgramCode(programCode),
+        ProgramService.getInstructorResultsByProgram(programCode),
+      ]);
 
-        if (data && typeof data === "string" && data.includes("<!doctype html>")) {
-          throw new Error("Received an HTML response. Possible backend error.");
-        }
-
-        if (Array.isArray(data)) {
-          if (data.length === 0) {
-            setNoInstructors(true);
-          } else {
-            const grouped = [[], []]; 
-            data.forEach((instructor) => {
-              const year = instructor?.pivot?.yearLevel;
-              if (year && year >= 1 && year <= 2) {
-                grouped[year - 1].push(instructor);
-              } else {
-                console.warn("Instructor has an invalid or missing yearLevel:", instructor);
-              }
-            });
-            setInstructorsByYear(grouped);
-          }
-        } else {
-          console.error("Response is not an array:", data);
-          toast.error("Failed to load instructors. Invalid response format.");
-        }
-      } catch (error) {
-        console.error("Failed to load instructors:", error);
-        toast.error(`Failed to load instructors for ${programCode}.`);
-      } finally {
-        setLoading(false);
+      if (!Array.isArray(instructorsData) || !Array.isArray(resultsData)) {
+        throw new Error("Invalid data format received");
       }
-    };
 
-    fetchInstructors();
+      // Group instructors and results by year level
+      const groupByYear = (data) => {
+        const grouped = [[], []];
+        data.forEach((item) => {
+          const year = item?.pivot?.yearLevel;
+          if (year >= 1 && year <= 2) grouped[year - 1].push(item);
+        });
+        return grouped;
+      };
+
+      const instructorsGrouped = groupByYear(instructorsData);
+      const resultsGrouped = groupByYear(resultsData);
+
+      // Merge data
+      const merged = instructorsGrouped.map((yearInstructors, yearIndex) => {
+        const yearResults = resultsGrouped[yearIndex] || [];
+        return yearInstructors.map(instructor => {
+          const result = yearResults.find(r => r.name === instructor.name) || {};
+          return { ...instructor, ...result };
+        });
+      });
+
+      setMergedInstructorsByYear(merged);
+      setNoInstructors(instructorsData.length === 0);
+    } catch (error) {
+      console.error("Data fetch failed:", error);
+      toast.error("Failed to load instructor data");
+      setFetchError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, [programCode, setLoading]);
 
   const hasInstructorsForYear = (year) => {
-    return instructorsByYear[year]?.length > 0;
+    return mergedInstructorsByYear[year]?.length > 0;
   };
 
   const hasInstructorsAssigned = () => {
-    return instructorsByYear.some((yearGroup) => yearGroup.length > 0);
+    return mergedInstructorsByYear.some(yearGroup => yearGroup.length > 0);
   };
+
+  if (fetchError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[70vh]">
+        <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+          Something went wrong
+        </h2>
+        <p className="text-red-500 text-center">
+          We encountered an error while loading the data. Please try again later.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
@@ -102,11 +125,21 @@ function Act() {
           />
 
           <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
-          <div className="mt-4 text-center">
+          <div className="mt-4">
             {hasInstructorsForYear(activeTab) ? (
-              <InstructorTable instructors={instructorsByYear[activeTab]} />
+              <InstructorTable instructors={mergedInstructorsByYear[activeTab]} />
             ) : (
-              <p className="text-red-500">No instructors assigned for this year.</p>
+              <div className="flex flex-col items-center justify-center py-12 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-full mb-4">
+                  <UserX className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  No Instructors Assigned
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 text-center">
+                  There are no instructors assigned to {tabLabels[activeTab]} yet.
+                </p>
+              </div>
             )}
           </div>
         </>

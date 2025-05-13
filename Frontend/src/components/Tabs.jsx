@@ -1,14 +1,20 @@
 import React from "react";
 
 const Tabs = ({ tabs, activeTab, setActiveTab }) => {
+  const primaryColor = "#1F3463";
+  const hoverColor = "#172a4d";
+
   return (
-    <div className="flex border-b w-full max-w-lg">
+    <div className="flex overflow-x-auto">
       {tabs.map((label, index) => (
         <button
           key={index}
           onClick={() => setActiveTab(index)}
-          className={`flex-1 py-2 text-center font-semibold transition-colors duration-200 border-b-2 
-            ${activeTab === index ? "border-indigo-500 text-indigo-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+          className={`flex-shrink-0 px-6 py-3 text-sm font-medium transition-colors ${
+            activeTab === index
+              ? `bg-[${primaryColor}] text-white rounded-lg shadow-sm`
+              : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+          }`}
         >
           {label}
         </button>

@@ -6,7 +6,7 @@ import ProgramService from "../../../services/ProgramService";
 import { toast } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
-import { Users } from "lucide-react";
+import { Users, UserPlus, UserX } from "lucide-react";
 
 function Bsis() {
   const [activeTab, setActiveTab] = useState(0);
@@ -17,6 +17,35 @@ function Bsis() {
   const tabLabels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
   const programCode = "BSIS";
   const { loading, setLoading } = useLoading();
+
+  const mapYearLevelToNumber = (yearLevel) => {
+    if (typeof yearLevel === 'number') return yearLevel;
+    
+    // Convert to string and lowercase for consistent comparison
+    const level = String(yearLevel).toLowerCase().trim();
+    
+    switch (level) {
+      case '1st year':
+      case 'first year':
+      case '1':
+        return 1;
+      case '2nd year':
+      case 'second year':
+      case '2':
+        return 2;
+      case '3rd year':
+      case 'third year':
+      case '3':
+        return 3;
+      case '4th year':
+      case 'fourth year':
+      case '4':
+        return 4;
+      default:
+        console.log('Invalid year level:', yearLevel);
+        return null;
+    }
+  };
 
   const handleSearch = (query) => {
     console.log("Search:", query);
@@ -46,7 +75,8 @@ function Bsis() {
       const groupByYear = (data) => {
         const grouped = [[], [], [], []];
         data.forEach((item) => {
-          const year = item?.pivot?.yearLevel;
+          const yearLevel = item?.pivot?.yearLevel;
+          const year = mapYearLevelToNumber(yearLevel);
           if (year >= 1 && year <= 4) grouped[year - 1].push(item);
         });
         return grouped;
@@ -125,11 +155,21 @@ function Bsis() {
           />
 
           <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
-          <div className="mt-4 text-center">
+          <div className="mt-4">
             {hasInstructorsForYear(activeTab) ? (
               <InstructorTable instructors={mergedInstructorsByYear[activeTab]} />
             ) : (
-              <p className="text-red-500">No instructors assigned for this year.</p>
+              <div className="flex flex-col items-center justify-center py-12 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-full mb-4">
+                  <UserX className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  No Instructors Assigned
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 text-center">
+                  There are no instructors assigned to {tabLabels[activeTab]} yet.
+                </p>
+              </div>
             )}
           </div>
         </>

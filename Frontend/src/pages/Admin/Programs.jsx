@@ -63,26 +63,19 @@ function Programs() {
   const getFilteredItems = () => {
     const category = activeTab.toLowerCase();
     
-    if (category === "higher education") {
-      return programs.filter(prog => 
-        prog.category.toLowerCase() === category &&
-        prog.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
     // Map the tab name to the correct category code
     const categoryMap = {
-      "senior high": "shs",
-      "junior high": "jhs",
-      "intermediate": "intermediate"
+      "higher education": "Higher Education",
+      "senior high": "SHS",
+      "junior high": "Junior High",
+      "intermediate": "Intermediate"
     };
 
-    // For Basic Education (SHS, JHS, Intermediate)
-    return gradeLevels.filter(level => {
-      const program = programs.find(p => p.id === level.program_id);
-      return program?.category?.toLowerCase() === categoryMap[category] &&
-             level.name.toLowerCase().includes(searchQuery.toLowerCase());
-    });
+    // Filter programs based on category
+    return programs.filter(prog => 
+      prog.category === categoryMap[category] &&
+      prog.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   };
 
   const openAddProgramModal = () => {
@@ -97,18 +90,43 @@ function Programs() {
 
   const handleSaveProgram = async (programData, isEditing, programId) => {
     try {
+      let programResponse;
       if (isEditing) {
-        const updatedProgram = await ProgramService.update(programId, programData);
-        console.log("Updated program:", updatedProgram);
+        programResponse = await ProgramService.update(programId, programData);
+        console.log("Updated program:", programResponse);
         toast.success("Program updated successfully!");
       } else {
-        await ProgramService.create(programData);
+        programResponse = await ProgramService.create(programData);
+        console.log("Created program:", programResponse);
         toast.success("Program added successfully!");
       }
 
-      await fetchPrograms();
-      await fetchGradeLevels();
+      // For non-Higher Education programs, create/update grade level
+      if (activeTab !== "Higher Education" && programResponse.program) {
+        const gradeLevelData = {
+          program_id: programResponse.program.id,
+          name: programData.gradeLevel || programData.yearLevel
+        };
+
+        if (isEditing && selectedProgram?.gradeLevelId) {
+          await GradeLevelService.update(selectedProgram.gradeLevelId, gradeLevelData);
+        } else {
+          await GradeLevelService.create(gradeLevelData);
+        }
+      }
+
+      // Close modal immediately after successful save
       setActiveModal(null);
+
+      // Update data in the background
+      Promise.all([
+        fetchPrograms(),
+        fetchGradeLevels()
+      ]).catch(error => {
+        console.error("Error updating data:", error);
+        toast.error("Data updated but there was an error refreshing the list");
+      });
+
     } catch (error) {
       console.error("Error in handleSaveProgram:", error);
       if (!error.response?.data?.message?.includes("already exists")) {
@@ -124,7 +142,16 @@ function Programs() {
       if (activeTab === "Higher Education") {
         await ProgramService.delete(deleteProgramId);
       } else {
-        await GradeLevelService.delete(deleteProgramId);
+        // For non-Higher Education programs, we need to delete both the program and grade level
+        const gradeLevel = gradeLevels.find(gl => gl.id === deleteProgramId);
+        if (gradeLevel) {
+          // First delete the grade level
+          await GradeLevelService.delete(deleteProgramId);
+          // Then delete the associated program
+          if (gradeLevel.program_id) {
+            await ProgramService.delete(gradeLevel.program_id);
+          }
+        }
       }
       toast.success("Item deleted successfully!");
       await fetchPrograms();
@@ -258,9 +285,23 @@ function Programs() {
                               Year Level: {item.yearLevel || "N/A"}
                             </span>
                           ) : (
-                            <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm">
-                              Grade Level: {item.name}
-                            </span>
+                            <>
+                              <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm">
+                                Grade Level: {item.name}
+                              </span>
+                              {program?.category?.toLowerCase() === "shs" && (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {program.name.split(' - ')[1]?.split(', ').map((strand, index) => (
+                                    <span 
+                                      key={index}
+                                      className="inline-block px-2 py-0.5 bg-[#1F3463]/10 dark:bg-[#1F3463]/20 text-[#1F3463] dark:text-[#1F3463]/80 rounded text-xs"
+                                    >
+                                      {strand}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       </td>

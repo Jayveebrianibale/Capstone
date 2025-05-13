@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 function AssignProgramModal({ isOpen, onClose, instructor }) {
   const [programs, setPrograms] = useState([]);
   const [selectedPrograms, setSelectedPrograms] = useState([]);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -28,8 +29,10 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
         id: p.id,
         name: p.name,
         yearLevel: p.year_level || p.yearLevel,
+        category: p.category
       }));
 
+      console.log("Normalized programs:", normalized);
       setPrograms(normalized);
     } catch (err) {
       toast.error("Failed to fetch programs.");
@@ -38,14 +41,21 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
   };
 
   const handleToggle = (program) => {
+    console.log("Toggling program:", program);
     setSelectedPrograms((prev) => {
       const exists = prev.find((p) => p.id === program.id);
       if (exists) {
         return prev.filter((p) => p.id !== program.id);
       } else {
+        // For non-Higher Education programs, set yearLevel to 1 by default
+        const isHigherEducation = program.category === "Higher Education";
+        console.log("Is Higher Education:", isHigherEducation);
         return [
           ...prev,
-          { id: program.id, yearLevel: null },
+          { 
+            id: program.id, 
+            yearLevel: isHigherEducation ? null : 1 
+          },
         ];
       }
     });
@@ -66,21 +76,21 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
           : p
       )
     );
-
-    // Log the change
-    console.log('Year level changed:', {
-      programId,
-      newYearLevel: intYearLevel,
-      selectedPrograms: selectedPrograms
-    });
   };
 
   const handleSave = async () => {
     try {
-      // Validate that all selected programs have a year level
-      const invalidPrograms = selectedPrograms.filter(p => !p.yearLevel);
+      setIsAssigning(true);
+      // Only validate year level for Higher Education programs
+      const invalidPrograms = selectedPrograms.filter(p => {
+        const program = programs.find(prog => prog.id === p.id);
+        const isHigherEducation = program?.category === "Higher Education";
+        return isHigherEducation && !p.yearLevel;
+      });
+
       if (invalidPrograms.length > 0) {
-        toast.error("Please select a year level for all programs");
+        toast.error("Please select a year level for all Higher Education programs");
+        setIsAssigning(false);
         return;
       }
 
@@ -92,15 +102,14 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
         }))
       };
 
-      // Log the data being sent
-      console.log('Sending data to backend:', formattedData);
-
       await InstructorService.assignPrograms(instructor.id, formattedData.programs);
       toast.success("Programs assigned successfully");
       onClose();
     } catch (error) {
       console.error("Error assigning programs:", error);
       toast.error(error.response?.data?.message || "Failed to assign programs");
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -120,6 +129,11 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
     }
   };
 
+  const isHigherEducationProgram = (program) => {
+    console.log("Checking program category:", program);
+    return program.category === "Higher Education";
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -137,6 +151,13 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
             programs.map((program) => {
               const isChecked = selectedPrograms.some((p) => p.id === program.id);
               const selectedYearLevel = selectedPrograms.find((p) => p.id === program.id)?.yearLevel;
+              const isHigherEducation = isHigherEducationProgram(program);
+              
+              console.log("Rendering program:", { 
+                name: program.name, 
+                category: program.category, 
+                isHigherEducation 
+              });
 
               return (
                 <label
@@ -149,18 +170,25 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleToggle(program)}
-                        className="accent-[#1F3463] w-4 h-4"
+                        style={{
+                          width: '1rem',
+                          height: '1rem',
+                          accentColor: '#1F3463'
+                        }}
+                        className="rounded border-gray-300"
                       />
                       <div className="text-gray-700 dark:text-gray-200 font-medium">
                         {program.name}
                       </div>
                     </div>
 
-                    {isChecked && (
+                    {isChecked && isHigherEducation && (
                       <select
                         value={selectedYearLevel || ""}
                         onChange={(e) => handleYearLevelChange(program.id, e.target.value)}
-                        className="ml-2 p-1 rounded-md border text-sm dark:bg-gray-700 dark:text-white"
+                        className="ml-2 p-1 rounded-md border text-sm dark:bg-gray-700 dark:text-white
+                          [&>option:hover]:bg-[#1F3463] [&>option:hover]:text-white
+                          [&>option:checked]:bg-[#1F3463] [&>option:checked]:text-white"
                       >
                         <option value="" disabled>
                           Select Year
@@ -186,16 +214,31 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
         <div className="flex justify-end mt-6 gap-3">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white text-sm"
+            disabled={isAssigning}
+            className="px-5 py-2.5 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white text-sm
+              disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Close
           </button>
 
           <button
             onClick={handleSave}
-            className="px-5 py-2.5 rounded-lg bg-[#1F3463] text-white text-sm"
+            disabled={isAssigning}
+            className="px-5 py-2.5 rounded-lg bg-[#1F3463] text-white text-sm
+              disabled:opacity-50 disabled:cursor-not-allowed
+              flex items-center gap-2 min-w-[100px] justify-center"
           >
-            Assign
+            {isAssigning ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Assigning...</span>
+              </>
+            ) : (
+              "Assign"
+            )}
           </button>
         </div>
       </div>
