@@ -63,17 +63,17 @@ function Programs() {
   const getFilteredItems = () => {
     const category = activeTab.toLowerCase();
     
-    // Map the tab name to the correct category code
+    // Map the tab name to the correct category codes
     const categoryMap = {
-      "higher education": "Higher Education",
-      "senior high": "SHS",
-      "junior high": "Junior High",
-      "intermediate": "Intermediate"
+      "higher education": ["Higher Education"],
+      "senior high": ["SHS"],
+      "junior high": ["Junior High", "Jhs", "jhs"],
+      "intermediate": ["Intermediate"]
     };
 
     // Filter programs based on category
     return programs.filter(prog => 
-      prog.category === categoryMap[category] &&
+      categoryMap[category].includes(prog.category) &&
       prog.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
@@ -101,24 +101,23 @@ function Programs() {
         toast.success("Program added successfully!");
       }
 
-      // For non-Higher Education programs, create/update grade level
-      if (activeTab !== "Higher Education" && programResponse.program) {
-        const gradeLevelData = {
-          program_id: programResponse.program.id,
-          name: programData.gradeLevel || programData.yearLevel
-        };
-
-        if (isEditing && selectedProgram?.gradeLevelId) {
-          await GradeLevelService.update(selectedProgram.gradeLevelId, gradeLevelData);
-        } else {
-          await GradeLevelService.create(gradeLevelData);
-        }
-      }
-
       // Close modal immediately after successful save
       setActiveModal(null);
 
-      // Update data in the background
+      // Update programs state with the new/updated program
+      if (programResponse.program) {
+        setPrograms(prevPrograms => {
+          if (isEditing) {
+            return prevPrograms.map(p => 
+              p.id === programId ? programResponse.program : p
+            );
+          } else {
+            return [...prevPrograms, programResponse.program];
+          }
+        });
+      }
+
+      // Refresh data in the background
       Promise.all([
         fetchPrograms(),
         fetchGradeLevels()
@@ -270,10 +269,12 @@ function Programs() {
                           <div className={`w-2 h-10 bg-[${primaryColor}] rounded-full`}></div>
                           <div>
                             <p className="font-medium text-gray-900 dark:text-gray-200">
-                              {isProgram ? item.name : program?.name.split(' - ')[0]}
+                              {isProgram ? item.name : item.name.split(' - ')[0]}
                             </p>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {isProgram ? item.code : program?.code || "N/A"}
+                              {isProgram ? item.code : (program?.category === "SHS" ? "SHS" : 
+                                (program?.category === "Junior High" || program?.category === "Jhs") ? "JHS" : 
+                                program?.category === "Intermediate" ? "INT" : "N/A")}
                             </p>
                           </div>
                         </div>

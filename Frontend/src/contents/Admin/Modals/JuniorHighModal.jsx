@@ -47,21 +47,12 @@ function JuniorHighModal({ isOpen, onClose, onSave, isEditing, program }) {
 
       const programData = {
         ...formData,
-        category: "jhs",
+        category: "Junior High",
         name: `${formData.grade} - ${formData.sectionName}`,
         code: "JHS"
       };
 
-      if (isEditing && program?.id) {
-        const response = await axios.put(`http://localhost:8000/api/programs/${program.id}`, programData);
-        toast.success("Program updated successfully");
-        onSave(response.data);
-      } else {
-        const response = await axios.post("http://localhost:8000/api/programs", programData);
-        toast.success("Program added successfully");
-        onSave(response.data);
-      }
-      
+      await onSave(programData, isEditing, program?.id);
       onClose();
     } catch (error) {
       console.error("Error saving program:", error);
