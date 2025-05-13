@@ -180,7 +180,7 @@ function Programs() {
           </p>
         </div>
         
-        <div className="flex items-center gap-4 w-full md:w-auto">
+        <div className="flex items-center gap-2 w-full md:w-auto">
           <div className="relative flex-1">
             <FaSearch className="absolute left-4 top-3.5 text-gray-400" />
             <input
@@ -261,7 +261,7 @@ function Programs() {
                 {getFilteredItems().map((item) => {
                   const isProgram = activeTab === "Higher Education";
                   const program = isProgram ? item : programs.find(p => p.id === item.program_id);
-                  
+
                   return (
                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-600/30 transition-colors">
                       <td className="px-6 py-4">
@@ -269,12 +269,10 @@ function Programs() {
                           <div className={`w-2 h-10 bg-[${primaryColor}] rounded-full`}></div>
                           <div>
                             <p className="font-medium text-gray-900 dark:text-gray-200">
-                              {isProgram ? item.name : item.name.split(' - ')[0]}
+                              {item.name.split(' - ')[0]}
                             </p>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {isProgram ? item.code : (program?.category === "SHS" ? "SHS" : 
-                                (program?.category === "Junior High" || program?.category === "Jhs") ? "JHS" : 
-                                program?.category === "Intermediate" ? "INT" : "N/A")}
+                              {item.code || "N/A"}
                             </p>
                           </div>
                         </div>
@@ -286,23 +284,9 @@ function Programs() {
                               Year Level: {item.yearLevel || "N/A"}
                             </span>
                           ) : (
-                            <>
-                              <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm">
-                                Grade Level: {item.name}
-                              </span>
-                              {program?.category?.toLowerCase() === "shs" && (
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {program.name.split(' - ')[1]?.split(', ').map((strand, index) => (
-                                    <span 
-                                      key={index}
-                                      className="inline-block px-2 py-0.5 bg-[#1F3463]/10 dark:bg-[#1F3463]/20 text-[#1F3463] dark:text-[#1F3463]/80 rounded text-xs"
-                                    >
-                                      {strand}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </>
+                            <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm">
+                              {item.name.includes(' - ') ? item.name.split(' - ')[1] : "N/A"}
+                            </span>
                           )}
                         </div>
                       </td>
