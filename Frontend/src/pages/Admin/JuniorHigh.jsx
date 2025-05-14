@@ -17,6 +17,17 @@ function JuniorHigh() {
   const programCode = "JHS";
   const { loading, setLoading } = useLoading();
 
+  // Helper to map yearLevel to 7-10 for JHS
+  const mapYearLevelToIndex = (yearLevel) => {
+    if (typeof yearLevel === 'number') return yearLevel - 7;
+    const level = String(yearLevel).toLowerCase().trim();
+    if (level === 'grade 7' || level === '7') return 0;
+    if (level === 'grade 8' || level === '8') return 1;
+    if (level === 'grade 9' || level === '9') return 2;
+    if (level === 'grade 10' || level === '10') return 3;
+    return null;
+  };
+
   useEffect(() => {
     const fetchInstructors = async () => {
       setLoading(true);
@@ -30,15 +41,23 @@ function JuniorHigh() {
         if (Array.isArray(data)) {
           if (data.length === 0) {
             setNoInstructors(true);
+            setInstructorsByGrade([[], [], [], []]);
           } else {
             const grouped = [[], [], [], []];
-            data.forEach((instructor) => {
-              const grade = instructor?.pivot?.yearLevel;
-              if (grade >= 7 && grade <= 10) {
-                grouped[grade - 7].push(instructor);
-              }
+            data.forEach((item) => {
+              const yearLevel = item?.pivot?.yearLevel;
+              const idx = mapYearLevelToIndex(yearLevel);
+              const instructor = {
+                id: item.id,
+                name: item.name,
+                email: item.email,
+                yearLevel: yearLevel,
+              };
+              if (idx !== null && idx >= 0 && idx < 4) grouped[idx].push(instructor);
             });
-            setInstructorsByGrade(grouped);
+            setInstructorsByGrade([]); // Force re-render
+            setTimeout(() => setInstructorsByGrade(grouped), 0);
+            setNoInstructors(false);
           }
         } else {
           toast.error("Invalid instructor data format.");
@@ -46,6 +65,7 @@ function JuniorHigh() {
       } catch (err) {
         console.error("Error loading instructors:", err);
         toast.error("Failed to load instructors for Junior High.");
+        setNoInstructors(true);
       } finally {
         setLoading(false);
       }

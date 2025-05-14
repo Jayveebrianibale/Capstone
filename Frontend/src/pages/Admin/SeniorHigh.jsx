@@ -13,47 +13,79 @@ function SeniorHigh() {
   const [instructorsByGrade, setInstructorsByGrade] = useState([[], []]);
   const [noInstructors, setNoInstructors] = useState(false);
 
-  const tabLabels = ["Grade 11", "Grade 12"];
-  const programCode = "SHS";
   const { loading, setLoading } = useLoading();
+  const programCode = "SHS"; // Example code for Senior High School
+
+  const tabLabels = [
+    `Grade 11 (${instructorsByGrade[0]?.length || 0})`,
+    `Grade 12 (${instructorsByGrade[1]?.length || 0})`
+  ];
+
+  // Helper to map yearLevel to 1 or 2 for SHS
+  // Updated mapYearLevelToNumber function
+const mapYearLevelToNumber = (yearLevel) => {
+  // Handle numerical values (including 11/12 as SHS grades)
+  if (typeof yearLevel === 'number') {
+    if (yearLevel === 11) return 1; // Map 11 to Grade 11 (index 0)
+    if (yearLevel === 12) return 2; // Map 12 to Grade 12 (index 1)
+    return yearLevel; // Assume valid if already 1 or 2
+  }
+
+  // Handle string values
+  const level = String(yearLevel).toLowerCase().trim();
+  if (level === 'grade 11' || level === '11' || level === '1') return 1;
+  if (level === 'grade 12' || level === '12' || level === '2') return 2;
+  
+  return null; // Invalid format
+};
 
   useEffect(() => {
-    const fetchInstructors = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await ProgramService.getInstructorsByProgramCode(programCode);
+        const [instructorsData, resultsData] = await Promise.all([
+          ProgramService.getInstructorsByProgramCode(programCode),
+          ProgramService.getInstructorResultsByProgram
+            ? ProgramService.getInstructorResultsByProgram(programCode)
+            : Promise.resolve([])
+        ]);
 
-        if (typeof data === "string" && data.includes("<!doctype html>")) {
-          throw new Error("Received HTML instead of JSON. Check backend.");
+        if (!Array.isArray(instructorsData)) {
+          throw new Error("Invalid data format received");
         }
 
-        if (Array.isArray(data)) {
-          if (data.length === 0) {
-            setNoInstructors(true);
-          } else {
-            const grouped = [[], []];
-            data.forEach((instructor) => {
-              const grade = instructor?.pivot?.yearLevel;
-              if (grade === 1) grouped[0].push(instructor); // Map 1 to Grade 11
-              else if (grade === 2) grouped[1].push(instructor); // Map 2 to Grade 12
-              else {
-                console.warn(`Unexpected yearLevel: ${grade}`);
-              }
-            });
-            setInstructorsByGrade(grouped);
-          }
-        } else {
-          toast.error("Invalid instructor data format.");
-        }
+        // Extract unique instructors per grade
+        const groupByYear = (data) => {
+          const grouped = [[], []];
+          data.forEach((item) => {
+            const yearLevel = item?.pivot?.yearLevel;
+            const year = mapYearLevelToNumber(yearLevel);
+            const instructor = {
+              id: item.id,
+              name: item.name,
+              email: item.email,
+              yearLevel: year,
+              // add more fields if needed
+            };
+            if (year === 1) grouped[0].push(instructor);
+            else if (year === 2) grouped[1].push(instructor);
+          });
+          return grouped;
+        };
+
+        const instructorsGrouped = groupByYear(instructorsData);
+        setInstructorsByGrade(instructorsGrouped);
+        setNoInstructors(instructorsData.length === 0);
       } catch (err) {
         console.error("Error loading instructors:", err);
         toast.error("Failed to load instructors for Senior High.");
+        setNoInstructors(true);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchInstructors();
+    fetchData();
   }, [programCode, setLoading]);
 
   const hasInstructorsForGrade = (grade) => instructorsByGrade[grade]?.length > 0;
@@ -87,7 +119,9 @@ function SeniorHigh() {
             {hasInstructorsForGrade(activeTab) ? (
               <InstructorTable instructors={instructorsByGrade[activeTab]} />
             ) : (
-              <p className="text-red-500">No instructors assigned for this grade.</p>
+              <p className="text-gray-600 dark:text-gray-300 mt-4">
+                No instructors assigned for {tabLabels[activeTab]}.
+              </p>
             )}
           </div>
         </>

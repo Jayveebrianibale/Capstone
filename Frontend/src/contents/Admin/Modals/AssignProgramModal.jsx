@@ -41,22 +41,21 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
   };
 
   const handleToggle = (program) => {
-    console.log("Toggling program:", program);
     setSelectedPrograms((prev) => {
       const exists = prev.find((p) => p.id === program.id);
       if (exists) {
         return prev.filter((p) => p.id !== program.id);
       } else {
-        // For non-Higher Education programs, set yearLevel to 1 by default
         const isHigherEducation = program.category === "Higher Education";
         const isSeniorHigh = program.category === "SHS";
-
-        let yearLevel = 1; // Default year level
+        let yearLevel = 1;
         if (isSeniorHigh) {
-          yearLevel = program.name.includes("Grade 11") ? 1 : 2;
+          // Try to extract the grade number from the program name (e.g., 'Grade 11 - ...')
+          const match = program.name.match(/Grade (\d+)/);
+          if (match && match[1]) {
+            yearLevel = parseInt(match[1], 10) - 10; // Grade 11 -> 1, Grade 12 -> 2
+          }
         }
-
-        console.log("Is Higher Education:", isHigherEducation);
         return [
           ...prev,
           { 

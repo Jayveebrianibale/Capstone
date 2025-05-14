@@ -29,6 +29,16 @@ function Intermediate() {
     console.log("Add Instructor");
   };
 
+  // Helper to map yearLevel to 4-6 for Intermediate
+  const mapYearLevelToIndex = (yearLevel) => {
+    if (typeof yearLevel === 'number') return yearLevel - 4;
+    const level = String(yearLevel).toLowerCase().trim();
+    if (level === 'grade 4' || level === '4') return 0;
+    if (level === 'grade 5' || level === '5') return 1;
+    if (level === 'grade 6' || level === '6') return 2;
+    return null;
+  };
+
   useEffect(() => {
     const fetchInstructors = async () => {
       setLoading(true);
@@ -42,25 +52,31 @@ function Intermediate() {
         if (Array.isArray(data)) {
           if (data.length === 0) {
             setNoInstructors(true);
+            setInstructorsByGrade([[], [], []]);
           } else {
             const grouped = [[], [], []];
-            data.forEach((instructor) => {
-              const grade = instructor?.pivot?.yearLevel;
-              if (grade >= 4 && grade <= 6) {
-                grouped[grade - 4].push(instructor);
-              } else {
-                console.warn("Instructor has invalid or missing yearLevel:", instructor);
-              }
+            data.forEach((item) => {
+              const yearLevel = item?.pivot?.yearLevel;
+              const idx = mapYearLevelToIndex(yearLevel);
+              const instructor = {
+                id: item.id,
+                name: item.name,
+                email: item.email,
+                yearLevel: yearLevel,
+              };
+              if (idx !== null && idx >= 0 && idx < 3) grouped[idx].push(instructor);
             });
-            setInstructorsByGrade(grouped);
+            setInstructorsByGrade([]); // Force re-render
+            setTimeout(() => setInstructorsByGrade(grouped), 0);
+            setNoInstructors(false);
           }
         } else {
-          console.error("Response is not an array:", data);
           toast.error("Failed to load instructors. Invalid response format.");
         }
       } catch (error) {
         console.error("Error loading instructors:", error);
         toast.error(`Failed to load instructors for ${programCode}.`);
+        setNoInstructors(true);
       } finally {
         setLoading(false);
       }
