@@ -7,9 +7,10 @@ import OnboardingMessage from '../../components/Student/OnboardingMessage';
 import { ToastContainer, toast } from 'react-toastify';
 import InstructorService from '../../services/InstructorService';
 import { fetchQuestions } from '../../services/QuestionService';
+import { useLoading } from '../../components/LoadingContext';
 
 const SEvaluations = () => {
-  const [loading, setLoading] = useState(true);
+  const { loading, setLoading } = useLoading();
   const [schoolYears, setSchoolYears] = useState([]);
   const [semesters, setSemesters] = useState([]);
   const [selectedYear, setSelectedYear] = useState(() => sessionStorage.getItem('selectedYear') || '');

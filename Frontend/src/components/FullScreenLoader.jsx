@@ -11,7 +11,7 @@ const FullScreenLoader = () => {
 
   return (
     <motion.div 
-      className="fixed inset-0 flex justify-center items-center bg-white bg-opacity-50 backdrop-blur-md z-50"
+      className="fixed inset-0 flex justify-center items-center bg-white/30 dark:bg-gray-900/60 backdrop-blur-[6px] z-70"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

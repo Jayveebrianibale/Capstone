@@ -123,7 +123,9 @@ function StudentProfileSetup() {
         sessionStorage.setItem("user", JSON.stringify(updatedUser));
         localStorage.setItem("profileCompleted", "true");
         toast.success("Profile setup completed!");
-        navigate("/SDashboard");
+        setTimeout(() => {
+          navigate("/SDashboard");
+        }, 800); // Delay navigation to allow toast to show
       } else {
         throw new Error("Profile setup was not completed correctly.");
       }

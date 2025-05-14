@@ -99,7 +99,7 @@ const InstructorTable = ({
         
         let status = 'Not Started';
         let statusClass = 'text-red-500';
-        
+          
         if (instructor.evaluationHistory) {
           status = 'Evaluated';
           statusClass = 'text-green-600';
@@ -235,7 +235,7 @@ const InstructorTable = ({
          instructor.evaluationHistory || 
          submissionInfo?.[instructor.id]?.status === 'Evaluated'
        ) && (
-        <div className="p-4 border-t dark:border-gray-700">
+        <div className="p-4 border-t dark:border-gray-700 text-right">
           <button
             onClick={handleSubmitAll}
             className="w-full md:w-auto bg-[#1F3463] text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition"

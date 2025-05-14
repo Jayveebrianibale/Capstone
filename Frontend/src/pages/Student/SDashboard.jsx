@@ -1,20 +1,28 @@
 import { FiCheckCircle, FiCalendar, FiInfo, FiUsers } from "react-icons/fi";
 import bgImage from "../../assets/Login.jpg";
+import { useEffect, useState } from "react";
 
 const SDashboard = () => {
+  const [user, setUser] = useState(null);
   const totalInstructors = 10;
-  const semester = "2nd Semester, SY 2024-2025";
 
   const greeting = () => {
     const currentHour = new Date().getHours();
     if (currentHour < 12) {
-      return "Good Morning!";
+      return "Good Morning,";
     } else if (currentHour < 18) {
-      return "Good Afternoon!";
+      return "Good Afternoon,";
     } else {
-      return "Good Evening!";
+      return "Good Evening,";
     }
   };
+
+  useEffect(() => {
+    const userData = sessionStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
 
   return (
     <main className="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen transition-all duration-300">
@@ -31,11 +39,8 @@ const SDashboard = () => {
         <div className="absolute inset-0 bg-black opacity-30 z-0" />
         <div className="relative z-10">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-2 tracking-tight break-words leading-tight drop-shadow-sm">
-            {greeting()}👋
+            {greeting()} {user ? `${user.name.split(" ")[0]} (${user.yearLevel})` : "Student"}👋
           </h1>
-          <p className="text-sm sm:text-base md:text-lg tracking-wide text-white/80 break-words">
-            {semester}
-          </p>
         </div>
       </div>
 
