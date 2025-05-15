@@ -16,7 +16,7 @@ const FullScreenLoader = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center ml-0 md:ml-64">
         <Player autoplay loop src={loaderAnimation} className="w-[100%]" />
       </div>
     </motion.div>

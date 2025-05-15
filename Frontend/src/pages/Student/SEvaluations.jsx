@@ -380,6 +380,17 @@ const SEvaluations = () => {
         };
       });
 
+      // Ensure responses are updated for view mode after submit
+      setResponses((prev) => {
+        const updated = { ...prev };
+        result.submissions.forEach((submission) => {
+          updated[submission.instructor_id] = {
+            ...responses[submission.instructor_id],
+          };
+        });
+        return updated;
+      });
+
       setSubmissionInfo(updatedInfo);
       setEvaluationHistory(updatedHistory);
       

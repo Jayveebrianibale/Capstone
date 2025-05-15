@@ -9,6 +9,8 @@ use App\Models\Course;
 use App\Models\Evaluation;
 use App\Models\EvaluationResponse;
 use App\Models\Question;
+use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 
 class EvaluationController extends Controller {
@@ -159,6 +161,50 @@ class EvaluationController extends Controller {
                 'message' => 'Evaluations submitted successfully.',
                 'submissions' => $submitted,
             ], 201);
+        }
+
+        public function topRatedInstructors() {
+            // Get the top 3 instructors based on average rating
+            $topInstructors = DB::table('evaluations')
+                ->join('evaluation_responses', 'evaluations.id', '=', 'evaluation_responses.evaluation_id')
+                ->join('instructors', 'evaluations.instructor_id', '=', 'instructors.id')
+                ->select(
+                    'instructors.id',
+                    'instructors.name',
+                    DB::raw('AVG(evaluation_responses.rating) as avg_rating'),
+                    DB::raw('ROUND((AVG(evaluation_responses.rating) / 5) * 100, 2) as percentage')
+                )
+                ->groupBy('instructors.id', 'instructors.name')
+                ->orderByDesc('percentage')
+                ->limit(3)
+                ->get();
+
+            return response()->json($topInstructors);
+        }
+        // Get all average ratings for instructors (5, 4, 3, 2, 1)
+        public function getTopInstructorDistributions() {
+            $instructors = DB::table('evaluations')
+                ->join('evaluation_responses', 'evaluations.id', '=', 'evaluation_responses.evaluation_id')
+                ->join('instructors', 'evaluations.instructor_id', '=', 'instructors.id')
+                ->select(
+                    'instructors.id',
+                    'instructors.name',
+                    DB::raw('AVG(evaluation_responses.rating) as avg_rating'),
+                    DB::raw('ROUND((AVG(evaluation_responses.rating) / 5) * 100, 2) as percentage'),
+                    DB::raw('SUM(CASE WHEN evaluation_responses.rating = 1 THEN 1 ELSE 0 END) as rating_1_count'),
+                    DB::raw('SUM(CASE WHEN evaluation_responses.rating = 2 THEN 1 ELSE 0 END) as rating_2_count'),
+                    DB::raw('SUM(CASE WHEN evaluation_responses.rating = 3 THEN 1 ELSE 0 END) as rating_3_count'),
+                    DB::raw('SUM(CASE WHEN evaluation_responses.rating = 4 THEN 1 ELSE 0 END) as rating_4_count'),
+                    DB::raw('SUM(CASE WHEN evaluation_responses.rating = 5 THEN 1 ELSE 0 END) as rating_5_count')
+                )
+                ->groupBy('instructors.id', 'instructors.name')
+                ->orderByDesc('percentage')
+                ->limit(3)
+                ->get();
+
+            return response()->json([
+                'data' => $instructors
+            ]);
         }
 
 }

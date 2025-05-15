@@ -64,20 +64,6 @@ function Questionnaires() {
     setShowModal(true);
   };
 
-  const handleDuplicate = async (question) => {
-    setLoading(true);
-    try {
-      const duplicatedQuestion = { ...question, id: null };
-      const savedQuestion = await saveQuestions(duplicatedQuestion);
-      setQuestions([...questions, savedQuestion]);
-      toast.success("Question duplicated successfully!");
-    } catch (error) {
-      console.error("Error duplicating question:", error);
-      toast.error("Failed to duplicate question.");
-    }
-    setLoading(false);
-  };
-
   const toggleEnable = () => {
     setIsEnabled(!isEnabled);
     toast.success(`Questions ${isEnabled ? "disabled" : "enabled"}`);
@@ -172,9 +158,9 @@ function Questionnaires() {
           </button>
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-x-auto">
+          <div className="min-w-[700px]">
+            <table className="w-full table-auto">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   {['Category', 'Type', 'Question'].map((header) => (
@@ -205,24 +191,17 @@ function Questionnaires() {
                     <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                       {q.type}
                     </td>
-                    <td className="px-6 py-4 text-gray-800 dark:text-gray-200 max-w-[500px] break-words">
+                    <td className="px-6 py-4 text-gray-800 dark:text-gray-200 max-w-[500px] break-words whitespace-pre-line align-top">
                       {q.question}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-3">
+                      <div className="flex justify-end">
                         <button
                           onClick={() => handleEditClick(q)}
                           className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-indigo-600 transition-colors"
                           title="Edit"
                         >
                           <FaEdit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDuplicate(q)}
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors"
-                          title="Duplicate"
-                        >
-                          <FaRegClone className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => confirmDelete(q.id)}
