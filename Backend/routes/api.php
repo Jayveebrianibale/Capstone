@@ -51,7 +51,7 @@ Route::get('/students/{student}/courses', [CourseController::class, 'getEnrolled
 
 // Instructor Routes
 Route::post('/instructors/{id}/assign-programs', [InstructorController::class, 'assignProgram']);
-Route::get('/instructors/{programId}/{yearLevel}', [InstructorController::class, 'getInstructorsByProgramAndYear']);
+Route::get('/instructors/program/{programId}/year/{yearLevel}', [InstructorController::class, 'getInstructorsByProgramAndYear']);
 Route::get('/instructors/by-course', [InstructorController::class, 'getInstructorsByCourse']);
 Route::get('/instructors', [InstructorController::class, 'index']);
 Route::post('/instructors', [InstructorController::class, 'store']);

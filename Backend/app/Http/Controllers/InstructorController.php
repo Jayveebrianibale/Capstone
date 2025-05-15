@@ -7,6 +7,7 @@ use App\Models\Instructor;
 use App\Models\Program;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Requests\GetInstructorsByProgramAndYearRequest;
 
 
 
@@ -140,26 +141,23 @@ class InstructorController extends Controller
     }
 
     //Get instructor that assigned to the program/Course
-    public function getInstructorsByProgramAndYear($programId, $yearLevel)
-    {
-        // Make sure yearLevel is an integer
-        if (!in_array($yearLevel, [1, 2, 3, 4])) {
-            return response()->json(['message' => 'Invalid year level'], 400);
-        }
+    public function getInstructorsByProgramAndYear(GetInstructorsByProgramAndYearRequest $request) {
+        // At this point both $request->programId and $request->yearLevel are
+        // guaranteed to be valid (exists, and in 1–4).
+        $programId = $request->programId;
+        $yearLevel = $request->yearLevel;
 
-        // Fetch instructors assigned to the given program_id and yearLevel
         $instructors = DB::table('instructor_program')
-                        ->join('instructors', 'instructor_program.instructor_id', '=', 'instructors.id')
-                        ->where('instructor_program.program_id', $programId)
-                        ->where('instructor_program.yearLevel', $yearLevel)
-                        ->select('instructors.*')
-                        ->get();
+            ->join('instructors','instructor_program.instructor_id','=','instructors.id')
+            ->where('instructor_program.program_id', $programId)
+            ->where('instructor_program.yearLevel', $yearLevel)
+            ->select('instructors.*')
+            ->get();
 
         if ($instructors->isEmpty()) {
             return response()->json(['message' => 'No instructors found'], 404);
         }
 
-        // Return the instructors data
         return response()->json($instructors);
     }
 

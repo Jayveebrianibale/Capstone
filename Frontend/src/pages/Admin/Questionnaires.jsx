@@ -140,8 +140,8 @@ function Questionnaires() {
       {/* Header Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 items-center">
         <div>
-          <h1 className="text-3xl font-bold text-[#1F3463] dark:text-white mb-1">
-            Evaluation Questions
+          <h1 className="text-2xl font-bold text-[#1F3463] dark:text-white mb-1">
+            Evaluation Questions  
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
             Manage evaluation criteria • {questions.length} questions
@@ -178,7 +178,7 @@ function Questionnaires() {
 
       {/* Table or Empty State */}
       {sortedQuestions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-96 bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 p-8">
+        <div className="flex flex-col items-center justify-center h-96 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8">
           <FaQuestionCircle className="w-20 h-20 text-[#1F3463] mb-4" />
           <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
             No questions found
@@ -197,7 +197,7 @@ function Questionnaires() {
       ) : (
         <div className="space-y-4">
           {/* Show as table for medium screens and up */}
-          <div className="hidden md:block bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
+          <div className="hidden md:block bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-x-auto">
             <table className="min-w-full">
               <thead className="bg-[#1F3463]/10 dark:bg-[#1F3463]/20">
                 <tr>
@@ -249,7 +249,7 @@ function Questionnaires() {
                         {/* Desktop buttons */}
                         <button
                           onClick={() => handleEditClick(q)}
-                          className="hidden md:inline-flex items-center bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
+                          className="hidden md:inline-flex items-center bg-[#1F3463] text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
                         >
                           Edit
                         </button>
@@ -263,7 +263,7 @@ function Questionnaires() {
                         {/* Mobile buttons */}
                         <button
                           onClick={() => handleEditClick(q)}
-                          className="md:hidden text-blue-500 hover:text-blue-700"
+                          className="md:hidden text-[#1F3463] hover:text-blue-700"
                         >
                           <FaEdit />
                         </button>
@@ -346,7 +346,8 @@ function Questionnaires() {
           isOpen={showModal}
           onClose={() => setShowModal(false)}
           onSave={handleSave}
-          initialData={questionToEdit}
+          isEditing={true}
+          questionToEdit={questionToEdit}
         />
       )}
 
