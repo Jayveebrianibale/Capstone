@@ -117,8 +117,34 @@ export default function CustomPieChart() {
   
   return (
     <div className="relative flex flex-col items-center w-full p-4 sm:p-6 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white">
-      {distribution.length === 0 ? (
-        <div className="text-center">No data to display</div>
+      {/* Hidden heading and description, for future use or accessibility */}
+      <div style={{ display: "none" }}>
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mt-4">
+          Average Teaching Ratings
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Based on the latest evaluations.
+        </p>
+      </div>
+      {distribution.length === 0 || distribution.every(item => item.value === 0) ? (
+        <div className="flex flex-col items-center justify-center h-64 w-full">
+          <svg
+            className="w-16 h-16 text-gray-300 mb-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            viewBox="0 0 48 48"
+          >
+            <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3" fill="none" />
+            <path d="M24 8v16l12 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          </svg>
+          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-1">
+            No Evaluation Data
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 text-center max-w-xs">
+            There are no evaluation results to display yet. Once evaluations are submitted, you’ll see a summary here.
+          </p>
+        </div>
       ) : (
         <>
           {/* Custom Rating Legend */}
@@ -135,7 +161,10 @@ export default function CustomPieChart() {
           </div>
   
           {/* Pie Chart */}
-          <div className="relative w-full max-w-[280px] aspect-square">
+          <div
+            className="relative w-full max-w-[280px] aspect-square"
+            onMouseLeave={() => setTooltip(null)}
+          >
             <Pie ref={chartRef} data={chartData} options={options} />
 
             {tooltip && (

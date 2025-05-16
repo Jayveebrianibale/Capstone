@@ -28,23 +28,31 @@ class PDFController extends Controller
 
             // Get questions and ratings
             $questions = Question::all();
-            $ratings = json_decode($instructor->ratings, true) ?? [];
+            $ratingsRaw = json_decode($instructor->ratings, true) ?? [];
+            $ratings = [];
+            foreach ($questions as $index => $question) {
+                $key = 'q' . ($index + 1);
+                // If ratings are indexed by question ID
+                if (isset($ratingsRaw[$question->id])) {
+                    $ratings[$key] = $ratingsRaw[$question->id];
+                }
+                // If ratings are indexed by numeric index
+                elseif (isset($ratingsRaw[$index])) {
+                    $ratings[$key] = $ratingsRaw[$index];
+                }
+                // If already in q1, q2, ... format
+                elseif (isset($ratingsRaw[$key])) {
+                    $ratings[$key] = $ratingsRaw[$key];
+                }
+            }
             $comments = $instructor->comments ?? 'Not specified';
 
             // Calculate overall rating (average of all ratings, as percentage)
             $overallRating = 0;
             if (!empty($ratings) && count($questions) > 0) {
-                $sum = 0;
-                $count = 0;
-                foreach ($questions as $index => $question) {
-                    $key = 'q' . ($index + 1);
-                    if (isset($ratings[$key])) {
-                        $sum += $ratings[$key];
-                        $count++;
-                    }
-                }
+                $sum = array_sum($ratings);
+                $count = count($ratings);
                 if ($count > 0) {
-                    // If your ratings are out of 5, convert to percent
                     $overallRating = ($sum / $count) * 20; // 5*20=100
                 }
             }

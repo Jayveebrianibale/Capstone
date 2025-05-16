@@ -346,7 +346,7 @@ function Questionnaires() {
           isOpen={showModal}
           onClose={() => setShowModal(false)}
           onSave={handleSave}
-          isEditing={true}
+          isEditing={isEditing}
           questionToEdit={questionToEdit}
         />
       )}

@@ -13,7 +13,7 @@ class Evaluation extends Model
     'school_year',
     'status',
     'evaluated_at',
-    'semester',];
+    'semester',]; 
 
     public function student()
     {
@@ -29,6 +29,7 @@ class Evaluation extends Model
     {
         return $this->hasMany(EvaluationResponse::class);
     }
+
 }
 
 

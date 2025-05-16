@@ -49,7 +49,7 @@ const InstructorService = {
   
   getInstructorsByProgramAndYear: async (programId, yearLevel) => {
     try {
-      const response = await axios.get(`${API_URL}/${programId}/${yearLevel}`);
+      const response = await axios.get(`${API_URL}/program/${programId}/year/${yearLevel}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching instructors:', error);

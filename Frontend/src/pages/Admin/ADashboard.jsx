@@ -69,12 +69,6 @@ function ADashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 flex flex-col items-center bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 transition-transform transform hover:scale-105">
           <PieChart />
-          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mt-4">
-            Average Teaching Ratings
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Based on the latest evaluations.
-          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:col-span-2 gap-6">
