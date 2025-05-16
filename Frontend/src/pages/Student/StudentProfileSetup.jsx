@@ -172,7 +172,7 @@ function StudentProfileSetup() {
         {/* Sidebar steps */}
         <div className="md:col-span-1 space-y-8">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">Profile Setup</h2>
+            <h2 className="text-xl font-bold text-gray-800">Profile Evaluation Setup</h2>
             <p className="text-sm text-gray-500">Follow the steps to complete your profile</p>
           </div>
           <ul className="space-y-4">
