@@ -9,6 +9,7 @@ use App\Http\Controllers\TwoFactorController;
 use BeyondCode\LaravelWebSockets\Facades\WebSocketsRouter;
 use BeyondCode\LaravelWebSockets\WebSockets\WebSocketHandler;
 use App\Http\Controllers\BroadcastController;
+use App\Mail\InstructorResultMail;
 
 // ✅ Test Email Route
 Route::get('/verify-2fa', function () {
@@ -21,6 +22,21 @@ Route::get('/verify-2fa', function () {
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
     }
+});
+
+Route::get('/test-mail', function () {
+    $instructor = (object)[
+        'name' => 'Deskme',
+        'email' => 'deskmecompany@gmail.com',
+        'overallRating' => 93.5,
+        'id' => 1
+    ];
+
+    $pdfUrl = url("api/instructors/{$instructor->id}/pdf");
+
+    Mail::to($instructor->email)->send(new InstructorResultMail($instructor, $pdfUrl));
+
+    return "Email sent!";
 });
 
 Route::get('/', function () {

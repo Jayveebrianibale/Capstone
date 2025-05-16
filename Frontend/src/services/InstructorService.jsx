@@ -105,6 +105,18 @@ const InstructorService = {
       throw error;
     }
   },
+
+  handleSendResult: async (instructorId) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8000/api/instructors/${instructorId}/send-result`
+      );
+      return response.data;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
 };
 
 export default InstructorService;

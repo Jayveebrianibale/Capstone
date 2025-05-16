@@ -8,6 +8,9 @@ use App\Models\Program;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\GetInstructorsByProgramAndYearRequest;
+use App\Http\Controllers\Controller;
+use App\Mail\InstructorResultMail;
+use Illuminate\Support\Facades\Mail;
 
 
 
@@ -159,6 +162,21 @@ class InstructorController extends Controller
         }
 
         return response()->json($instructors);
+    }
+
+    // Send the evaluation result to the instructor via email
+    public function sendResult(Request $request, $id)
+    {
+        $instructor = Instructor::findOrFail($id);
+
+        $pdfUrl = url("api/instructors/{$instructor->id}/pdf");
+
+        // send mail
+        Mail::to($instructor->email)->send(new InstructorResultMail($instructor, $pdfUrl));
+
+        return response()->json([
+            'message' => 'Result email sent successfully.',
+        ]);
     }
 
 }
