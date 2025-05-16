@@ -169,6 +169,35 @@ class InstructorController extends Controller
     {
         $instructor = Instructor::findOrFail($id);
 
+        // Calculate overall rating (same as PDF logic)
+        $questions = \App\Models\Question::all();
+        $evaluations = \App\Models\Evaluation::where('instructor_id', $id)->get();
+        $ratings = [];
+        foreach ($questions as $index => $question) {
+            $questionId = $question->id;
+            $total = 0;
+            $count = 0;
+            foreach ($evaluations as $evaluation) {
+                $response = $evaluation->responses()
+                    ->where('question_id', $questionId)
+                    ->first();
+                if ($response) {
+                    $total += $response->rating;
+                    $count++;
+                }
+            }
+            $ratings['q' . ($index + 1)] = $count > 0 ? $total / $count : null;
+        }
+        $overallRating = 0;
+        if (!empty($ratings) && count($questions) > 0) {
+            $sum = array_sum($ratings);
+            $count = count($ratings);
+            if ($count > 0) {
+                $overallRating = ($sum / $count) * 20; // 5*20=100
+            }
+        }
+        $instructor->overallRating = $overallRating;
+
         $pdfUrl = url("api/instructors/{$instructor->id}/pdf");
 
         // send mail

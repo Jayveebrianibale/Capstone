@@ -24,5 +24,7 @@ class Instructor extends Model
     public function evaluations() {
         return $this->hasMany(Evaluation::class);
     }
+
+    
 }
 

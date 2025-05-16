@@ -6,6 +6,8 @@ use App\Models\Instructor;
 use App\Models\Question;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
+use App\Models\Evaluation;
 
 class PDFController extends Controller
 {
@@ -28,23 +30,29 @@ class PDFController extends Controller
 
             // Get questions and ratings
             $questions = Question::all();
-            $ratingsRaw = json_decode($instructor->ratings, true) ?? [];
+            
+            // Fetch evaluations before using in ratings calculation
+            $evaluations = Evaluation::where('instructor_id', $id)->get();
             $ratings = [];
             foreach ($questions as $index => $question) {
-                $key = 'q' . ($index + 1);
-                // If ratings are indexed by question ID
-                if (isset($ratingsRaw[$question->id])) {
-                    $ratings[$key] = $ratingsRaw[$question->id];
+                $questionId = $question->id;
+                $total = 0;
+                $count = 0;
+                foreach ($evaluations as $evaluation) {
+                    // Get all responses for this evaluation and question
+                    $response = $evaluation->responses()
+                        ->where('question_id', $questionId)
+                        ->first();
+                    if ($response) {
+                        $total += $response->rating;
+                        $count++;
+                    }
                 }
-                // If ratings are indexed by numeric index
-                elseif (isset($ratingsRaw[$index])) {
-                    $ratings[$key] = $ratingsRaw[$index];
-                }
-                // If already in q1, q2, ... format
-                elseif (isset($ratingsRaw[$key])) {
-                    $ratings[$key] = $ratingsRaw[$key];
-                }
+                $ratings['q' . ($index + 1)] = $count > 0 ? $total / $count : null;
             }
+
+            Log::info('Calculated Ratings:', ['ratings' => $ratings]);
+
             $comments = $instructor->comments ?? 'Not specified';
 
             // Calculate overall rating (average of all ratings, as percentage)
@@ -65,7 +73,8 @@ class PDFController extends Controller
                 'ratings' => $ratings,
                 'comments' => $comments,
                 'yearLevel' => $yearLevel,
-                'overallRating' => $overallRating
+                'overallRating' => $overallRating,
+                'evaluations' => $evaluations 
             ];
 
             // Generate PDF with options
