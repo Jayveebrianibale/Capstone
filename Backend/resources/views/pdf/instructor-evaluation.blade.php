@@ -91,7 +91,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>Instructor Performance Report</h1>
+        <h1>Instructor Evaluation Report</h1>
         <div class="report-info">
             <strong>Instructor:</strong> {{ $instructor->name }}<br>
             Generated: {{ date('F j, Y') }}<br>

@@ -66,12 +66,11 @@ function Bsis() {
         ProgramService.getInstructorsByProgramCode(programCode),
         ProgramService.getInstructorResultsByProgram(programCode),
       ]);
-
+  
       if (!Array.isArray(instructorsData) || !Array.isArray(resultsData)) {
         throw new Error("Invalid data format received");
       }
-
-      // Group instructors and results by year level
+  
       const groupByYear = (data) => {
         const grouped = [[], [], [], []];
         data.forEach((item) => {
@@ -81,11 +80,10 @@ function Bsis() {
         });
         return grouped;
       };
-
+  
       const instructorsGrouped = groupByYear(instructorsData);
       const resultsGrouped = groupByYear(resultsData);
-
-      // Merge data
+  
       const merged = instructorsGrouped.map((yearInstructors, yearIndex) => {
         const yearResults = resultsGrouped[yearIndex] || [];
         return yearInstructors.map(instructor => {
@@ -93,17 +91,25 @@ function Bsis() {
           return { ...instructor, ...result };
         });
       });
-
+  
       setMergedInstructorsByYear(merged);
       setNoInstructors(instructorsData.length === 0);
     } catch (error) {
       console.error("Data fetch failed:", error);
-      toast.error("Failed to load instructor data");
-      setFetchError(true);
+  
+      if (error?.response?.status === 404) {
+        // Specific handling for "Program not found"
+        setNoInstructors(true);
+        toast.info("No instructors found for this program.");
+      } else {
+        toast.error("Failed to load instructor data");
+        setFetchError(true);
+      }
     } finally {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchData();

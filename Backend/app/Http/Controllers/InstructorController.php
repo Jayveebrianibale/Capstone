@@ -137,6 +137,9 @@ class InstructorController extends Controller
         // Find the program by its code or return 404
         $program = Program::where('code', $programCode)->firstOrFail();
 
+        if (!$program) {
+            return response()->json(['error' => 'Program not found'], 404);
+        }
         // Get instructors for this program with the year level from the pivot table
         $instructors = $program->instructors()->withPivot('yearLevel')->get();
 
