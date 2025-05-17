@@ -154,7 +154,7 @@ function Bsis() {
         <>
           <ContentHeader
             title="Instructors"
-            stats={["Students: 0", "Submitted: 0"]}
+            stats={["Submitted: 0"]}
             onSearch={handleSearch}
             onExport={handleExport}
             onAdd={handleAddInstructor}
