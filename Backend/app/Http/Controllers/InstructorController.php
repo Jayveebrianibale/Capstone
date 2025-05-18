@@ -211,4 +211,14 @@ class InstructorController extends Controller
         ]);
     }
 
+    public function getAssignedPrograms($instructorId) {
+        $instructor = Instructor::with(['programs'])->findOrFail($instructorId);
+
+        return response()->json([
+            'message' => 'Programs fetched successfully',
+            'programs' => $instructor->programs
+        ]);
+    }
+
+
 }

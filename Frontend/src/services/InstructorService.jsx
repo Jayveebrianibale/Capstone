@@ -117,6 +117,43 @@ const InstructorService = {
       throw err;
     }
   },
+
+  checkProgramAssignment: async (instructorId, programId) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await axios.post(
+        `${API_URL}/${instructorId}/check-assignment`,
+        { program_id: programId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  fetchAssignedPrograms: async (instructorId) => {
+    try {
+      const response = await axios.get(`${API_URL}/${instructorId}/programs`);
+      // Check if response is HTML (indicating an error)
+      if (typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
+        throw new Error('Server returned HTML instead of JSON');
+      }
+      return response.data.programs || response.data;
+    } catch (error) {
+      console.error("Error fetching assigned programs:", {
+        error,
+        response: error.response?.data
+      });
+      throw error;
+    }
+  },
+  
 };
 
 export default InstructorService;

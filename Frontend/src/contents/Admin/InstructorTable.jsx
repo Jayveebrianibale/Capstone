@@ -31,14 +31,14 @@ function InstructorTable({ instructors, questions }) {
         <thead className="bg-gray-100 dark:bg-gray-800">
           <tr>
             <th className="px-4 py-2 font-semibold whitespace-nowrap max-w-[150px]">
-              Instructor Name
+              Name
             </th>
             {[...Array(9)].map((_, i) => (
               <th
                 key={i}
                 className="px-2 py-2 font-semibold text-center whitespace-nowrap"
               >
-                #{i + 1}
+                Qn{i + 1}
               </th>
             ))}
             <th className="px-4 py-2 font-semibold max-w-xs truncate">

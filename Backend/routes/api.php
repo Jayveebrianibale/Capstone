@@ -60,6 +60,8 @@ Route::delete('/instructors/{id}', [InstructorController::class, 'destroy']);
 //PDF Routes
 Route::get('/instructors/{id}/pdf', [PDFController::class, 'generatePDF']);
 Route::post('instructors/{id}/send-result', [InstructorController::class, 'sendResult']);
+Route::get('/instructors/{id}/programs', [InstructorController::class, 'getAssignedPrograms']);
+
 
 Route::get('/test-cors', function () {
     return response()->json(['message' => 'CORS works!']);
