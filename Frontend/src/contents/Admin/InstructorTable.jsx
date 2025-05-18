@@ -30,7 +30,7 @@ function InstructorTable({ instructors, questions }) {
       >
         <thead className="bg-gray-100 dark:bg-gray-800">
           <tr>
-            <th className="px-4 py-2 font-semibold whitespace-nowrap max-w-[150px]">
+            <th className="px-4 py-2 font-semibold whitespace-nowrap max-w-[150px] uppercase tracking-wider">
               Name
             </th>
             {[...Array(9)].map((_, i) => (
@@ -41,13 +41,13 @@ function InstructorTable({ instructors, questions }) {
                 Qn{i + 1}
               </th>
             ))}
-            <th className="px-4 py-2 font-semibold max-w-xs truncate">
+            <th className="px-4 py-2 font-semibold max-w-xs truncate uppercase tracking-wider">
               Comments
             </th>
-            <th className="px-4 py-2 font-semibold text-center whitespace-nowrap">
+            <th className="px-4 py-2 font-semibold text-center whitespace-nowrap uppercase tracking-wider">
               Percentage
             </th>
-            <th className="px-4 py-2 font-semibold text-center whitespace-nowrap">
+            <th className="px-4 py-2 font-semibold text-center whitespace-nowrap uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -67,7 +67,18 @@ function InstructorTable({ instructors, questions }) {
                 style={{ height: "4rem" }}
               >
                 <td className="px-4 py-2 font-medium max-w-[150px] truncate">
-                  {instructor.name}
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1F3463] flex items-center justify-center">
+                      <span className="text-white font-medium">
+                        {instructor.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {instructor.name}
+                      </div>
+                    </div>
+                  </div>
                 </td>
                 {[...Array(9)].map((_, i) => (
                   <td

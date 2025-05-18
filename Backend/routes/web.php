@@ -57,3 +57,13 @@ Route::post('/verify-2fa', [TwoFactorController::class, 'verify'])->name('2fa.ve
 //Google Authentication Routes 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+
+
+// Redirect '/login' to initiate Google OAuth
+Route::get('/login', function () {
+    return redirect('/auth/google');
+})->name('login');
+
+Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+

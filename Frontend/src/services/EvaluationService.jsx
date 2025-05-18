@@ -22,7 +22,7 @@ const EvaluationService = {
   // In EvaluationService.js
   getTopInstructorDistributions: async () => {
     const res = await axios.get('http://localhost:8000/api/top-instructors/distribution');
-    return res.data.data; // array of up to 3 instructors
+    return res.data.data;
   },
 
   

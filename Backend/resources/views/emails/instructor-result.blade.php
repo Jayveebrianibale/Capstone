@@ -40,6 +40,17 @@
                                 </a>
                             </p>
 
+                            <p style="font-size: 16px; color: #333; text-align: center;">
+                                or
+                            </p>
+
+                            <p style="text-align: center; margin: 20px 0;">
+                                <a href="{{ route('login') }}" 
+                                   style="background-color: #1F3463; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                                    🔐 Login with Google to View
+                                </a>
+                            </p>
+
                             <p style="font-size: 16px; color: #333;">
                                 If you have any questions, feel free to reach out.
                             </p>

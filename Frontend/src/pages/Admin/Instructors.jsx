@@ -9,6 +9,7 @@ import FullScreenLoader from "../../components/FullScreenLoader";
 import "react-toastify/dist/ReactToastify.css";
 import AssignProgramModal from "../../contents/Admin/Modals/AssignProgramModal";
 import { Users } from "lucide-react";
+import { MdOutlineAssignmentTurnedIn } from "react-icons/md";
 
 function Instructors() {
   const [instructors, setInstructors] = useState([]);
@@ -155,9 +156,9 @@ function Instructors() {
           </div>
           <button
             onClick={handleAddInstructor}
-            className="bg-[#1F3463] hover:bg-[#172a4d] text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap"
+             className="bg-[#1F3463] hover:bg-[#19294f] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
           >
-            <FaPlus className="w-4 h-4" /> Add Instructor
+            <FaPlus className="w-4 h-4 text-sm font-semibold" /> Add Instructor
           </button>
         </div>
       </div>
@@ -174,26 +175,26 @@ function Instructors() {
           </p>
           <button
             onClick={handleAddInstructor}
-            className="bg-[#1F3463] hover:bg-[#172a4d] text-white px-6 py-2.5 rounded-lg flex items-center gap-2 transition-colors"
+            className="bg-[#1F3463] hover:bg-[#19294f] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
           >
-            <FaPlus className="w-4 h-4" /> Add First Instructor
+            <FaPlus className="w-4 h-4 text-sm font-semibold" /> Add First Instructor
           </button>
         </div>
       ) : (
         <>
         {/* Desktop Table - md+ */}
-        <div className="hidden md:block bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-4">
+        <div className="hidden md:block bg-white border dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-4">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-700">
+              <thead className="bg-gray-100 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium  dark:text-gray-400 uppercase tracking-wider">
                     Instructor
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium  dark:text-gray-400 uppercase tracking-wider">
                     Email
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium dark:text-gray-400 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -206,17 +207,14 @@ function Instructors() {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                          <span className="text-gray-600 dark:text-gray-300 font-medium">
+                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1F3463] flex items-center justify-center">
+                          <span className="text-white font-medium">
                             {inst.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {inst.name}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            ID: {inst.id}
                           </div>
                         </div>
                       </div>
@@ -255,7 +253,7 @@ function Instructors() {
                           }}
                           className="px-3 py-2 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-lg flex items-center gap-2 transition-colors text-sm"
                         >
-                          <FaBookOpen className="w-3.5 h-3.5" />
+                          <MdOutlineAssignmentTurnedIn className="w-3.5 h-3.5" />
                           <span>Assign</span>
                         </button>
                         <button
@@ -281,8 +279,8 @@ function Instructors() {
             <div key={inst.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
               <div className="p-4">
                 <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 h-9 w-9 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                    <span className="text-gray-600 dark:text-gray-300 font-medium">
+                  <div className="flex-shrink-0 h-9 w-9 rounded-full bg-[#1F3463] flex items-center justify-center">
+                    <span className="text-white font-medium">
                       {inst.name.charAt(0).toUpperCase()}
                     </span>
                   </div>

@@ -31,11 +31,11 @@ class GoogleAuthController extends Controller
 
             // If user doesn't exist, create a new one
             if (!$user) {
-                // Set role based on email domain
-                if (str_contains($googleUser->email, '@student')) {
-                    $role = 'Student';
-                } elseif (str_contains($googleUser->email, 'jayveebriani@gmail.com')) {
+                // Only allow this exact email for instructor
+                if ($googleUser->getEmail() === 'evaluationsystem2025@gmail.com') {
                     $role = 'Instructor';
+                } elseif (str_contains($googleUser->email, '@student')) {
+                    $role = 'Student';
                 } elseif (str_contains($googleUser->email, '@gmail')) {
                     $role = 'Admin';
                 } else {

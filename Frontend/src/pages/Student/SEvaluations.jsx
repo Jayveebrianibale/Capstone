@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import EvaluationHeader from '../../components/Student/EvaluationHeader';
+import{ useState, useEffect } from 'react';
 import FullScreenLoader from '../../components/FullScreenLoader';
 import YearSemesterSelector from '../../components/Student/YearSemesterSelector';
 import InstructorTable from '../../components/Student/InstructorTable';
@@ -446,12 +448,7 @@ const SEvaluations = () => {
         <FullScreenLoader />
       ) : (
         <>
-          <div className="bg-[#1F3463] text-white text-center p-6 font-bold rounded-lg mb-5">
-            <h1 className="text-3xl">Instructor Evaluation</h1>
-            <p className="text-gray-200 mt-2">
-              Please evaluate each instructor based on the listed criteria.
-            </p>
-          </div>
+          <EvaluationHeader/>
 
           {!Object.values(submissionInfo).some(info => info.status === 'Evaluated') && (
             <YearSemesterSelector

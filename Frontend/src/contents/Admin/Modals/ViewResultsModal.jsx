@@ -42,7 +42,7 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
     setSending(true);
     try {
       await InstructorService.handleSendResult(instructor.id);
-      toast.success('Evaluation result sent successfully!');
+      toast.success('Email sent successfully!');
       setSent(true);
       setSending(false);
       setTimeout(() => {
@@ -59,7 +59,7 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <ToastContainer position="top-right" autoClose={6000} hideProgressBar={false} />
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-5xl max-h-[90vh]">
         {/* Header */}
         <div className="sticky top-0 bg-[#1F3463] text-white p-4 rounded-t-xl flex justify-between items-center">
           <h2 className="text-xl font-bold">{instructor.name}'s Evaluation Results</h2>
@@ -72,7 +72,7 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
           {/* Overall Rating */}
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">

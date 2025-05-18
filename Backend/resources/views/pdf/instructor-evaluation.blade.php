@@ -14,11 +14,16 @@
             border-bottom: 3px solid #2c3e50;
             padding-bottom: 15px;
             margin-bottom: 25px;
+            text-align: center;
         }
-        .header h1 {
+        .school-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .report-title {
             color: #2c3e50;
             font-size: 24px;
-            margin: 0 0 5px 0;
+            margin: 15px 0 5px 0;
             text-align: center;
             padding-bottom: 10px;
         }
@@ -91,11 +96,14 @@
 </head>
 <body>
     <div class="header">
-        <h1>Instructor Evaluation Report</h1>
+        <div class="school-header">
+            LA VERDAD CHRISTIAN COLLEGE INC.<br>
+            Mac Arthur Highway, Bray. Sampa.loc, Apalit, Pampanga
+        </div>
+        <div class="report-title">EVALUATION REPORT</div>
         <div class="report-info">
             <strong>Instructor:</strong> {{ $instructor->name }}<br>
-            Generated: {{ date('F j, Y') }}<br>
-            Institution: La Verdad Cristian College<br>
+            Generated: {{ date('F j, Y') }}
         </div>
     </div>
 

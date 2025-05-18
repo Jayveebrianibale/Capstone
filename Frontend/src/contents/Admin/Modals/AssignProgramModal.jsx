@@ -250,7 +250,6 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
                   onClick={fetchPrograms}
                   className="text-sm text-[#1F3463] dark:text-blue-400 hover:underline"
                 >
-                  Try again
                 </button>
               </div>
             )}
