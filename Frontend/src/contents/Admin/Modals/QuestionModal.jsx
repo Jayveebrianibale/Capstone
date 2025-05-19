@@ -227,7 +227,7 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
                   { question: "", type: "", category: "" }
                 ])
               }
-              className="px-4 py-2.5 text-[#1F3463] dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+              className="px-4 py-2.5 border border-[#1F3463] text-[#1F3463] dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
             >
               + Add Another Question
             </button>

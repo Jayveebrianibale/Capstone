@@ -10,51 +10,77 @@ export default function InstructorModal({
   isEditing,
   instructor,
 }) {
-  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [formDataList, setFormDataList] = useState([{ name: "", email: "" }]);
   const [isSaving, setIsSaving] = useState(false);
   const primaryColor = "#1F3463";
   const hoverColor = "#172a4d";
 
   useEffect(() => {
     if (isEditing && instructor) {
-      setFormData({
-        name: instructor.name || "",
-        email: instructor.email || "",
-      });
+      setFormDataList([{ name: instructor.name || "", email: instructor.email || "" }]);
     } else {
-      setFormData({ name: "", email: "" });
+      setFormDataList([{ name: "", email: "" }]);
     }
-  }, [isEditing, instructor]);
+  }, [isEditing, instructor, isOpen]);
 
-  const handleChange = (e) => {
+  const handleChange = (e, idx) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value.trimStart() }));
+    setFormDataList(prevList => {
+      const updated = [...prevList];
+      if (name === "email") {
+        // Auto-fill name if empty
+        if (!updated[idx].name.trim()) {
+          const username = value.split("@")[0];
+          const nameParts = username
+            .split(/[._-]/)
+            .filter(Boolean)
+            .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase());
+          updated[idx] = { ...updated[idx], email: value.trimStart(), name: nameParts.join(" ").replace(/ +/g, " ") };
+          return updated;
+        }
+      }
+      updated[idx] = { ...updated[idx], [name]: value.trimStart() };
+      return updated;
+    });
+  };
+
+  const handleAddRow = () => {
+    setFormDataList(prev => [...prev, { name: "", email: "" }]);
+  };
+
+  const handleRemoveRow = (idx) => {
+    setFormDataList(prev => prev.length > 1 ? prev.filter((_, i) => i !== idx) : prev);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.email.trim()) {
-      toast.warn("Please fill out all fields.");
-      return;
+    for (const formData of formDataList) {
+      if (!formData.name.trim() || !formData.email.trim()) {
+        toast.warn("Please fill out all fields for every instructor.");
+        return;
+      }
     }
-
     setIsSaving(true);
-
     try {
-      let response;
-      const apiUrl = isEditing && instructor?.id 
-        ? `http://localhost:8000/api/instructors/${instructor.id}`
-        : "http://localhost:8000/api/instructors";
-
-      const method = isEditing ? "put" : "post";
-      
-      response = await axios[method](apiUrl, formData);
-      toast.success(`Instructor ${isEditing ? 'updated' : 'added'} successfully!`);
-      
-      onSave(response.data);
+      let responses = [];
+      if (isEditing && instructor?.id) {
+        // Only allow editing one at a time
+        const apiUrl = `http://localhost:8000/api/instructors/${instructor.id}`;
+        const response = await axios.put(apiUrl, formDataList[0]);
+        responses.push(response.data);
+      } else {
+        // Add multiple instructors
+        for (const formData of formDataList) {
+          const apiUrl = "http://localhost:8000/api/instructors";
+          const response = await axios.post(apiUrl, formData);
+          responses.push(response.data);
+        }
+      }
+      toast.success(`Instructor${formDataList.length > 1 ? 's' : ''} ${isEditing ? 'updated' : 'added'} successfully!`);
+      onSave(responses);
       onClose();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to save instructor.");
+      toast.error(error.response?.data?.message || "Failed to save instructor(s)." );
     } finally {
       setIsSaving(false);
     }
@@ -64,15 +90,15 @@ export default function InstructorModal({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-md transform transition-all duration-300 ease-out">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-2xl transform transition-all duration-300 ease-out">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              {isEditing ? "Edit Instructor" : "New Instructor"}
+              {isEditing ? "Edit Instructor" : "New Instructor(s)"}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {isEditing ? "Update instructor details" : "Add a new instructor to the system"}
+              {isEditing ? "Update instructor details" : "Add one or more instructors to the system"}
             </p>
           </div>
           <button
@@ -84,45 +110,65 @@ export default function InstructorModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name Input */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Full Name
-            </label>
-            <div className="relative">
-              <User className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="John Doe"
-                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all"
-                required
-              />
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+          {formDataList.map((formData, idx) => (
+            <div key={idx} className="space-y-4 border-b pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0">
+              {/* Name Input Header with Remove Icon */}
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Full Name
+                </label>
+                {formDataList.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveRow(idx)}
+                    className="p-1.5 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                    title="Remove Instructor"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              {/* Name Input */}
+              <div className="relative">
+                <User className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={e => handleChange(e, idx)}
+                  placeholder="John Doe"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all"
+                  required
+                />
+              </div>
+              {/* Email Input */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={e => handleChange(e, idx)}
+                    placeholder="john.doe@example.com"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all"
+                    required
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* Email Input */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="john.doe@example.com"
-                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all"
-                required
-              />
-            </div>
-          </div>
-
+          ))}
+          {!isEditing && (
+            <button type="button" onClick={handleAddRow} className="w-full py-2.5 bg-transparent border border-[#1F3463] dark:border-gray-600 text-[#1F3463] dark:text-blue-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mb-2 font-semibold flex items-center justify-center gap-2">
+              + Add Another Instructor
+            </button>
+          )}
           {/* Form Actions */}
           <div className="flex justify-end gap-3 pt-4">
             <button
