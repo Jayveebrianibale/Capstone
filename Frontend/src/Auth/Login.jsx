@@ -19,7 +19,7 @@ function Login() {
       setLoading(true);
 
       axios
-        .get("http://127.0.0.1:8000/api/user", {
+        .get("https://capstone-production-bf29.up.railway.app/api/user", {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((response) => {
