@@ -22,11 +22,10 @@ import Bssw from "./pages/Admin/Courses/Bssw.jsx";
 import Bab from "./pages/Admin/Courses/Bab.jsx";
 import Bsis from "./pages/Admin/Courses/Bsis.jsx";
 import Act from "./pages/Admin/Courses/Act.jsx";
-
+// Basic Education
 import Intermediate from "./pages/Admin/Intermediate";
 import JuniorHigh from "./pages/Admin/JuniorHigh";
 import SeniorHigh from "./pages/Admin/SeniorHigh";
-
 
 // Protect routes if no token
 const PrivateRoute = ({ children }) => {
