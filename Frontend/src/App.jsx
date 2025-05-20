@@ -16,12 +16,12 @@ import Questionnaires from "./pages/Admin/Questionnaires";
 import Instructors from "./pages/Admin/Instructors";
 import Programs from "./pages/Admin/Programs";
 // Admin Courses
-import Bsa from "./pages/Admin/Courses/Bsa.jsx";
-import Bsais from "./pages/Admin/Courses/Bsais.jsx";
-import Bssw from "./pages/Admin/Courses/Bssw.jsx";
-import Bab from "./pages/Admin/Courses/Bab.jsx";
-import Bsis from "./pages/Admin/Courses/Bsis.jsx";
-import Act from "./pages/Admin/Courses/Act.jsx";
+import Bsa from "./pages/Admin/courses/Bsa.jsx";
+import Bsais from "./pages/Admin/courses/Bsais.jsx";
+import Bssw from "./pages/Admin/courses/Bssw.jsx";
+import Bab from "./pages/Admin/courses/Bab.jsx";
+import Bsis from "./pages/Admin/courses/Bsis.jsx";
+import Act from "./pages/Admin/courses/Act.jsx";
 // Basic Education
 import Intermediate from "./pages/Admin/Intermediate";
 import JuniorHigh from "./pages/Admin/JuniorHigh";
