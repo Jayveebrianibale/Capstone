@@ -98,7 +98,7 @@
     <div class="header">
         <div class="school-header">
             LA VERDAD CHRISTIAN COLLEGE INC.<br>
-            Mac Arthur Highway, Bray. Sampa.loc, Apalit, Pampanga
+            Mac Arthur Highway, Sampaloc Apalit, Pampanga 2016
         </div>
         <div class="report-title">EVALUATION REPORT</div>
         <div class="report-info">
