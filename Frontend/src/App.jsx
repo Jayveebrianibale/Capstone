@@ -16,7 +16,7 @@ import Questionnaires from "./pages/Admin/Questionnaires";
 import Instructors from "./pages/Admin/Instructors";
 import Programs from "./pages/Admin/Programs";
 // Admin Courses
-import Bsa from "./pages/Admin/Courses/Bsa";
+import temp_bsa from "./pages/Admin/Courses/temp_bsa";
 import Bsais from "./pages/Admin/Courses/Bsais";
 import Bssw from "./pages/Admin/Courses/Bssw";
 import Bab from "./pages/Admin/Courses/Bab";
@@ -128,7 +128,7 @@ function App() {
             }/>
 
             {/* Courses - Admin */}
-            <Route path="BSA" element={<ProtectedRoute allowedRoles={["Admin"]}><Bsa /></ProtectedRoute>} />
+            <Route path="BSA" element={<ProtectedRoute allowedRoles={["Admin"]}><temp_bsa /></ProtectedRoute>} />
             <Route path="BSAIS" element={<ProtectedRoute allowedRoles={["Admin"]}><Bsais /></ProtectedRoute>} />
             <Route path="BSSW" element={<ProtectedRoute allowedRoles={["Admin"]}><Bssw /></ProtectedRoute>} />
             <Route path="BAB" element={<ProtectedRoute allowedRoles={["Admin"]}><Bab /></ProtectedRoute>} />
