@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api/instructors";
+const API_URL = "https://capstone-production-bf29.up.railway.app/api/instructors";
 
 const InstructorService = {
   getAll: async () => {
@@ -60,7 +60,7 @@ const InstructorService = {
   submitEvaluation: async (evaluationData) => {
     const token = localStorage.getItem('authToken');
     const response = await axios.post(
-      'http://localhost:8000/api/evaluations',
+      'https://capstone-production-bf29.up.railway.app/api/evaluations',
       evaluationData,
       {
         headers: {
@@ -74,7 +74,7 @@ const InstructorService = {
   submitAllEvaluations: async (payload) => {
   const token = localStorage.getItem('authToken');
   const response = await axios.post(
-    'http://localhost:8000/api/evaluations/submit-all',
+    'https://capstone-production-bf29.up.railway.app/api/evaluations/submit-all',
     payload,
     {
       headers: {
@@ -91,7 +91,7 @@ const InstructorService = {
     const token = localStorage.getItem('authToken');
     try {
       const response = await axios.get(
-        'http://localhost:8000/api/evaluations',
+        'https://capstone-production-bf29.up.railway.app/api/evaluations',
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -109,7 +109,7 @@ const InstructorService = {
   handleSendResult: async (instructorId) => {
     try {
       const response = await axios.post(
-        `http://localhost:8000/api/instructors/${instructorId}/send-result`
+        `https://capstone-production-bf29.up.railway.app/api/instructors/${instructorId}/send-result`
       );
       return response.data;
     } catch (err) {

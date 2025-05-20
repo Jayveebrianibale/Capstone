@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://127.0.0.1:8000/api/programs";
+const API_URL = "https://capstone-production-bf29.up.railway.app/api/programs";
 
 const ProgramService = {
   async getAll() {

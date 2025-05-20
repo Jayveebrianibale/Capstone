@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api/grade-levels";
+const API_URL = "https://capstone-production-bf29.up.railway.app/api/grade-levels";
 
 const GradeLevelService = {
   // Get all grade levels

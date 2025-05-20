@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api/students';
+const API_URL = 'https://capstone-production-bf29.up.railway.app/api/students';
 
 const StudentService = {
   getAll: async () => {
