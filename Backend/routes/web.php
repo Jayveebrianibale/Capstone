@@ -40,6 +40,15 @@ Route::get('/test-mail', function () {
     return "Email sent!";
 });
 
+Route::get('/run-migrations', function () {
+    try {
+        \Artisan::call('migrate', ['--force' => true]);
+        return 'Migrations ran successfully!';
+    } catch (\Exception $e) {
+        return 'Migration error: ' . $e->getMessage();
+    }
+});
+
 
 Route::get('/broadcast-test', function () {
     broadcast(new TestWebSocketEvent());
