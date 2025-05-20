@@ -52,7 +52,7 @@ function Login() {
 
   const handleGoogleLogin = () => {
     setLoading(true);
-    window.location.href = "http://127.0.0.1:8000/api/auth/google";
+    window.location.href = "https://capstone-production-bf29.up.railway.app/api/auth/google";
   };
 
   return (
