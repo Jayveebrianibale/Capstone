@@ -31,7 +31,7 @@ const EvaluationForm = ({
           <h3 className="font-semibold text-base text-gray-800 dark:text-white">
             {idx + 1}. {q.category}
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300">{q.question}</p>
+          <p className="text-base text-gray-600 dark:text-gray-300">{q.question}</p>
           <select
             value={responses[instructor.id]?.[q.id]?.rating || ''}
             onChange={(e) => handleResponseChange(instructor.id, q.id, e.target.value)}

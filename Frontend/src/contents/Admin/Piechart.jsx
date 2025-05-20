@@ -35,46 +35,49 @@ export default function CustomPieChart() {
   };
 
   useEffect(() => {
-    EvaluationService.getTopInstructorDistributions().then((instructors) => {
+    EvaluationService.getAllInstructorDistributions().then((instructors) => {
       if (!instructors.length) return;
   
-      const inst = instructors[0];
+      // Aggregate counts across all instructors
+      const totalCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   
-      const totalRatings = [1, 2, 3, 4, 5].reduce(
-        (sum, r) => sum + parseInt(inst[`rating_${r}_count`], 10),
-        0
-      );
-  
-      const ratings = [5, 4, 3, 2, 1].map((r) => {
-        const count = parseInt(inst[`rating_${r}_count`], 10);
-        const percentage = totalRatings > 0 ? (count / totalRatings) * 100 : 0;
-  
-        return {
-          label: `${r}`,
-          value: count,
-          percentage,
-          color: colors[r],
-          description: descriptions[r],
-        };
+      instructors.forEach(inst => {
+        [1, 2, 3, 4, 5].forEach(r => {
+          totalCounts[r] += parseInt(inst[`rating_${r}_count`], 10) || 0;
+        });
       });
+  
+      const totalRatings = Object.values(totalCounts).reduce((sum, count) => sum + count, 0);
+  
+      const ratings = [5, 4, 3, 2, 1]
+        .map((r) => {
+          const count = totalCounts[r];
+          return {
+            label: `${r}`,
+            value: count,
+            percentage: totalRatings > 0 ? (count / totalRatings) * 100 : 0,
+            color: colors[r],
+            description: descriptions[r],
+          };
+        })
+        .filter(item => item.value > 0); // Optional: Remove if you want to show empty ratings
   
       setDistribution(ratings);
     });
   }, []);
   
-  
-  
-  const minSliceValue = 1;
+  // Then in your chartData:
   const chartData = {
     labels: distribution.map((item) => `${item.label}`),
     datasets: [
       {
-        data: distribution.map((item) => item.percentage > 0 ? item.percentage : minSliceValue),
+        data: distribution.map((item) => item.percentage),
         backgroundColor: distribution.map((item) => item.color),
         hoverBackgroundColor: distribution.map((item) => item.color),
       },
     ],
   };
+  
 
   const options = {
     responsive: true,
@@ -153,7 +156,7 @@ export default function CustomPieChart() {
 
           {/* Pie Chart */}
           <div
-            className="relative w-full max-w-[280px] aspect-square"
+            className="relative w-full max-w-[250px] aspect-square"
             onMouseLeave={() => setTooltip(null)}
           >
             <Pie ref={chartRef} data={chartData} options={options} />

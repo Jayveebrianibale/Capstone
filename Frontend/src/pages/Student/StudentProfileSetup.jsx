@@ -210,7 +210,7 @@ function StudentProfileSetup() {
           <AnimatePresence mode="wait">
             {step === 1 && (
               <motion.div key="step1" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800">What is your education level?</h3>
+                <h3 className="text-lg font-semibold text-gray-800">What is your Education Level?</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {["Higher Education", "Senior High", "Junior High", "Intermediate"].map((level) => (
                     <div
@@ -263,7 +263,7 @@ function StudentProfileSetup() {
 
             {step === 3 && educationLevel === "Higher Education" && (
               <motion.div key="step3" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800">Select your year level</h3>
+                <h3 className="text-lg font-semibold text-gray-800">Select your year Level</h3>
                 <select
                   className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463]"
                   value={selectedYearLevel}
@@ -294,13 +294,13 @@ function StudentProfileSetup() {
             <button
               onClick={step === totalSteps ? handleSubmit : () => setStep(step + 1)}
               disabled={isNextDisabled()}
-              className={`flex items-center gap-2 px-6 py-3 text-white rounded-xl transition ${
+              className={`flex items-center gap-2 px-4 py-2 text-white rounded-xl transition ${
                 isNextDisabled()
                   ? "bg-gray-300 cursor-not-allowed"
                   : "bg-[#1F3463] hover:bg-[#15294e]"
               }`}
             >
-              {step === totalSteps ? "Submit" : "Next"}
+              {step === totalSteps ? "Finish" : "Next"}
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

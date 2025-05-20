@@ -1,4 +1,5 @@
-import React from "react";
+import{ useEffect } from "react";
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import MainLayout from "./Layout/MainLayout";
@@ -11,7 +12,6 @@ import StudentProfileSetup from "./pages/Student/StudentProfileSetup";
 // Admin Pages
 import AdminDashboard from "./pages/Admin/ADashboard";
 import InstructorDashboard from "./pages/Instructor/InstructorDashboard";
-import Accounts from "./pages/Admin/Accounts";
 import Questionnaires from "./pages/Admin/Questionnaires";
 import Instructors from "./pages/Admin/Instructors";
 import Programs from "./pages/Admin/Programs";
@@ -51,7 +51,22 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
+
 function App() {
+
+  useEffect(() => {
+    const channel = window.Echo.channel("test-channel");
+  
+    channel.listen(".test-event", (e) => {
+      console.log("Received WebSocket Event:", e);
+      alert("WebSocket event received: " + e.message);
+    });
+  
+    return () => {
+      window.Echo.leave("test-channel");
+    };
+  }, []);
+  
   return (
     <Router>
       <Toaster position="top-right" reverseOrder={false} />
@@ -92,11 +107,6 @@ function App() {
             <Route path="Programs" element={
               <ProtectedRoute allowedRoles={["Admin"]}>
                 <Programs />
-              </ProtectedRoute>
-            }/>
-            <Route path="Accounts" element={
-              <ProtectedRoute allowedRoles={["Admin"]}>
-                <Accounts />
               </ProtectedRoute>
             }/>
             <Route path="Questions" element={

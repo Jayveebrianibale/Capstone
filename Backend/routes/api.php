@@ -40,7 +40,7 @@ Route::get('/check-evaluation/{instructorId}', [EvaluationController::class, 'ch
 Route::post('/evaluations/submit-all', [EvaluationController::class, 'submitAll'])->middleware('auth:sanctum');
 Route::get('/programs/{code}/instructor-results', [ProgramController::class, 'getInstructorResultsByProgram']);
 Route::get('/top-instructors', [EvaluationController::class, 'topRatedInstructors']);
-Route::get('/top-instructors/distribution', [EvaluationController::class, 'getTopInstructorDistributions']);
+Route::get('/instructor-distributions', [EvaluationController::class, 'getAllInstructorDistributions']);
 
 
 // Course Routes

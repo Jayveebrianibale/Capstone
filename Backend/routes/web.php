@@ -10,6 +10,7 @@ use BeyondCode\LaravelWebSockets\Facades\WebSocketsRouter;
 use BeyondCode\LaravelWebSockets\WebSockets\WebSocketHandler;
 use App\Http\Controllers\BroadcastController;
 use App\Mail\InstructorResultMail;
+use App\Events\TestWebSocketEvent;
 
 // ✅ Test Email Route
 Route::get('/verify-2fa', function () {
@@ -38,6 +39,13 @@ Route::get('/test-mail', function () {
 
     return "Email sent!";
 });
+
+
+Route::get('/broadcast-test', function () {
+    broadcast(new TestWebSocketEvent());
+    return 'Event broadcasted!';
+});
+
 
 Route::get('/', function () {
     return view('welcome');

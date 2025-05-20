@@ -23,49 +23,57 @@ class GoogleAuthController extends Controller
     public function handleGoogleCallback()
     {
         try {
-            // Get user info from Google
             $googleUser = Socialite::driver('google')->stateless()->user();
+            $email = $googleUser->getEmail();
 
-            // Check if the user already exists
-            $user = User::where('email', $googleUser->email)->first();
+            // Determine role based on email
+            $role = null;
 
-            // If user doesn't exist, create a new one
-            if (!$user) {
-                // Only allow this exact email for instructor
-                if ($googleUser->getEmail() === 'evaluationsystem2025@gmail.com') {
-                    $role = 'Instructor';
-                } elseif (str_contains($googleUser->email, '@student')) {
+            if ($email === 'jayveebrianibale29@gmail.com') {
+                $role = 'Instructor';
+            } elseif (str_contains($email, '@student')) {
+                // Only allow students from @student.laverdad.edu.ph
+                if (str_ends_with($email, '@student.laverdad.edu.ph')) {
                     $role = 'Student';
-                } elseif (str_contains($googleUser->email, '@gmail')) {
-                    $role = 'Admin';
                 } else {
-                    $role = 'Student';
+                    return response()->json([
+                        'error' => 'Only @student.laverdad.edu.ph student emails are allowed.'
+                    ], 403);
                 }
+            } elseif ($email === 'evaluationsystem2025@gmail.com') {
+                $role = 'Admin';
+            } else {
+                return response()->json([
+                    'error' => 'Unauthorized email domain.'
+                ], 403);
+            }
 
-                // Create a new user
+            // Check if user exists
+            $user = User::where('email', $email)->first();
+
+            if (!$user) {
+                // Create new user
                 $user = User::create([
                     'name' => $googleUser->name,
-                    'email' => $googleUser->email,
+                    'email' => $email,
                     'google_id' => $googleUser->id,
                     'profile_picture' => null,
                     'role' => $role,
                     'password' => bcrypt('defaultpassword'),
-                    'profile_completed' => false, // New users start with an incomplete profile
+                    'profile_completed' => false,
                 ]);
 
-                // Download and store the user's Google profile picture
+                // Save avatar
                 $localAvatar = $this->storeGoogleAvatar($googleUser->avatar, $user->id);
                 $user->update(['profile_picture' => $localAvatar]);
             }
 
-            // Create a new authentication token for the user
+            // Generate token
             $token = $user->createToken('authToken')->plainTextToken;
 
-            // Redirect the user to the frontend app with the token
+            // Redirect to frontend
             return redirect("http://localhost:5173/login?token={$token}");
-
         } catch (Exception $e) {
-            // Return error if something goes wrong
             return response()->json(['error' => 'Authentication failed'], 500);
         }
     }

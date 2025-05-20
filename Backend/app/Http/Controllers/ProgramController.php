@@ -186,6 +186,8 @@ class ProgramController extends Controller
             $comments = $responses->pluck('comment')->filter()->unique()->values();
 
             return [
+                'instructorId' => $instructor->id,
+                'email' => $instructor->email,
                 'name' => $instructor->name,
                 'pivot' => [
                     'yearLevel' => $instructor->pivot->yearLevel,
@@ -206,7 +208,7 @@ class ProgramController extends Controller
             ];
         });
 
-    return response()->json($results);
+        return response()->json($results);
+    }
 }
 
-}

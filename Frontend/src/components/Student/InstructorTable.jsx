@@ -86,10 +86,10 @@ const InstructorTable = ({
     <div className="mt-6 border rounded-lg shadow-sm bg-white dark:bg-gray-800">
       {/* Desktop Header */}
       <div className="hidden md:grid md:grid-cols-4 gap-4 p-4 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-b dark:border-gray-700">
-        <div className="font-semibold">Instructor</div>
-        <div className="font-semibold">Status</div>
-        <div className="font-semibold">Submitted At</div>
-        <div className="font-semibold text-center">Actions</div>
+        <div className="font-semibold uppercase tracking-wider">Instructor</div>
+        <div className="font-semibold uppercase tracking-wider">Status</div>
+        <div className="font-semibold uppercase tracking-wider">Submitted At</div>
+        <div className="font-semibold uppercase tracking-wider text-center">Actions</div>
       </div>
 
       {instructors.map((instructor) => {
@@ -139,30 +139,32 @@ const InstructorTable = ({
                       onClick={() => {
                         setViewOnlyInstructorId(null);
                         setExpandedInstructorId(isExpanded ? null : instructor.id);
-                      }}
-                      className={`px-3 py-1.5 rounded-lg text-sm ${
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-sm ${
                         saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
-                      } text-white`}
-                    >
-                      {saved ? 'Edit' : 'Evaluate'}
-                    </button>
-                  )}
-                </div>
-              </div>
+                        } text-white`}
+                      >
+                        {saved ? 'Edit' : 'Evaluate'}
+                      </button>
+                      )}
+                    </div>
+                    </div>
 
-              {status === 'Evaluated' && submittedAt && (
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Submitted: {new Date(submittedAt).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </div>
-              )}
-            </div>
+                    {status === 'Evaluated' && submittedAt && (
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Submitted: {new Date(submittedAt).toLocaleString('en-PH', { 
+                      month: 'short', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true,
+                      timeZone: 'Asia/Manila'
+                      })}
+                    </div>
+                    )}
+                  </div>
 
-            {/* Desktop Layout */}
+                  {/* Desktop Layout */}
             <div className="hidden md:grid md:grid-cols-4 gap-4 p-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700">
               <div className="font-semibold text-gray-900 dark:text-white">
                 {instructor.name}

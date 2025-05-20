@@ -20,8 +20,8 @@ const EvaluationService = {
   },
 
   // In EvaluationService.js
-  getTopInstructorDistributions: async () => {
-    const res = await axios.get('http://localhost:8000/api/top-instructors/distribution');
+  getAllInstructorDistributions: async () => {
+    const res = await axios.get('http://localhost:8000/api/instructor-distributions');
     return res.data.data;
   },
 

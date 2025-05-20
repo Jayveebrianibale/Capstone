@@ -24,6 +24,7 @@ class User extends Authenticatable
         'profile_completed',
         'educationLevel',
         'program_id',
+        'program_name',
         'yearLevel',
 
 
@@ -49,6 +50,10 @@ class User extends Authenticatable
             return $this->hasMany(Evaluation::class, 'instructor_id');
         }
 
+        public function program() {
+            return $this->belongsTo(Program::class);
+        }
+        
 
 //     public function getProfilePictureUrlAttribute()
 //     {

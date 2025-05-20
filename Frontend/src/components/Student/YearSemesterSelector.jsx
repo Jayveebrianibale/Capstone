@@ -4,7 +4,15 @@ const YearSemesterSelector = ({
   setFormReady, fetchAssignedInstructors,
   submissionInfo
 }) => {
-  const schoolYears = ['2023-2024', '2024-2025', '2025-2026'];
+  // Dynamically generate school years: current, next, and next+1
+  const getDynamicSchoolYears = () => {
+    const currentYear = new Date().getFullYear();
+    // If after June, increment to next school year start
+    const now = new Date();
+    const startYear = now.getMonth() >= 5 ? currentYear : currentYear - 1;
+    return [0, 1, 2].map(i => `${startYear + i}-${startYear + i + 1}`);
+  };
+  const schoolYears = getDynamicSchoolYears();
   const semesters = ['1st Semester', '2nd Semester'];
 
   return (

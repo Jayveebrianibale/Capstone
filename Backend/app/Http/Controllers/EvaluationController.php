@@ -182,7 +182,7 @@ class EvaluationController extends Controller {
             return response()->json($topInstructors);
         }
         // Get all average ratings for instructors (5, 4, 3, 2, 1)
-        public function getTopInstructorDistributions() {
+        public function getAllInstructorDistributions() {
             $instructors = DB::table('evaluations')
                 ->join('evaluation_responses', 'evaluations.id', '=', 'evaluation_responses.evaluation_id')
                 ->join('instructors', 'evaluations.instructor_id', '=', 'instructors.id')
@@ -199,12 +199,12 @@ class EvaluationController extends Controller {
                 )
                 ->groupBy('instructors.id', 'instructors.name')
                 ->orderByDesc('percentage')
-                ->limit(3)
                 ->get();
-
+        
             return response()->json([
                 'data' => $instructors
             ]);
         }
+        
 
 }
