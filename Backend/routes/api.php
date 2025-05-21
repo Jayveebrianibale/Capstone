@@ -86,6 +86,7 @@ Route::put('/grade-levels/{id}', [GradeLevelController::class, 'update']);
 Route::delete('/grade-levels/{id}', [GradeLevelController::class, 'destroy']);
 
 // Question Management Routes
+Route::post('/questions/bulk-upload', [QuestionController::class, 'bulkUpload']);
 Route::post('/questions', [QuestionController::class, 'store']); // Create
 Route::get('/questions', [QuestionController::class, 'index']); // Fetch all questions
 Route::put('/questions/{id}', [QuestionController::class, 'update']); // Update a question

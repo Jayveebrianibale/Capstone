@@ -10,11 +10,13 @@ import {
   FaToggleOn,
   FaToggleOff,
 } from "react-icons/fa";
+import { FiUpload } from 'react-icons/fi';
 import {
   fetchQuestions,
   saveQuestions,
   updateQuestion,
   deleteQuestion,
+  bulkUpload
 } from "../../services/QuestionService";
 import { toast, ToastContainer } from "react-toastify";
 import { useLoading } from "../../components/LoadingContext";
@@ -89,6 +91,45 @@ function Questionnaires() {
     setDeleteQuestionId(id);
     setConfirmModalOpen(true);
   };
+
+  const handleCSVUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setLoading(true);
+    try {
+      const result = await bulkUpload(file);
+      toast.success(result.message || "Questions uploaded successfully!");
+      // If result.data or result.questions contains the new list, update state
+      if (result && Array.isArray(result.data)) {
+        setQuestions(result.data);
+      } else if (result && Array.isArray(result.questions)) {
+        setQuestions(result.questions);
+      } else {
+        // fallback: fetch latest
+        const updatedQuestions = await fetchQuestions();
+        setQuestions(updatedQuestions);
+      }
+    } catch (error) {
+      toast.error(error.message || "Upload failed. Please check your CSV file.");
+    } finally {
+      setLoading(false);
+      e.target.value = null;
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    const csvContent = `question,type,category\nThe teacher is organized.,Likert Scale,Classroom Management\nThe teacher is respectful.,Likert Scale,Professionalism\n`;
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+  
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "questions_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
 
   const handleDelete = async () => {
     setLoading(true);
@@ -180,22 +221,49 @@ function Questionnaires() {
 
       {/* Table or Empty State */}
       {sortedQuestions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-96 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8">
-          <FaQuestionCircle className="w-20 h-20 text-[#1F3463] mb-4" />
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-            No questions found
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-6 text-center">
-            Get started by creating your first evaluation question.
+        <div className="flex flex-col items-center justify-center h-[70vh] bg-white border dark:bg-gray-800 rounded-2xl shadow-sm p-8">
+          <div className="flex justify-center">
+            <div className="w-16 h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
+              <FaQuestionCircle className="w-7 h-7 text-[#1F3463] dark:text-[#5d7cbf]" />
+            </div>
+          </div>
+        
+          {/* Text Content */}
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+            No questions yet
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-8 text-center max-w-md">
+            Get started by creating your first evaluation question or upload a CSV file.
           </p>
-          <button
-            onClick={handleAddClick}
-            className="bg-[#1F3463] hover:bg-[#19294f] text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all shadow-md"
-          >
-            <FaPlus className="w-4 h-4" />
-            Create First Question
-          </button>
-        </div>
+        
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+            <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all flex-1 cursor-pointer">
+              <FiUpload className="w-4 h-4" /> Upload CSV
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleCSVUpload}
+                className="hidden"
+              />
+            </label>
+          </div>
+        
+          {/* CSV Helper Text */}
+        <div className="mt-8 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Need a template?{' '}
+              <button
+                type="button"
+                onClick={handleDownloadTemplate}
+                className="underline text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e] focus:outline-none"
+              >
+                Download sample CSV
+              </button>
+            </p>
+          </div>
+      </div>
+      
       ) : (
         <div className="space-y-4">
           {/* Show as table for medium screens and up */}
