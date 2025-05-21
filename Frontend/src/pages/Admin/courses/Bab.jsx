@@ -8,6 +8,18 @@ import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
 import { Users, UserX } from "lucide-react";
 
+// Utility to map year level string/number to a number (1-4)
+function mapYearLevelToNumber(yearLevel) {
+  if (typeof yearLevel === "number") return yearLevel;
+  if (!yearLevel) return 0;
+  const str = yearLevel.toString().toLowerCase();
+  if (str.includes("1")) return 1;
+  if (str.includes("2")) return 2;
+  if (str.includes("3")) return 3;
+  if (str.includes("4")) return 4;
+  return 0;
+}
+
 function Bab() {
   const [activeTab, setActiveTab] = useState(0);
   const [mergedInstructorsByYear, setMergedInstructorsByYear] = useState([[], [], [], []]);

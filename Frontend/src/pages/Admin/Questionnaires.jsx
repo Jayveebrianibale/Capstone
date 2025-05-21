@@ -116,12 +116,14 @@ function Questionnaires() {
         );
         toast.success("Question updated successfully!");
       } else {
-        const savedQuestion = await saveQuestions(newQuestion);
-        setQuestions([...questions, savedQuestion]);
+        await saveQuestions(newQuestion);
+        // Fetch the latest questions to ensure correct text/IDs
+        const updatedQuestions = await fetchQuestions();
+        setQuestions(updatedQuestions);
         toast.success(
           questions.length === 0
             ? "First question created successfully!"
-            : "Question added successfully!"
+            : "Question(s) added successfully!"
         );
       }
     } catch (error) {
