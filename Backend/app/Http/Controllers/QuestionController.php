@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Question;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Class QuestionController
@@ -12,15 +13,54 @@ use App\Models\Question;
  */
 class QuestionController extends Controller
 {
-    /**
-     * Stores multiple questions in the database.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    public function bulkUpload(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        $path = $request->file('file')->getRealPath();
+        $rows = array_map('str_getcsv', file($path));
+
+        // first row = header
+        $header = array_map('trim', array_shift($rows));
+
+        $inserted = [];
+        $errors   = [];
+
+        foreach ($rows as $i => $row) {
+            $data = array_combine($header, $row);
+
+            $validator = Validator::make($data, [
+                'question' => 'required|string',
+                'type'     => 'required|string',
+                'category' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                $errors[] = [
+                    'row'    => $i + 2, // account for header + zero idx
+                    'errors' => $validator->errors()->all(),
+                ];
+                continue;
+            }
+
+            $inserted[] = Question::create([
+                'question' => $data['question'],
+                'type'     => $data['type'],
+                'category' => $data['category'],
+            ]);
+        }
+
+        return response()->json([
+            'message'   => 'Questions uploaded successfully',
+            'inserted'  => count($inserted),
+            'errors'    => $errors,
+        ], 201);
+    }
+
     public function store(Request $request)
     {
-        // Validate the incoming questions array
         $validated = $request->validate([
             'questions' => 'required|array|min:1',
             'questions.*.question' => 'required|string',
@@ -28,7 +68,6 @@ class QuestionController extends Controller
             'questions.*.category' => 'required|string',
         ]);
 
-        // Insert multiple questions at once
         $createdQuestions = Question::insert($validated['questions']);
 
         return response()->json([
@@ -37,23 +76,11 @@ class QuestionController extends Controller
         ], 201);
     }
 
-    /**
-     * Retrieves all questions.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function index()
     {
         return response()->json(Question::all());
     }
 
-    /**
-     * Updates a specific question by its ID.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function update(Request $request, $id)
     {
         $question = Question::find($id);
@@ -62,14 +89,12 @@ class QuestionController extends Controller
             return response()->json(['message' => 'Question not found'], 404);
         }
 
-        // Validate the updated data
         $request->validate([
             'question' => 'required|string',
             'type' => 'required|string',
             'category' => 'required|string',
         ]);
 
-        // Update the question with the validated data
         $question->update($request->all());
 
         return response()->json([
@@ -78,12 +103,6 @@ class QuestionController extends Controller
         ]);
     }
 
-    /**
-     * Deletes a specific question by its ID.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function destroy($id)
     {
         $question = Question::findOrFail($id);

@@ -116,6 +116,19 @@ function Instructors() {
     }
   };
 
+  // Download sample CSV for instructors
+  const handleDownloadTemplate = () => {
+    const csvContent = `name,email\nJohn Doe,johndoe@email.com\nJane Smith,janesmith@email.com\n`;
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "instructors_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Handler to fetch and show assigned programs
   const handleCheckDetails = async (instructor) => {
     setLoading(true);
@@ -231,12 +244,13 @@ function Instructors() {
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Need a template?{' '}
-              <a 
-                href="/sample.csv" 
-                className="underline text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e]"
+              <button
+                type="button"
+                onClick={handleDownloadTemplate}
+                className="underline text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e] focus:outline-none"
               >
                 Download sample CSV
-              </a>
+              </button>
             </p>
           </div>
         </div>
@@ -448,9 +462,6 @@ function Instructors() {
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1"
             aria-label="Close modal"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 011.414 1.414L11.414 10l4.293 4.293a1 1 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 01-1.414-1.414L8.586 10 4.293 5.707a1 1 010-1.414z" clipRule="evenodd" />
-            </svg>
           </button>
         </div>
 

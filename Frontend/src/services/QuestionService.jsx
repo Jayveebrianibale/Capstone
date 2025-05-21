@@ -44,3 +44,14 @@ export const deleteQuestion = async (id) => {
     throw error;
   }
 };
+
+export const bulkUpload = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await axios.post(`${API_URL}/bulk-upload`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+
+  return response.data;
+};
