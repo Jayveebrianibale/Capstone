@@ -8,6 +8,16 @@ import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
 import { Users, UserX } from "lucide-react";
 
+// Utility to map year level string/number to a number (1-2)
+function mapYearLevelToNumber(yearLevel) {
+  if (typeof yearLevel === "number") return yearLevel;
+  if (!yearLevel) return 0;
+  const str = yearLevel.toString().toLowerCase();
+  if (str.includes("1")) return 1;
+  if (str.includes("2")) return 2;
+  return 0;
+}
+
 function Act() {
   const [activeTab, setActiveTab] = useState(0);
   const [mergedInstructorsByYear, setMergedInstructorsByYear] = useState([[], []]);
@@ -42,12 +52,13 @@ function Act() {
         throw new Error("Invalid data format received");
       }
   
+      // Only 2 years for ACT
       const groupByYear = (data) => {
-        const grouped = [[], [], [], []];
+        const grouped = [[], []];
         data.forEach((item) => {
           const yearLevel = item?.pivot?.yearLevel;
           const year = mapYearLevelToNumber(yearLevel);
-          if (year >= 1 && year <= 4) grouped[year - 1].push(item);
+          if (year >= 1 && year <= 2) grouped[year - 1].push(item);
         });
         return grouped;
       };
