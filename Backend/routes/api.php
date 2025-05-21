@@ -70,6 +70,8 @@ Route::get('/test-cors', function () {
 
 
 //Programs Routes
+// Bulk‐upload programs via CSV
+Route::post('/programs/bulk-upload', [ProgramController::class, 'bulkUpload']);
 Route::get('/programs', [ProgramController::class, 'index']);
 Route::post('/programs', [ProgramController::class, 'store']);
 Route::get('/programs/{id}', [ProgramController::class, 'show']);

@@ -1,6 +1,5 @@
 import BaseModal from "./BaseModal";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
 export default function HigherEducationModal({
@@ -22,7 +21,6 @@ export default function HigherEducationModal({
   useEffect(() => {
     if (isOpen) {
       setIsLoading(true);
-      // Simulate loading state for better UX
       const timer = setTimeout(() => {
         setIsLoading(false);
       }, 500);
@@ -49,7 +47,6 @@ export default function HigherEducationModal({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
       const programData = {
         name: formData.name,
@@ -57,7 +54,6 @@ export default function HigherEducationModal({
         yearLevel: formData.yearLevel,
         category: "Higher Education",
       };
-
       await onSave(programData, isEditing, program?.id);
       onClose();
     } catch (error) {
@@ -71,42 +67,18 @@ export default function HigherEducationModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.2 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden relative"
-      >
-        <AnimatePresence>
-          {isLoading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm flex items-center justify-center z-10"
-            >
-              <div className="flex flex-col items-center gap-3">
-                <motion.div
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 180, 360],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="w-12 h-12 border-4 border-[#1F3463] border-t-transparent rounded-full"
-                />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  {isEditing ? "Loading program details..." : "Preparing form..."}
-                </span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden relative">
+        {/* Loading Overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm flex items-center justify-center z-10">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 border-4 border-[#1F3463] border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                {isEditing ? "Loading program details..." : "Preparing form..."}
+              </span>
+            </div>
+          </div>
+        )}
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
@@ -120,7 +92,6 @@ export default function HigherEducationModal({
             <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
-
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="space-y-4">
@@ -145,7 +116,6 @@ export default function HigherEducationModal({
                 required
               />
             </div>
-
             {/* Program Code */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
@@ -167,7 +137,6 @@ export default function HigherEducationModal({
                 required
               />
             </div>
-
             {/* Year Level */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
@@ -200,7 +169,6 @@ export default function HigherEducationModal({
               </select>
             </div>
           </div>
-
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4">
             <button
@@ -225,11 +193,7 @@ export default function HigherEducationModal({
             >
               {isSubmitting ? (
                 <>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                  />
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   Saving...
                 </>
               ) : (
@@ -238,7 +202,7 @@ export default function HigherEducationModal({
             </button>
           </div>
         </form>
-      </motion.div>
+      </div>
     </div>
   );
 }

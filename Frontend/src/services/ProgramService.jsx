@@ -82,6 +82,26 @@ const ProgramService = {
       throw error;
     }
   },
+
+  bulkUpload: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+  
+      const response = await axios.post(`${API_URL}/bulk-upload`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
+      console.log("Bulk Upload Response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Bulk upload failed:", error.response?.data || error.message);
+      throw error;
+    }
+  },  
+
   
 }
 

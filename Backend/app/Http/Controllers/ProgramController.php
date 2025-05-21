@@ -5,11 +5,80 @@ namespace App\Http\Controllers;
 use App\Models\Program;
 use Illuminate\Http\Request;
 use App\Models\Instructor;
+use Illuminate\Support\Facades\Validator;
 
 
 class ProgramController extends Controller
 {
     
+
+
+public function bulkUpload(Request $request) {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        $path = $request->file('file')->getRealPath();
+        $rows = array_map('str_getcsv', file($path));
+
+        // First row = header
+        $header = array_map('trim', array_shift($rows));
+
+        $inserted = [];
+        $errors   = [];
+
+        foreach ($rows as $i => $row) {
+            $data = array_combine($header, $row);
+            $data = array_map('trim', $data);
+
+            // Basic validation
+            $validator = Validator::make($data, [
+                'name'      => 'required|string|max:255',
+                'code'      => 'required|string|max:255',
+                'yearLevel' => 'nullable|string',
+                'category'  => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                $errors[] = [
+                    'row'    => $i + 2,
+                    'errors' => $validator->errors()->all(),
+                ];
+                continue;
+            }
+
+            // Duplicate check (same logic as store())
+            $existing = $data['category'] === 'SHS'
+                ? Program::where('name', $data['name'])->where('category','SHS')->first()
+                : Program::where('name',$data['name'])
+                        ->where('code',$data['code'])
+                        ->where('yearLevel',$data['yearLevel'])
+                        ->first();
+
+            if ($existing) {
+                $errors[] = [
+                    'row' => $i + 2,
+                    'errors' => ["Program already exists"],
+                ];
+                continue;
+            }
+
+            // Create
+            $inserted[] = Program::create([
+                'name'      => $data['name'],
+                'code'      => $data['code'],
+                'yearLevel' => $data['yearLevel'],
+                'category'  => ucwords(str_replace('_',' ',$data['category'])),
+            ]);
+        }
+
+        return response()->json([
+            'message'  => 'Bulk upload complete',
+            'inserted' => count($inserted),
+            'errors'   => $errors,
+        ], 201);
+    }
+
     //  Retrieves all programs.
     public function index()
     {

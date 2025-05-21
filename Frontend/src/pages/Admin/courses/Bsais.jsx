@@ -9,6 +9,32 @@ import { toast } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
 
+function mapYearLevelToNumber(yearLevel) {
+  if (typeof yearLevel === 'number') return yearLevel;
+  const level = String(yearLevel).toLowerCase().trim();
+  switch (level) {
+    case '1st year':
+    case 'first year':
+    case '1':
+      return 1;
+    case '2nd year':
+    case 'second year':
+    case '2':
+      return 2;
+    case '3rd year':
+    case 'third year':
+    case '3':
+      return 3;
+    case '4th year':
+    case 'fourth year':
+    case '4':
+      return 4;
+    default:
+      console.log('Invalid year level:', yearLevel);
+      return null;
+  }
+}
+
 function Bsais() {
   const [activeTab, setActiveTab] = useState(0);
   const [mergedInstructorsByYear, setMergedInstructorsByYear] = useState([[], [], [], []]);
@@ -38,11 +64,11 @@ function Bsais() {
         ProgramService.getInstructorsByProgramCode(programCode),
         ProgramService.getInstructorResultsByProgram(programCode),
       ]);
-  
+
       if (!Array.isArray(instructorsData) || !Array.isArray(resultsData)) {
         throw new Error("Invalid data format received");
       }
-  
+
       const groupByYear = (data) => {
         const grouped = [[], [], [], []];
         data.forEach((item) => {
@@ -52,10 +78,10 @@ function Bsais() {
         });
         return grouped;
       };
-  
+
       const instructorsGrouped = groupByYear(instructorsData);
       const resultsGrouped = groupByYear(resultsData);
-  
+
       const merged = instructorsGrouped.map((yearInstructors, yearIndex) => {
         const yearResults = resultsGrouped[yearIndex] || [];
         return yearInstructors.map(instructor => {
@@ -63,14 +89,12 @@ function Bsais() {
           return { ...instructor, ...result };
         });
       });
-  
+
       setMergedInstructorsByYear(merged);
       setNoInstructors(instructorsData.length === 0);
     } catch (error) {
       console.error("Data fetch failed:", error);
-  
       if (error?.response?.status === 404) {
-        // Specific handling for "Program not found"
         setNoInstructors(true);
         toast.info("No instructors found for this program.");
       } else {
@@ -80,7 +104,7 @@ function Bsais() {
     } finally {
       setLoading(false);
     }
-  };  
+  };
 
   useEffect(() => {
     fetchData();
