@@ -11,16 +11,63 @@ use App\Http\Requests\GetInstructorsByProgramAndYearRequest;
 use App\Http\Controllers\Controller;
 use App\Mail\InstructorResultMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 
 
 class InstructorController extends Controller
 {
     // Return a list of all instructors as JSON
-    public function index()
-    {
+    public function index() {
         return response()->json(Instructor::all());
     }
+
+    //BULK UPLOAD
+    public function bulkUpload(Request $request) {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        $file = $request->file('file');
+        $handle = fopen($file, 'r');
+
+        if (!$handle) {
+            return response()->json(['message' => 'Failed to open the file'], 400);
+        }
+
+        $header = fgetcsv($handle); // Get the first row as header
+        $inserted = [];
+        $skipped = [];
+
+        while (($row = fgetcsv($handle)) !== false) {
+            $data = array_combine($header, $row);
+
+            $validator = Validator::make($data, [
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:instructors,email',
+            ]);
+
+            if ($validator->fails()) {
+                $skipped[] = [
+                    'data' => $data,
+                    'errors' => $validator->errors()->all()
+                ];
+                continue;
+            }
+
+            $inserted[] = Instructor::create($data);
+        }
+
+        fclose($handle);
+
+        return response()->json([
+            'message' => 'Bulk upload complete',
+            'inserted' => count($inserted),
+            'skipped' => $skipped,
+        ]);
+    }
+
 
     // Create a new instructor
     public function store(Request $request)

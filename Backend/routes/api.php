@@ -61,6 +61,7 @@ Route::delete('/instructors/{id}', [InstructorController::class, 'destroy']);
 Route::get('/instructors/{id}/pdf', [PDFController::class, 'generatePDF']);
 Route::post('instructors/{id}/send-result', [InstructorController::class, 'sendResult']);
 Route::get('/instructors/{id}/programs', [InstructorController::class, 'getAssignedPrograms']);
+Route::post('/instructors/bulk-upload', [InstructorController::class, 'bulkUpload']);
 
 
 Route::get('/test-cors', function () {

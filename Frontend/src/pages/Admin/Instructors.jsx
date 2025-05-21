@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { FaPlus, FaEdit, FaTrash, FaBookOpen, FaSearch } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaBookOpen, FaSearch, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FiUpload } from 'react-icons/fi';
 import { toast, ToastContainer } from "react-toastify";
 import InstructorModal from "../../contents/Admin/InstructorModal";
 import ConfirmModal from "../../contents/Admin/Modals/InstructorConfirmModal";
@@ -8,7 +9,7 @@ import { useLoading } from "../../components/LoadingContext";
 import FullScreenLoader from "../../components/FullScreenLoader";
 import "react-toastify/dist/ReactToastify.css";
 import AssignProgramModal from "../../contents/Admin/Modals/AssignProgramModal";
-import { Users } from "lucide-react";
+import { Users, UserX } from "lucide-react";
 import { MdOutlineAssignmentTurnedIn } from "react-icons/md";
 
 function Instructors() {
@@ -29,6 +30,19 @@ function Instructors() {
   const [assignedProgramsModalOpen, setAssignedProgramsModalOpen] = useState(false);
   const [assignedPrograms, setAssignedPrograms] = useState([]);
   const [assignedProgramsInstructor, setAssignedProgramsInstructor] = useState(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const instructorsPerPage = 10;
+  const totalPages = Math.ceil(filteredInstructors.length / instructorsPerPage);
+  const paginatedInstructors = filteredInstructors.slice(
+    (currentPage - 1) * instructorsPerPage,
+    currentPage * instructorsPerPage
+  );
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
 
   useEffect(() => {
     fetchInstructors();
@@ -79,9 +93,27 @@ function Instructors() {
   };
 
   const handleAddInstructor = () => {
-    setCurrentInstructor(null);
+    setCurrentInstructor({ status: 'Active' }); // Set default status
     setIsEditing(false);
     setShowModal(true);
+  };
+
+  // Handle CSV bulk upload
+  const handleCSVUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setLoading(true);
+    try {
+      const result = await InstructorService.bulkUpload(file);
+      toast.success(result.message || "Instructors uploaded successfully!");
+      fetchInstructors();
+    } catch (error) {
+      toast.error(error.message || "Upload failed. Please check your CSV file.");
+    } finally {
+      setLoading(false);
+      // Reset file input so user can re-upload if needed
+      e.target.value = null;
+    }
   };
 
   // Handler to fetch and show assigned programs
@@ -134,7 +166,7 @@ function Instructors() {
       {loading && <FullScreenLoader />}
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Instructor Management
@@ -144,15 +176,19 @@ function Instructors() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          <div className="relative flex-1">
-            <FaSearch className="absolute left-4 top-3.5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search instructors..."
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all"
-            />
+        <div className="flex-1">
+            <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-[#1F3463] focus-within:border-transparent transition-all">
+              <div className="pl-4 pr-2 text-gray-400">
+                <FaSearch className="w-4 h-4" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search instructors..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full py-2.5 pr-4 bg-transparent outline-none"
+              />
+            </div>
           </div>
           <button
             onClick={handleAddInstructor}
@@ -163,26 +199,50 @@ function Instructors() {
         </div>
       </div>
 
-      {/* No Instructors Found */}
-      {instructors.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-[70vh] bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
-          <Users className="w-20 h-20 text-gray-400 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-            No Instructors Found
+        {instructors.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-[70vh] bg-white border dark:bg-gray-800 rounded-2xl shadow-sm p-8">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
+                <UserX className="w-7 h-7 text-[#1F3463] dark:text-[#5d7cbf]" />
+              </div>
+            </div>
+          {/* Text Content */}
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+            No instructors yet
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-4 text-center">
-            Start by adding new instructors to the system
+          <p className="text-gray-500 dark:text-gray-400 mb-8 text-center max-w-md">
+            Get started by adding new instructors individually or upload a CSV file
           </p>
-          <button
-            onClick={handleAddInstructor}
-            className="bg-[#1F3463] hover:bg-[#19294f] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
-          >
-            <FaPlus className="w-4 h-4 text-sm font-semibold" /> Add First Instructor
-          </button>
+          
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md"> 
+            <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all flex-1 cursor-pointer">
+              <FiUpload className="w-4 h-4" /> Upload CSV
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleCSVUpload}
+                className="hidden"
+              />
+            </label>
+          </div>
+          
+          {/* CSV Helper Text */}
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Need a template?{' '}
+              <a 
+                href="/sample.csv" 
+                className="underline text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e]"
+              >
+                Download sample CSV
+              </a>
+            </p>
+          </div>
         </div>
-      ) : (
-        <>
-        {/* Desktop Table - md+ */}
+        ) : (
+          <>
+        
         <div className="hidden md:block bg-white border dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-4">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -194,13 +254,16 @@ function Instructors() {
                   <th className="px-6 py-3 text-left text-xs font-medium  dark:text-gray-400 uppercase tracking-wider">
                     Email
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium  dark:text-gray-400 uppercase tracking-wider">
+                    Status
+                  </th>
                   <th className="px-6 py-3 text-right text-xs font-medium dark:text-gray-400 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredInstructors.map((inst) => (
+                {paginatedInstructors.map((inst) => (
                   <tr
                     key={inst.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-700/10 transition-colors"
@@ -223,9 +286,12 @@ function Instructors() {
                       <div className="text-sm text-gray-900 dark:text-gray-200">
                         {inst.email}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Last active: {inst.last_active || 'N/A'}
-                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#22c55e' }}></span>
+                        {inst.status || 'Active'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end items-center gap-2">
@@ -272,6 +338,41 @@ function Instructors() {
             </table>
           </div>
         </div>
+        {/* Pagination UI */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-1 py-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`w-8 h-8 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed`}
+              aria-label="Previous page"
+            >
+              <FaChevronLeft className="w-4 h-4" />
+            </button>
+            {[...Array(totalPages)].map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => handlePageChange(idx + 1)}
+                className={`w-8 h-8 flex items-center justify-center rounded-md font-semibold border border-[#1F3463] mx-0.5 text-sm ${
+                  currentPage === idx + 1
+                    ? 'bg-[#1F3463] text-white'
+                    : 'bg-white text-[#1F3463] dark:bg-gray-900'
+                } hover:bg-[#1F3463] hover:text-white transition`}
+                aria-label={`Page ${idx + 1}`}
+              >
+                {idx + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`w-8 h-8 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed`}
+              aria-label="Next page"
+            >
+              <FaChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       
         {/* Mobile Grid - below md */}
         <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -348,7 +449,7 @@ function Instructors() {
             aria-label="Close modal"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 011.414 1.414L11.414 10l4.293 4.293a1 1 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 01-1.414-1.414L8.586 10 4.293 5.707a1 1 010-1.414z" clipRule="evenodd" />
             </svg>
           </button>
         </div>
