@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { FaEdit, FaTrash, FaSearch, FaPlus } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import { FiUpload } from 'react-icons/fi';
 import ProgramService from "../../services/ProgramService";
 import GradeLevelService from "../../services/GradeLevelService";
 import { toast, ToastContainer } from "react-toastify";
@@ -10,6 +11,7 @@ import HigherEducationModal from "../../contents/Admin/Modals/HigherEducationMod
 import SeniorHighModal from "../../contents/Admin/Modals/SeniorHighModal";
 import JuniorHighModal from "../../contents/Admin/Modals/JuniorHighModal";
 import IntermediateModal from "../../contents/Admin/Modals/IntermediateModal";
+import Papa from "papaparse";
 
 function Programs() {
   const [programs, setPrograms] = useState([]);
@@ -88,6 +90,41 @@ function Programs() {
     setActiveModal(activeTab);
   };
 
+  const handleCSVUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setLoading(true);
+    try {
+      const result = await ProgramService.bulkUpload(file);
+      toast.success(result.message || "Programs uploaded successfully!");
+      fetchPrograms(); // Refresh the list
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Upload failed. Please check your CSV file.");
+    } finally {
+      setLoading(false);
+      e.target.value = null;
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    const csvContent = `name,code,category,yearLevel
+      Bachelor of Science in Information Systems,BSIS,Higher Education,1st - 4th Year
+      Bachelor of Science in Accountancy,BSA,Higher Education,1st - 4th Year
+      Bachelor of Science in Social Work,BSSW,Higher Education,1st - 4th Year
+      Grade 7,JHS,Junior High,"Grade 7"
+      Grade 10,JHS,Junior High,"Grade 10"`;
+  
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "programs_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+
   const handleSaveProgram = async (programData, isEditing, programId) => {
     try {
       let programResponse;
@@ -141,18 +178,24 @@ function Programs() {
       if (activeTab === "Higher Education") {
         await ProgramService.delete(deleteProgramId);
       } else {
-        // For non-Higher Education programs, we need to delete both the program and grade level
+        let programIdToDelete = deleteProgramId;
         const gradeLevel = gradeLevels.find(gl => gl.id === deleteProgramId);
+        if (gradeLevel && gradeLevel.program_id) {
+          programIdToDelete = gradeLevel.program_id;
+        } else if (!gradeLevel) {
+          const match = programs.find(p =>
+            p.id === deleteProgramId
+          );
+          if (match) programIdToDelete = match.id;
+        }
+        // Delete the program (always)
+        await ProgramService.delete(programIdToDelete);
+        // Optionally, also delete the grade level if it exists
         if (gradeLevel) {
-          // First delete the grade level
           await GradeLevelService.delete(deleteProgramId);
-          // Then delete the associated program
-          if (gradeLevel.program_id) {
-            await ProgramService.delete(gradeLevel.program_id);
-          }
         }
       }
-      toast.success("Item deleted successfully!");
+      toast.success("Program deleted successfully!");
       await fetchPrograms();
       await fetchGradeLevels();
     } catch (error) {
@@ -181,16 +224,15 @@ function Programs() {
         </div>
         
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <div className="relative flex-1">
-            <FaSearch className="absolute left-4 top-3.5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search programs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all text-base"
-            />
-          </div>
+        <div className="flex-1 flex items-center">
+          <input
+            type="text"
+            placeholder="Search programs..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-3 pr-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all text-base"
+          />
+        </div>
           <button
             onClick={openAddProgramModal}
             className={`bg-[#1F3463] hover:bg-[#172a4d] text-white px-3 py-2.5 rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap text-base font-medium`}
@@ -222,24 +264,49 @@ function Programs() {
 
       {/* Content Section */}
       {getFilteredItems().length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-96 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
-          <div className="w-20 h-20 bg-[#1F3463]/10 dark:bg-[#1F3463]/20 rounded-full flex items-center justify-center mb-4">
-            <FaPlus className="w-8 h-8 text-[#1F3463] dark:text-[#1F3463]/80" />
+        <div className="flex flex-col items-center justify-center h-[70vh] bg-white border dark:bg-gray-800 rounded-2xl shadow-sm p-8">
+          <div className="flex justify-center">
+            <div className="w-16 h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
+              <FiUpload className="w-7 h-7 text-[#1F3463] dark:text-[#5d7cbf]" />
+            </div>
           </div>
-          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-            No {activeTab} Programs Found
+        
+          {/* Text Content */}
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+            No Programs Found
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 text-center mb-4">
-            Start by adding new programs to {activeTab}
+          <p className="text-gray-500 dark:text-gray-400 mb-8 text-center max-w-md">
+            Start by adding new programs to {activeTab} or upload a CSV file.
           </p>
-          <button
-            onClick={openAddProgramModal}
-            className={`bg-[${primaryColor}] hover:bg-[${hoverColor}] text-white px-6 py-2.5 rounded-lg flex items-center gap-2 transition-colors`}
-          >
-            <FaPlus className="w-4 h-4" />
-            Add Program
-          </button>
+        
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+            <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all flex-1 cursor-pointer">
+              <FiUpload className="w-4 h-4" /> Upload CSV
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleCSVUpload}
+                className="hidden"
+              />
+            </label>
+          </div>
+        
+          {/* CSV Helper Text */}
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Need a template?{' '}
+              <button
+                type="button"
+                onClick={handleDownloadTemplate}
+                className="underline text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e] focus:outline-none"
+              >
+                Download sample CSV
+              </button>
+            </p>
+          </div>
         </div>
+        
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
@@ -248,6 +315,9 @@ function Programs() {
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Program
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Program Code
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Details
@@ -271,17 +341,17 @@ function Programs() {
                             <p className="font-medium text-gray-900 dark:text-gray-200">
                               {item.name.split(' - ')[0]}
                             </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {item.code || "N/A"}
-                            </p>
                           </div>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-700 dark:text-gray-200">
+                        {item.code || "N/A"}
                       </td>
                       <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
                         <div className="flex flex-col gap-1">
                           {isProgram ? (
                             <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm">
-                              Year Level: {item.yearLevel || "N/A"}
+                               {item.yearLevel || "N/A"}
                             </span>
                           ) : (
                             <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm">
