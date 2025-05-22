@@ -54,6 +54,7 @@ useEffect(() => {
 
   api.get("/user", {
     headers: { Authorization: `Bearer ${token}` },
+    withCredentials: true,
   })
     .then((response) => {
       const updatedUser = response.data;
