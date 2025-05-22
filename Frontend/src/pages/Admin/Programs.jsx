@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPlus, FaRegFolderOpen } from "react-icons/fa";
 import { FiUpload } from 'react-icons/fi';
 import ProgramService from "../../services/ProgramService";
 import GradeLevelService from "../../services/GradeLevelService";
@@ -11,7 +11,6 @@ import HigherEducationModal from "../../contents/Admin/Modals/HigherEducationMod
 import SeniorHighModal from "../../contents/Admin/Modals/SeniorHighModal";
 import JuniorHighModal from "../../contents/Admin/Modals/JuniorHighModal";
 import IntermediateModal from "../../contents/Admin/Modals/IntermediateModal";
-import Papa from "papaparse";
 
 function Programs() {
   const [programs, setPrograms] = useState([]);
@@ -68,7 +67,7 @@ function Programs() {
     // Map the tab name to the correct category codes
     const categoryMap = {
       "higher education": ["Higher Education"],
-      "senior high": ["SHS"],
+      "senior high": ["SHS", "Senior High"],
       "junior high": ["Junior High", "Jhs", "jhs"],
       "intermediate": ["Intermediate"]
     };
@@ -267,7 +266,7 @@ function Programs() {
         <div className="flex flex-col items-center justify-center h-[70vh] bg-white border dark:bg-gray-800 rounded-2xl shadow-sm p-8">
           <div className="flex justify-center">
             <div className="w-16 h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
-              <FiUpload className="w-7 h-7 text-[#1F3463] dark:text-[#5d7cbf]" />
+              <FaRegFolderOpen className="w-8 h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
             </div>
           </div>
         
@@ -280,7 +279,7 @@ function Programs() {
           </p>
         
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+          <div className="flex flex-col sm:flex-row gap-4 max-w-md">
             <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all flex-1 cursor-pointer">
               <FiUpload className="w-4 h-4" /> Upload CSV
               <input

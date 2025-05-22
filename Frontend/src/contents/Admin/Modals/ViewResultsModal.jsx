@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { fetchQuestions } from '../../../services/QuestionService';
+import QuestionsService from '../../../services/QuestionService';
 import { FiMail, FiLoader, FiCheck } from 'react-icons/fi';
 import { HiOutlineDocumentText } from 'react-icons/hi';
 import InstructorService from '../../../services/InstructorService';
 import { toast, ToastContainer } from 'react-toastify';
+
+const baseURL = import.meta.env.VITE_API_URL;
 
 const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
   const [questions, setQuestions] = useState([]);
@@ -17,7 +19,7 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
       if (isOpen) {
         try {
           setLoadingQuestions(true);
-          const fetchedQuestions = await fetchQuestions();
+          const fetchedQuestions = await QuestionsService.getAll();
           setQuestions(fetchedQuestions);
           setError(null);
         } catch (err) {
@@ -147,7 +149,7 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
           <div className="flex flex-col sm:flex-row gap-4">
             {/* View PDF Button */}
             <button
-              onClick={() => window.open(`http://localhost:8000/api/instructors/${instructor.id}/pdf`, '_blank')}
+              onClick={() => window.open(`${baseURL}/instructors/${instructor.id}/pdf`, '_blank')}
               className="flex-1 flex items-center justify-center gap-2 bg-[#1F3463]/90 text-white py-3 px-6 rounded-xl font-medium
                 shadow-lg shadow-[#1F3463]/20 hover:shadow-xl hover:shadow-[#1F3463]/30
                 hover:bg-[#2a4585]/90 active:scale-[0.98] transform transition-all duration-200

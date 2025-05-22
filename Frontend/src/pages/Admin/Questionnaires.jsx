@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import QuestionModal from "../../contents/Admin/Modals/QuestionModal";
 import ConfirmModal from "../../components/ConfirmModal";
+import QuestionsService from '../../services/QuestionService';
 import {
   FaPlus,
   FaEdit,
@@ -11,13 +12,6 @@ import {
   FaToggleOff,
 } from "react-icons/fa";
 import { FiUpload } from 'react-icons/fi';
-import {
-  fetchQuestions,
-  saveQuestions,
-  updateQuestion,
-  deleteQuestion,
-  bulkUpload
-} from "../../services/QuestionService";
 import { toast, ToastContainer } from "react-toastify";
 import { useLoading } from "../../components/LoadingContext";
 import FullScreenLoader from "../../components/FullScreenLoader";
@@ -40,7 +34,7 @@ function Questionnaires() {
 
   useEffect(() => {
     setLoading(true);
-    fetchQuestions()
+    QuestionsService.getAll()
       .then((data) => setQuestions(data))
       .catch((err) => {
         console.error("Error fetching questions:", err);
@@ -97,7 +91,7 @@ function Questionnaires() {
     if (!file) return;
     setLoading(true);
     try {
-      const result = await bulkUpload(file);
+      const result = await QuestionsService.bulkUpload(file);
       toast.success(result.message || "Questions uploaded successfully!");
       // If result.data or result.questions contains the new list, update state
       if (result && Array.isArray(result.data)) {
@@ -106,7 +100,7 @@ function Questionnaires() {
         setQuestions(result.questions);
       } else {
         // fallback: fetch latest
-        const updatedQuestions = await fetchQuestions();
+        const updatedQuestions = await QuestionsService.getAll();
         setQuestions(updatedQuestions);
       }
     } catch (error) {
@@ -134,7 +128,7 @@ function Questionnaires() {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await deleteQuestion(deleteQuestionId);
+      await QuestionsService.delete(deleteQuestionId);
       setQuestions(questions.filter((q) => q.id !== deleteQuestionId));
       toast.success("Question deleted successfully!");
     } catch (error) {
@@ -149,7 +143,7 @@ function Questionnaires() {
     setLoading(true);
     try {
       if (isEditing) {
-        await updateQuestion(questionToEdit.id, newQuestion);
+        await QuestionsService.update(questionToEdit.id, newQuestion);
         setQuestions(
           questions.map((q) =>
             q.id === questionToEdit.id ? { ...q, ...newQuestion } : q
@@ -157,14 +151,14 @@ function Questionnaires() {
         );
         toast.success("Question updated successfully!");
       } else {
-        await saveQuestions(newQuestion);
+        await QuestionsService.save(newQuestion);
         // Fetch the latest questions to ensure correct text/IDs
-        const updatedQuestions = await fetchQuestions();
+        const updatedQuestions = await QuestionsService.getAll();
         setQuestions(updatedQuestions);
         toast.success(
           questions.length === 0
             ? "First question created successfully!"
-            : "Question(s) added successfully!"
+            : "Question added successfully!"
         );
       }
     } catch (error) {
@@ -237,7 +231,7 @@ function Questionnaires() {
           </p>
         
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+          <div className="flex flex-col sm:flex-row gap-4 max-w-md">
             <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all flex-1 cursor-pointer">
               <FiUpload className="w-4 h-4" /> Upload CSV
               <input
@@ -427,6 +421,8 @@ function Questionnaires() {
           onClose={() => setConfirmModalOpen(false)}
           onConfirm={handleDelete}
           message="Are you sure you want to delete this question?"
+          loading={loading}
+          
         />
       )}
     </main>

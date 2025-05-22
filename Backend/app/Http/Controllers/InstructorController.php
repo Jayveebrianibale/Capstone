@@ -62,7 +62,7 @@ class InstructorController extends Controller
         fclose($handle);
 
         return response()->json([
-            'message' => 'Bulk upload complete',
+            'message' => 'Instructors upload complete',
             'inserted' => count($inserted),
             'skipped' => $skipped,
         ]);

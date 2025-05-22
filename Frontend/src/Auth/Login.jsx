@@ -5,6 +5,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import FullScreenLoader from "../components/FullScreenLoader";
+import api from "../services/api";
 
 function Login() {
   const navigate = useNavigate();
@@ -13,13 +14,18 @@ function Login() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
-
+  
     if (token) {
       localStorage.setItem("authToken", token);
       setLoading(true);
+<<<<<<< HEAD
 
       axios
         .get("https://capstone-production-bf29.up.railway.app/api/user", {
+=======
+  
+      api.get("/user", {
+>>>>>>> Jeibii
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((response) => {
@@ -37,7 +43,7 @@ function Login() {
             Instructor: "/InstructorDashboard",
             Admin: "/AdminDashboard",
           };
-
+  
           navigate(dashboardRoutes[role] || "/", { replace: true });
         })
         .catch(() => {
@@ -52,8 +58,13 @@ function Login() {
 
   const handleGoogleLogin = () => {
     setLoading(true);
+<<<<<<< HEAD
     window.location.href = "https://capstone-production-bf29.up.railway.app/api/auth/google";
+=======
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+>>>>>>> Jeibii
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-4">

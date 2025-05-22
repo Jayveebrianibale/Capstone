@@ -73,7 +73,7 @@ public function bulkUpload(Request $request) {
         }
 
         return response()->json([
-            'message'  => 'Bulk upload complete',
+            'message'  => 'Programs upload complete',
             'inserted' => count($inserted),
             'errors'   => $errors,
         ], 201);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import axios from "axios";
+import api from "../../../services/api";
 
 export default function ProgramModal({ isOpen, onClose, onSave, isEditing, program, selectedCategory }) {
   const [formData, setFormData] = useState({
@@ -44,35 +44,45 @@ export default function ProgramModal({ isOpen, onClose, onSave, isEditing, progr
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!formData.name || !formData.yearOrGrade || (selectedCategory === "Higher_Education" && !formData.code)) {
+  
+    if (
+      !formData.name ||
+      !formData.yearOrGrade ||
+      (selectedCategory === "Higher_Education" && !formData.code)
+    ) {
       toast.warn("Please fill out all required fields.");
       return;
     }
-
+  
     setIsSaving(true);
-
+  
     const payload = {
       name: formData.name,
       category: selectedCategory,
       code: selectedCategory === "Higher_Education" ? formData.code : null,
-      sectionName: ["Intermediate", "Junior_High"].includes(selectedCategory) ? formData.sectionName : null,
+      sectionName: ["Intermediate", "Junior_High"].includes(selectedCategory)
+        ? formData.sectionName
+        : null,
       strandName: selectedCategory === "Senior_High" ? formData.strandName : null,
-      levels: selectedCategory === "Higher_Education" ? [{ name: formData.yearOrGrade }] : [],
+      levels:
+        selectedCategory === "Higher_Education"
+          ? [{ name: formData.yearOrGrade }]
+          : [],
     };
-
+  
     console.log("Payload to be sent:", payload);
-
+  
     try {
       let response;
+  
       if (isEditing && program?.id) {
-        response = await axios.put(`http://localhost:8000/api/programs/${program.id}`, payload);
+        response = await api.put(`/programs/${program.id}`, payload);
         toast.success("Program updated successfully!");
       } else {
-        response = await axios.post("http://localhost:8000/api/programs", payload);
+        response = await api.post("/programs", payload);
         toast.success("Program added successfully!");
       }
-
+  
       onSave(response.data);
       onClose();
     } catch (error) {
@@ -82,7 +92,7 @@ export default function ProgramModal({ isOpen, onClose, onSave, isEditing, progr
       setIsSaving(false);
     }
   };
-
+  
   if (!isOpen) return null;
 
   return (

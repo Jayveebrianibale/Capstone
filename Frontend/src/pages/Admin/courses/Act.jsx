@@ -10,12 +10,22 @@ import { Users, UserX } from "lucide-react";
 
 // Utility to map year level string/number to a number (1-2)
 function mapYearLevelToNumber(yearLevel) {
-  if (typeof yearLevel === "number") return yearLevel;
-  if (!yearLevel) return 0;
-  const str = yearLevel.toString().toLowerCase();
-  if (str.includes("1")) return 1;
-  if (str.includes("2")) return 2;
-  return 0;
+  if (typeof yearLevel === 'number') return yearLevel;
+  if (!yearLevel) return null;
+  const level = String(yearLevel).toLowerCase().trim();
+  switch (level) {
+    case '1st year':
+    case 'first year':
+    case '1':
+      return 1;
+    case '2nd year':
+    case 'second year':
+    case '2':
+      return 2;
+    default:
+      console.log('Invalid year level:', yearLevel);
+      return null;
+  }
 }
 
 function Act() {
@@ -47,12 +57,11 @@ function Act() {
         ProgramService.getInstructorsByProgramCode(programCode),
         ProgramService.getInstructorResultsByProgram(programCode),
       ]);
-  
+
       if (!Array.isArray(instructorsData) || !Array.isArray(resultsData)) {
         throw new Error("Invalid data format received");
       }
-  
-      // Only 2 years for ACT
+
       const groupByYear = (data) => {
         const grouped = [[], []];
         data.forEach((item) => {
@@ -62,10 +71,10 @@ function Act() {
         });
         return grouped;
       };
-  
+
       const instructorsGrouped = groupByYear(instructorsData);
       const resultsGrouped = groupByYear(resultsData);
-  
+
       const merged = instructorsGrouped.map((yearInstructors, yearIndex) => {
         const yearResults = resultsGrouped[yearIndex] || [];
         return yearInstructors.map(instructor => {
@@ -73,14 +82,12 @@ function Act() {
           return { ...instructor, ...result };
         });
       });
-  
+
       setMergedInstructorsByYear(merged);
       setNoInstructors(instructorsData.length === 0);
     } catch (error) {
       console.error("Data fetch failed:", error);
-  
       if (error?.response?.status === 404) {
-        // Specific handling for "Program not found"
         setNoInstructors(true);
         toast.info("No instructors found for this program.");
       } else {
@@ -91,7 +98,7 @@ function Act() {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchData();
   }, [programCode, setLoading]);

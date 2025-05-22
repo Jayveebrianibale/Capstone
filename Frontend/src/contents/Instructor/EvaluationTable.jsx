@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
-import { fetchQuestions } from '../../services/QuestionService';
+import QuestionsService from '../../services/QuestionService';
 import ProgramService from '../../services/ProgramService'; 
 
 export function EvaluationTable({ instructorId, programCode }) {
@@ -13,7 +13,7 @@ export function EvaluationTable({ instructorId, programCode }) {
     async function fetchData() {
       setLoading(true);
       try {
-        const fetchedQuestions = await fetchQuestions();
+        const fetchedQuestions = await QuestionsService.getAll();
         setQuestions(fetchedQuestions);
         if (programCode && instructorId) {
           const allResults = await ProgramService.getInstructorResultsByProgram(programCode);
