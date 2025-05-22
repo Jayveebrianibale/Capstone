@@ -70,17 +70,25 @@ class InstructorController extends Controller
 
 
     // Create a new instructor
-    public function store(Request $request)
-    {
-        $request->validate([
+    public function store(Request $request) {
+
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:instructors',
+            'email' => 'required|email|unique:instructors,email',
         ]);
 
-        // Create and return the new instructor
-        $instructor = Instructor::create($request->all());
-        return response()->json($instructor, 201);
+        $instructor = Instructor::create($validated);
+
+        return response()->json([
+            'message' => 'Instructor created successfully',
+            'instructor' => [
+                'id' => $instructor->id,
+                'name' => $instructor->name,
+                'email' => $instructor->email,
+            ],
+        ], 201);
     }
+
 
     // Update an instructor's information
     public function update(Request $request, $id)
