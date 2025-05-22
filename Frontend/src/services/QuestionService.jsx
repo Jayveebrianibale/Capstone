@@ -1,17 +1,8 @@
 import api from "../services/api";
 
-<<<<<<< HEAD
-const API_URL = "https://capstone-production-bf29.up.railway.app/api/questions";
-
-// Fetch all questions
-export const fetchQuestions = async () => {
-  try {
-    const response = await axios.get(API_URL);
-=======
 const QuestionsService = {
   getAll: async () => {
     const response = await api.get("/questions");
->>>>>>> Jeibii
     return response.data;
   },
 

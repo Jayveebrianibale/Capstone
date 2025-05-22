@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-import axios from "axios";
-
-const API_URL = "https://capstone-production-bf29.up.railway.app/api/instructors";
-=======
 import api from "../services/api";
->>>>>>> Jeibii
 
 const InstructorService = {
   getAll: async () => {
@@ -56,13 +50,8 @@ const InstructorService = {
 
   submitEvaluation: async (evaluationData) => {
     const token = localStorage.getItem('authToken');
-<<<<<<< HEAD
-    const response = await axios.post(
-      'https://capstone-production-bf29.up.railway.app/api/evaluations',
-=======
     const response = await api.post(
       '/evaluations',
->>>>>>> Jeibii
       evaluationData,
       {
         headers: {
@@ -74,19 +63,6 @@ const InstructorService = {
   },
 
   submitAllEvaluations: async (payload) => {
-<<<<<<< HEAD
-  const token = localStorage.getItem('authToken');
-  const response = await axios.post(
-    'https://capstone-production-bf29.up.railway.app/api/evaluations/submit-all',
-    payload,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-=======
     const token = localStorage.getItem('authToken');
     const response = await api.post(
       '/evaluations/submit-all',
@@ -98,7 +74,6 @@ const InstructorService = {
         },
       }
     );
->>>>>>> Jeibii
 
     return response.data;
   },
@@ -106,13 +81,8 @@ const InstructorService = {
   getEvaluations: async () => {
     const token = localStorage.getItem('authToken');
     try {
-<<<<<<< HEAD
-      const response = await axios.get(
-        'https://capstone-production-bf29.up.railway.app/api/evaluations',
-=======
       const response = await api.get(
         '/evaluations',
->>>>>>> Jeibii
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -129,13 +99,7 @@ const InstructorService = {
 
   handleSendResult: async (instructorId) => {
     try {
-<<<<<<< HEAD
-      const response = await axios.post(
-        `https://capstone-production-bf29.up.railway.app/api/instructors/${instructorId}/send-result`
-      );
-=======
       const response = await api.post(`/instructors/${instructorId}/send-result`);
->>>>>>> Jeibii
       return response.data;
     } catch (err) {
       console.error(err);

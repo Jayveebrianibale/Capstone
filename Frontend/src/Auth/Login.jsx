@@ -18,14 +18,8 @@ function Login() {
     if (token) {
       localStorage.setItem("authToken", token);
       setLoading(true);
-<<<<<<< HEAD
-
-      axios
-        .get("https://capstone-production-bf29.up.railway.app/api/user", {
-=======
   
       api.get("/user", {
->>>>>>> Jeibii
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((response) => {
@@ -58,11 +52,7 @@ function Login() {
 
   const handleGoogleLogin = () => {
     setLoading(true);
-<<<<<<< HEAD
-    window.location.href = "https://capstone-production-bf29.up.railway.app/api/auth/google";
-=======
     window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
->>>>>>> Jeibii
   };
 
 
