@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://lv-tpes.vercel.app'],
+    'allowed_origins' => ['https://capstone-tpes.vercel.app'],
 
     'allowed_origins_patterns' => [],
 
