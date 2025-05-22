@@ -1,22 +1,15 @@
-import axios from "axios";
-
-const API_URL = "http://127.0.0.1:8000/api/programs";
+import api from "../services/api";
 
 const ProgramService = {
-  async getAll() {
-    try {
-      const response = await axios.get(API_URL);
-      return response.data; 
-    } catch (error) {
-      console.error("Error fetching programs:", error);
-      throw error;
-    }
+  getAll: async () => {
+    const response = await api.get("/programs");
+    return response.data;
   },
 
   create: async (data) => {
     try {
-      console.log("Sending Data:", JSON.stringify(data, null, 2));
-      const response = await axios.post(API_URL, data);
+      console.log("Sending Program Data:", JSON.stringify(data, null, 2));
+      const response = await api.post("/programs", data);
       console.log("Program Created:", response.data);
       return response.data;
     } catch (error) {
@@ -31,78 +24,46 @@ const ProgramService = {
     }
   },
 
-  async update(id, programData) {
-    try {
-      const response = await axios.put(`${API_URL}/${id}`, programData);
-      return response.data;
-    } catch (error) {
-      console.error("Error updating program:", error);
-      throw error;
-    }
+  update: async (id, data) => {
+    const response = await api.put(`/programs/${id}`, data);
+    return response.data;
   },
 
   delete: async (id) => {
-    try {
-      console.log(`Deleting Program ID ${id}`);
-      const response = await axios.delete(`${API_URL}/${id}`);
-      console.log("Program Deleted:", response.data);
-      return response.data;
-    } catch (error) {
-      console.error("Error deleting program:", error.response?.data || error.message);
-      throw error;
-    }
+    console.log(`Deleting Program ID: ${id}`);
+    const response = await api.delete(`/programs/${id}`);
+    console.log("Program Deleted:", response.data);
+    return response.data;
   },
 
-  getInstructorsByProgramCode: async (programCode) => {
-    try {
-      const response = await axios.get(`${API_URL}/${programCode}/instructors`);
-      return response.data;
-    } catch (error) {
-      console.error(`Failed to fetch instructors for ${programCode}:`, error.response?.data || error.message);
-      throw error;
-    }
+  getInstructorsByProgramCode: async (code) => {
+    const response = await api.get(`/programs/${code}/instructors`);
+    return response.data;
   },
 
-  getYearLevels: async (programId) => {
-    try {
-      const response = await axios.get(`${API_URL}/${programId}/year-levels`);
-      return response.data;
-    } catch (error) {
-      console.error(`Failed to fetch year levels for program ${programId}:`, error.response?.data || error.message);
-      throw error;
-    }
+  getYearLevels: async (id) => {
+    const response = await api.get(`/programs/${id}/year-levels`);
+    return response.data;
   },
 
-  async getInstructorResultsByProgram(code) {
-    try {
-      const response = await axios.get(`${API_URL}/${code}/instructor-results`);
-      return response.data;
-    } catch (error) {
-      console.error(`Failed to fetch instructor results for ${code}:`, error.response?.data || error.message);
-      throw error;
-    }
+  getInstructorResultsByProgram: async (code) => {
+    const response = await api.get(`/programs/${code}/instructor-results`);
+    return response.data;
   },
 
   bulkUpload: async (file) => {
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-  
-      const response = await axios.post(`${API_URL}/bulk-upload`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-  
-      console.log("Bulk Upload Response:", response.data);
-      return response.data;
-    } catch (error) {
-      console.error("Bulk upload failed:", error.response?.data || error.message);
-      throw error;
-    }
-  },  
+    const formData = new FormData();
+    formData.append("file", file);
 
-  
-}
+    const response = await api.post("/programs/bulk-upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    console.log("Bulk Upload Response:", response.data);
+    return response.data;
+  },
+};
 
 export default ProgramService;

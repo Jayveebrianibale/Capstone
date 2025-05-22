@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, User, Mail } from "lucide-react";
 import { toast } from "react-toastify";
-import axios from "axios";
+import api from "../../services/api";
 
 export default function InstructorModal({
   isOpen,
@@ -54,37 +54,41 @@ export default function InstructorModal({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
     for (const formData of formDataList) {
       if (!formData.name.trim() || !formData.email.trim()) {
         toast.warn("Please fill out all fields for every instructor.");
         return;
       }
     }
+  
     setIsSaving(true);
     try {
       let responses = [];
+  
       if (isEditing && instructor?.id) {
-        // Only allow editing one at a time
-        const apiUrl = `http://localhost:8000/api/instructors/${instructor.id}`;
-        const response = await axios.put(apiUrl, formDataList[0]);
+        // Update one instructor
+        const response = await api.put(`/instructors/${instructor.id}`, formDataList[0]);
         responses.push(response.data);
       } else {
-        // Add multiple instructors
+        // Create multiple instructors
         for (const formData of formDataList) {
-          const apiUrl = "http://localhost:8000/api/instructors";
-          const response = await axios.post(apiUrl, formData);
+          const response = await api.post("/instructors", formData);
           responses.push(response.data);
         }
       }
+  
       toast.success(`Instructor${formDataList.length > 1 ? 's' : ''} ${isEditing ? 'updated' : 'added'} successfully!`);
       onSave(responses);
       onClose();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to save instructor(s)." );
+      console.error("Save failed:", error);
+      toast.error(error.response?.data?.message || "Failed to save instructor(s).");
     } finally {
       setIsSaving(false);
     }
   };
+  
 
   if (!isOpen) return null;
 

@@ -5,6 +5,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import FullScreenLoader from "../components/FullScreenLoader";
+import api from "../services/api";
 
 function Login() {
   const navigate = useNavigate();
@@ -13,13 +14,12 @@ function Login() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
-
+  
     if (token) {
       localStorage.setItem("authToken", token);
       setLoading(true);
-
-      axios
-        .get("http://127.0.0.1:8000/api/user", {
+  
+      api.get("/user", {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((response) => {
@@ -37,7 +37,7 @@ function Login() {
             Instructor: "/InstructorDashboard",
             Admin: "/AdminDashboard",
           };
-
+  
           navigate(dashboardRoutes[role] || "/", { replace: true });
         })
         .catch(() => {
@@ -52,8 +52,9 @@ function Login() {
 
   const handleGoogleLogin = () => {
     setLoading(true);
-    window.location.href = "http://127.0.0.1:8000/api/auth/google";
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-4">

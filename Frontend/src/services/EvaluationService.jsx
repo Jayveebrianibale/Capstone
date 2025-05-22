@@ -1,31 +1,20 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:8000/api/evaluations";
-
-const api = axios.create({
-  baseURL: API_URL,
-});
+import api from "../services/api";
 
 const EvaluationService = {
-  // ✅ Existing method
   getStudentEvaluations: async () => {
-    const response = await api.get("/");
-    return response.data;
+    const res = await api.get("/evaluations");
+    return res.data;
   },
 
-  // ✅ New method to get top 3 instructors
   getTopInstructors: async () => {
-    const response = await axios.get("http://localhost:8000/api/top-instructors");
-    return response.data;
+    const res = await api.get("/top-instructors");
+    return res.data;
   },
 
-  // In EvaluationService.js
   getAllInstructorDistributions: async () => {
-    const res = await axios.get('http://localhost:8000/api/instructor-distributions');
+    const res = await api.get("/instructor-distributions");
     return res.data.data;
   },
-
-  
 };
 
 export default EvaluationService;

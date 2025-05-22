@@ -14,7 +14,7 @@ function Intermediate() {
   const [noInstructors, setNoInstructors] = useState(false);
 
   const tabLabels = ["Grade 4", "Grade 5", "Grade 6"];
-  const programCode = "INTERMEDIATE";
+  const programCode = "INT";
   const { loading, setLoading } = useLoading();
 
   const handleSearch = (query) => {
@@ -29,50 +29,50 @@ function Intermediate() {
     console.log("Add Instructor");
   };
 
-  // Helper to map yearLevel to 4-6 for Intermediate
-  const mapYearLevelToIndex = (yearLevel) => {
-    if (typeof yearLevel === 'number') return yearLevel - 4;
+  // Helper to map yearLevel to 1, 2, 3 for Grades 4, 5, 6
+  const mapYearLevelToNumber = (yearLevel) => {
+    if (typeof yearLevel === 'number') {
+      if (yearLevel === 4) return 1;
+      if (yearLevel === 5) return 2;
+      if (yearLevel === 6) return 3;
+      return yearLevel;
+    }
     const level = String(yearLevel).toLowerCase().trim();
-    if (level === 'grade 4' || level === '4') return 0;
-    if (level === 'grade 5' || level === '5') return 1;
-    if (level === 'grade 6' || level === '6') return 2;
+    if (level === 'grade 4' || level === '4' || level === '1') return 1;
+    if (level === 'grade 5' || level === '5' || level === '2') return 2;
+    if (level === 'grade 6' || level === '6' || level === '3') return 3;
     return null;
   };
 
   useEffect(() => {
-    const fetchInstructors = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await ProgramService.getInstructorsByProgramCode(programCode);
-
-        if (data && typeof data === "string" && data.includes("<!doctype html>")) {
-          throw new Error("Received an HTML response. Possible backend error.");
+        const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
+        if (!Array.isArray(instructorsData)) {
+          throw new Error("Invalid data format received");
         }
-
-        if (Array.isArray(data)) {
-          if (data.length === 0) {
-            setNoInstructors(true);
-            setInstructorsByGrade([[], [], []]);
-          } else {
-            const grouped = [[], [], []];
-            data.forEach((item) => {
-              const yearLevel = item?.pivot?.yearLevel;
-              const idx = mapYearLevelToIndex(yearLevel);
-              const instructor = {
-                id: item.id,
-                name: item.name,
-                email: item.email,
-                yearLevel: yearLevel,
-              };
-              if (idx !== null && idx >= 0 && idx < 3) grouped[idx].push(instructor);
-            });
-            setInstructorsByGrade([]); // Force re-render
-            setTimeout(() => setInstructorsByGrade(grouped), 0);
-            setNoInstructors(false);
-          }
-        } else {
-          toast.error("Failed to load instructors. Invalid response format.");
-        }
+        // Group instructors by yearLevel (Grade 4, 5, 6)
+        const groupByYear = (data) => {
+          const grouped = [[], [], []];
+          data.forEach((item) => {
+            const yearLevel = item?.pivot?.yearLevel;
+            const year = mapYearLevelToNumber(yearLevel);
+            const instructor = {
+              id: item.id,
+              name: item.name,
+              email: item.email,
+              yearLevel: year,
+            };
+            if (year === 1) grouped[0].push(instructor);
+            else if (year === 2) grouped[1].push(instructor);
+            else if (year === 3) grouped[2].push(instructor);
+          });
+          return grouped;
+        };
+        const instructorsGrouped = groupByYear(instructorsData);
+        setInstructorsByGrade(instructorsGrouped);
+        setNoInstructors(instructorsData.length === 0);
       } catch (error) {
         console.error("Error loading instructors:", error);
         toast.error(`Failed to load instructors for ${programCode}.`);
@@ -81,8 +81,7 @@ function Intermediate() {
         setLoading(false);
       }
     };
-
-    fetchInstructors();
+    fetchData();
   }, [programCode, setLoading]);
 
   const hasInstructorsForGrade = (index) => {
@@ -110,8 +109,8 @@ function Intermediate() {
       ) : (
         <>
           <ContentHeader
-            title="Intermediate Instructors"
-            stats={["Students: 0", "Submitted: 0"]}
+            title="Instructors"
+            stats={["Students: 0"]}
             onSearch={handleSearch}
             onExport={handleExport}
             onAdd={handleAddInstructor}

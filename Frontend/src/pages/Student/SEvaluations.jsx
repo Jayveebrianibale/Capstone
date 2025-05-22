@@ -8,7 +8,7 @@ import NoInstructorsFound from '../../components/Student/NoInstructorFound';
 import OnboardingMessage from '../../components/Student/OnboardingMessage';
 import { ToastContainer, toast } from 'react-toastify';
 import InstructorService from '../../services/InstructorService';
-import { fetchQuestions } from '../../services/QuestionService';
+import QuestionsService from '../../services/QuestionService';
 import { useLoading } from '../../components/LoadingContext';
 
 const SEvaluations = () => {
@@ -78,7 +78,7 @@ const SEvaluations = () => {
   useEffect(() => {
     const getQuestions = async () => {
       try {
-        const fetchedQuestions = await fetchQuestions();
+        const fetchedQuestions = await QuestionsService.getAll();
         setQuestions(fetchedQuestions);
       } catch (err) {
         console.error('Error fetching questions:', err);

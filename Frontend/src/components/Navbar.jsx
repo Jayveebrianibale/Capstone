@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { FaBars, FaBell } from "react-icons/fa";
 import DarkModeToggle from "../components/DarkmodeToggle";
 
+const baseURL = import.meta.env.VITE_API_URL.replace('/api', '');
+
 function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, activePage}) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -60,15 +62,15 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, ac
             <button className="flex items-center gap-2 focus:outline-none">
               {user.profile_picture && (
                 <img
-                src={`http://localhost:8000${user.profile_picture}`}
-                alt="Profile"
-                className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600 object-cover"
-              />   
+                  src={`${baseURL}${user.profile_picture}`}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600 object-cover"
+                />
               )}
               <span className="hidden sm:block text-gray-700 dark:text-gray-200 font-normal text-sm">
                 {user.role}
               </span>
-            </button>
+          </button>
           )}
 
           {showDropdown && user && (

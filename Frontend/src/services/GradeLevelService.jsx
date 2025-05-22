@@ -1,15 +1,13 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:8000/api/grade-levels";
+import api from '../services/api';
 
 const GradeLevelService = {
   // Get all grade levels
   getAll: async () => {
     try {
-      const response = await axios.get(API_URL);
+      const response = await api.get('/grade-levels');
       return response.data;
     } catch (error) {
-      console.error("Error fetching grade levels:", error);
+      console.error('Error fetching grade levels:', error);
       throw error;
     }
   },
@@ -17,12 +15,12 @@ const GradeLevelService = {
   // Create a new grade level
   create: async (data) => {
     try {
-      console.log("Creating Grade Level:", JSON.stringify(data, null, 2));
-      const response = await axios.post(API_URL, data);
-      console.log("Grade Level Created:", response.data);
+      console.log('Creating Grade Level:', JSON.stringify(data, null, 2));
+      const response = await api.post('/grade-levels', data);
+      console.log('Grade Level Created:', response.data);
       return response.data;
     } catch (error) {
-      console.error("Error creating grade level:", error.response?.data || error.message);
+      console.error('Error creating grade level:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -31,11 +29,11 @@ const GradeLevelService = {
   update: async (id, data) => {
     try {
       console.log(`Updating Grade Level ${id}:`, JSON.stringify(data, null, 2));
-      const response = await axios.put(`${API_URL}/${id}`, data);
-      console.log("Grade Level Updated:", response.data);
+      const response = await api.put(`/grade-levels/${id}`, data);
+      console.log('Grade Level Updated:', response.data);
       return response.data;
     } catch (error) {
-      console.error("Error updating grade level:", error.response?.data || error.message);
+      console.error('Error updating grade level:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -44,13 +42,14 @@ const GradeLevelService = {
   delete: async (id) => {
     try {
       console.log(`Deleting Grade Level ${id}`);
-      const response = await axios.delete(`${API_URL}/${id}`);
-      console.log("Grade Level Deleted:", response.data);
+      const response = await api.delete(`/grade-levels/${id}`);
+      console.log('Grade Level Deleted:', response.data);
       return response.data;
     } catch (error) {
-      console.error("Error deleting grade level:", error.response?.data || error.message);
+      console.error('Error deleting grade level:', error.response?.data || error.message);
       throw error;
     }
   },
-}
-  export default GradeLevelService;
+};
+
+export default GradeLevelService;

@@ -17,61 +17,62 @@ function JuniorHigh() {
   const programCode = "JHS";
   const { loading, setLoading } = useLoading();
 
-  // Helper to map yearLevel to 7-10 for JHS
-  const mapYearLevelToIndex = (yearLevel) => {
-    if (typeof yearLevel === 'number') return yearLevel - 7;
+  // Helper to map yearLevel to 1, 2, 3, 4 for Grades 7-10
+  const mapYearLevelToNumber = (yearLevel) => {
+    if (typeof yearLevel === 'number') {
+      if (yearLevel === 7) return 1;
+      if (yearLevel === 8) return 2;
+      if (yearLevel === 9) return 3;
+      if (yearLevel === 10) return 4;
+      return yearLevel;
+    }
     const level = String(yearLevel).toLowerCase().trim();
-    if (level === 'grade 7' || level === '7') return 0;
-    if (level === 'grade 8' || level === '8') return 1;
-    if (level === 'grade 9' || level === '9') return 2;
-    if (level === 'grade 10' || level === '10') return 3;
+    if (level === 'grade 7' || level === '7' || level === '1') return 1;
+    if (level === 'grade 8' || level === '8' || level === '2') return 2;
+    if (level === 'grade 9' || level === '9' || level === '3') return 3;
+    if (level === 'grade 10' || level === '10' || level === '4') return 4;
     return null;
   };
 
   useEffect(() => {
-    const fetchInstructors = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await ProgramService.getInstructorsByProgramCode(programCode);
-
-        if (typeof data === "string" && data.includes("<!doctype html>")) {
-          throw new Error("Received HTML instead of JSON. Check backend.");
+        const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
+        if (!Array.isArray(instructorsData)) {
+          throw new Error("Invalid data format received");
         }
-
-        if (Array.isArray(data)) {
-          if (data.length === 0) {
-            setNoInstructors(true);
-            setInstructorsByGrade([[], [], [], []]);
-          } else {
-            const grouped = [[], [], [], []];
-            data.forEach((item) => {
-              const yearLevel = item?.pivot?.yearLevel;
-              const idx = mapYearLevelToIndex(yearLevel);
-              const instructor = {
-                id: item.id,
-                name: item.name,
-                email: item.email,
-                yearLevel: yearLevel,
-              };
-              if (idx !== null && idx >= 0 && idx < 4) grouped[idx].push(instructor);
-            });
-            setInstructorsByGrade([]); // Force re-render
-            setTimeout(() => setInstructorsByGrade(grouped), 0);
-            setNoInstructors(false);
-          }
-        } else {
-          toast.error("Invalid instructor data format.");
-        }
-      } catch (err) {
-        console.error("Error loading instructors:", err);
+        // Group instructors by yearLevel (Grade 7-10)
+        const groupByYear = (data) => {
+          const grouped = [[], [], [], []];
+          data.forEach((item) => {
+            const yearLevel = item?.pivot?.yearLevel;
+            const year = mapYearLevelToNumber(yearLevel);
+            const instructor = {
+              id: item.id,
+              name: item.name,
+              email: item.email,
+              yearLevel: year,
+            };
+            if (year === 1) grouped[0].push(instructor);
+            else if (year === 2) grouped[1].push(instructor);
+            else if (year === 3) grouped[2].push(instructor);
+            else if (year === 4) grouped[3].push(instructor);
+          });
+          return grouped;
+        };
+        const instructorsGrouped = groupByYear(instructorsData);
+        setInstructorsByGrade(instructorsGrouped);
+        setNoInstructors(instructorsData.length === 0);
+      } catch (error) {
+        console.error("Error loading instructors:", error);
         toast.error("Failed to load instructors for Junior High.");
         setNoInstructors(true);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchInstructors();
+    fetchData();
   }, [programCode, setLoading]);
 
   const hasInstructorsForGrade = (grade) => instructorsByGrade[grade]?.length > 0;
@@ -94,8 +95,8 @@ function JuniorHigh() {
       ) : (
         <>
           <ContentHeader
-            title="Junior High Instructors"
-            stats={["Students: 0", "Submitted: 0"]}
+            title="Instructors"
+            stats={["Students: 0"]}
             onSearch={(q) => console.log("Search:", q)}
             onExport={() => console.log("Export to PDF")}
             onAdd={() => console.log("Add Instructor")}

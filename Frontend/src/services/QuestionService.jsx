@@ -1,57 +1,41 @@
-import axios from "axios";
+import api from "../services/api";
 
-const API_URL = "http://127.0.0.1:8000/api/questions";
-
-// Fetch all questions
-export const fetchQuestions = async () => {
-  try {
-    const response = await axios.get(API_URL);
+const QuestionsService = {
+  getAll: async () => {
+    const response = await api.get("/questions");
     return response.data;
-  } catch (error) {
-    console.error("Error fetching questions:", error);
-    throw error;
-  }
-};
+  },
 
-// Save multiple questions
-export const saveQuestions = async (questions) => {
-  try {
-    const response = await axios.post(API_URL, { questions });
+  saveMultiple: async (questions) => {
+    const response = await api.post("/questions", { questions });
     return response.data;
-  } catch (error) {
-    console.error("Error saving questions:", error);
-    throw error;
-  }
-};
+  },
 
-// Update a question
-export const updateQuestion = async (id, updatedQuestion) => {
-  try {
-    const response = await axios.put(`${API_URL}/${id}`, updatedQuestion);
+  save: async (question) => {
+    // Always send as { questions: [...] }
+    const response = await api.post("/questions", { questions: Array.isArray(question) ? question : [question] });
     return response.data;
-  } catch (error) {
-    console.error("Error updating question:", error);
-    throw error;
-  }
+  },
+
+  update: async (id, updatedQuestion) => {
+    const response = await api.put(`/questions/${id}`, updatedQuestion);
+    return response.data;
+  },
+
+  delete: async (id) => {
+    await api.delete(`/questions/${id}`);
+  },
+
+  bulkUpload: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post("/questions/bulk-upload", formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    return response.data;
+  },
 };
 
-// Delete a question
-export const deleteQuestion = async (id) => {
-  try {
-    await axios.delete(`${API_URL}/${id}`);
-  } catch (error) {
-    console.error("Error deleting question:", error);
-    throw error;
-  }
-};
-
-export const bulkUpload = async (file) => {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  const response = await axios.post(`${API_URL}/bulk-upload`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-
-  return response.data;
-};
+export default QuestionsService;

@@ -70,6 +70,7 @@ function Instructors() {
         inst.name.toLowerCase().includes(query.toLowerCase())
       )
     );
+    setCurrentPage(1); // Reset to first page on new search
   };
 
   const handleDelete = async () => {
@@ -93,7 +94,7 @@ function Instructors() {
   };
 
   const handleAddInstructor = () => {
-    setCurrentInstructor({ status: 'Active' }); // Set default status
+    setCurrentInstructor({ status: 'Active' });
     setIsEditing(false);
     setShowModal(true);
   };
@@ -228,7 +229,7 @@ function Instructors() {
           </p>
           
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md"> 
+          <div className="flex flex-col sm:flex-row gap-4 max-w-md"> 
             <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all flex-1 cursor-pointer">
               <FiUpload className="w-4 h-4" /> Upload CSV
               <input
@@ -442,7 +443,14 @@ function Instructors() {
       </>)}
       {/* Modals */}
       <InstructorModal isOpen={showModal} onClose={() => setShowModal(false)} onSave={fetchInstructors} isEditing={isEditing} instructor={currentInstructor} />
-      <ConfirmModal isOpen={confirmModalOpen} onClose={() => setConfirmModalOpen(false)} onConfirm={handleDelete} title="Delete Confirmation" message="Are you sure you want to delete this instructor?" />
+      <ConfirmModal 
+        isOpen={confirmModalOpen} 
+        onClose={() => setConfirmModalOpen(false)} 
+        onConfirm={handleDelete} 
+        title="Delete Confirmation" 
+        message="Are you sure you want to delete this instructor?" 
+        loading={loading && confirmModalOpen}
+      />
       <AssignProgramModal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} instructor={selectedInstructor} onSave={fetchInstructors} />
         {assignedProgramsModalOpen && (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">

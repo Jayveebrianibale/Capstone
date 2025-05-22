@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
-import axios from "axios";
 import LogoutModal from "../contents/Admin/Modals/LogoutModal";
+import api from "../services/api";
 
 
 function MainLayout() {
@@ -17,6 +17,8 @@ function MainLayout() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -50,7 +52,7 @@ useEffect(() => {
     return;
   }
 
-  axios.get("http://127.0.0.1:8000/api/user", {
+  api.get("/user", {
     headers: { Authorization: `Bearer ${token}` },
   })
     .then((response) => {
@@ -87,14 +89,25 @@ useEffect(() => {
 
   const isProfileSetupPage = location.pathname === "/Student-profile-setup";
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("role");
-    localStorage.removeItem("activePage");
-    // sessionStorage.removeItem('selectedYear');
-    // sessionStorage.removeItem('selectedSemester');
-    navigate("/login");
+  const handleLogout = async () => {
+    setLogoutLoading(true);
+    try {
+      // Simulate logout delay or do actual API cleanup if needed
+      await new Promise(resolve => setTimeout(resolve, 1000));
+  
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("role");
+      localStorage.removeItem("activePage");
+  
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      setLogoutLoading(false);
+      setLogoutModalOpen(false);
+    }
   };
+  
 
   return (
     <div className={`flex ${isDarkMode ? "dark" : ""}`}>
@@ -131,6 +144,7 @@ useEffect(() => {
         isOpen={logoutModalOpen}
         onClose={() => setLogoutModalOpen(false)}
         onConfirm={handleLogout}
+        loading={logoutLoading}
       />
     </div>
   );

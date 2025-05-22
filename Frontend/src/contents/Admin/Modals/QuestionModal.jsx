@@ -10,6 +10,7 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
   });
 
   const [questions, setQuestions] = useState([{ question: "", type: "", category: "" }]);
+  const [loading, setLoading] = useState(false);
 
   const categories = [
     "Learning Environment", "Student Development", "Content Knowledge",
@@ -67,13 +68,19 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (loading) return;
     if (!validateQuestions()) {
       toast.error("Please fill in all question fields");
       return;
     }
-    onSave(isEditing ? formData : questions);
-    onClose();
+    setLoading(true);
+    try {
+      await onSave(isEditing ? formData : questions);
+      onClose();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return isOpen ? (
@@ -242,8 +249,15 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2.5 bg-[#1F3463] hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-sm"
+              className="px-4 py-2.5 bg-[#1F3463] hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={loading}
             >
+              {loading ? (
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : null}
               {isEditing ? "Save Changes" : "Save Questions"}
             </button>
           </div>
