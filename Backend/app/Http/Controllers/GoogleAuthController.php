@@ -72,7 +72,7 @@ class GoogleAuthController extends Controller
             $token = $user->createToken('authToken')->plainTextToken;
 
             // Redirect to frontend
-            return redirect("https://t6-tpes.vercel.app/login?token={$token}");
+            return redirect("https://capstone-tpes.vercel.app/login?token={$token}");
         } catch (Exception $e) {
             return response()->json(['error' => 'Authentication failed'], 500);
         }
