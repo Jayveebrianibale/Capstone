@@ -47,7 +47,7 @@ function StudentProfileSetup() {
     const token = localStorage.getItem("authToken");
     if (!token) return;
 
-    api.get("/api/user", {
+    api.get("/user", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((response) => {
@@ -74,7 +74,7 @@ function StudentProfileSetup() {
     }
 
     try {
-      const response = await api.get("/api/programs", {
+      const response = await api.get("/programs", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const extracted = Array.isArray(response.data)
