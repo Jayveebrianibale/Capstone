@@ -111,7 +111,7 @@ function StudentProfileSetup() {
       };
 
       const response = await api.post(
-        "/api/student/setup-profile",
+        "/student/setup-profile",
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
