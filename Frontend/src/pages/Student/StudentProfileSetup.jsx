@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../services/api";
 import { toast, ToastContainer } from "react-toastify";
 import FullScreenLoader from "../../components/FullScreenLoader";
 import { motion, AnimatePresence } from "framer-motion";
@@ -47,7 +47,7 @@ function StudentProfileSetup() {
     const token = localStorage.getItem("authToken");
     if (!token) return;
 
-    axios.get("http://127.0.0.1:8000/api/user", {
+    api.get("/api/user", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((response) => {
@@ -74,7 +74,7 @@ function StudentProfileSetup() {
     }
 
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/programs", {
+      const response = await api.get("/api/programs", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const extracted = Array.isArray(response.data)
@@ -110,8 +110,8 @@ function StudentProfileSetup() {
         yearLevel: educationLevel === "Higher Education" ? selectedYearLevel : null,
       };
 
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/student/setup-profile",
+      const response = await api.post(
+        "/api/student/setup-profile",
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
