@@ -17,7 +17,7 @@ const InstructorTable = ({
   setViewOnlyInstructorId,
 }) => {
    const ratingOptions = {
-    "Learning Environment": [
+    "Learning Environments": [
       { value: '5', label: '5 - Extremely positive and significantly enhances learning' },
       { value: '4', label: '4 - Positive and slightly enhances learning' },
       { value: '3', label: '3 - Neutral, neither positive nor negative' },
