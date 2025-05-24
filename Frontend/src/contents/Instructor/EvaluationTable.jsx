@@ -1,9 +1,9 @@
-"use client"
-import { useState, useEffect } from "react"
-import QuestionsService from '../../services/QuestionService';
-import ProgramService from '../../services/ProgramService'; 
+"use client";
+import { useState, useEffect } from "react";
+import QuestionsService from "../../services/QuestionService";
+import InstructorService from "../../services/InstructorService";
 
-export function EvaluationTable({ instructorId, programCode }) {
+export function EvaluationTable({ instructor }) {
   const [questions, setQuestions] = useState([]);
   const [ratings, setRatings] = useState({});
   const [comments, setComments] = useState([]);
@@ -13,37 +13,41 @@ export function EvaluationTable({ instructorId, programCode }) {
     async function fetchData() {
       setLoading(true);
       try {
+        // 1. Fetch all questions
         const fetchedQuestions = await QuestionsService.getAll();
         setQuestions(fetchedQuestions);
-        if (programCode && instructorId) {
-          const allResults = await ProgramService.getInstructorResultsByProgram(programCode);
-          // Debug: log instructorId and all result names
-          console.log('InstructorId:', instructorId);
-          console.log('Result names:', allResults.map(r => r.name));
-          // Try to find the result for this instructor (by id, instructor_id, email, or name)
-          let result = allResults.find(r =>
-            r.id === instructorId ||
-            r.instructor_id === instructorId ||
-            (r.email && r.email.toLowerCase() === String(instructorId).toLowerCase()) ||
-            (r.name && r.name.toLowerCase() === String(instructorId).toLowerCase())
+
+        // 2. Check if instructor has instructor_id
+        if (instructor?.instructor_id) {
+          const results = await InstructorService.getInstructorEvaluationResults(
+            instructor.instructor_id
           );
-          // Fallback: if only one result, use it
-          if (!result && allResults.length === 1) {
-            result = allResults[0];
-          }
-          setRatings(result?.ratings || {});
-          setComments(result?.comments ? [result.comments] : ["No comments"]);
+
+          // Convert array of question ratings to an object indexed by question ID
+          const ratingMap = {};
+          results.forEach((item) => {
+            ratingMap[item.question_id] = parseFloat(item.avg_rating);
+          });
+          setRatings(ratingMap);
+
+          // Optional: handle comments if available
+          setComments(results.comments ?? ["No comments available"]);
+        } else {
+          setRatings({});
+          setComments(["Instructor ID not found"]);
         }
       } catch (err) {
+        console.error("Error fetching data:", err);
         setQuestions([]);
         setRatings({});
-        setComments(["No comments"]);
+        setComments(["Error fetching evaluation data"]);
       } finally {
         setLoading(false);
       }
     }
+
     fetchData();
-  }, [programCode, instructorId]);
+  }, [instructor?.instructor_id]);
 
   return (
     <div className="space-y-6">
@@ -54,24 +58,52 @@ export function EvaluationTable({ instructorId, programCode }) {
             <tr>
               <th className="px-6 py-3 w-[30%] font-semibold">Category</th>
               <th className="px-6 py-3 w-[50%] font-semibold">Question</th>
-              <th className="px-6 py-3 font-semibold">Rating</th>
+              <th className="px-6 py-3 font-semibold">Avg. Rating</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={3} className="text-center py-6">Loading...</td></tr>
+              <tr>
+                <td colSpan={3} className="text-center py-6">
+                  Loading...
+                </td>
+              </tr>
+            ) : questions.length === 0 ? (
+              <tr>
+                <td colSpan={3} className="text-center py-6">
+                  No questions found.
+                </td>
+              </tr>
             ) : (
-              questions.map((q, idx) => (
-                <tr key={q.id || idx} className="border-t dark:border-gray-700">
+              questions.map((q) => (
+                <tr key={q.id} className="border-t dark:border-gray-700">
                   <td className="px-6 py-4">{q.category}</td>
                   <td className="px-6 py-4">{q.question}</td>
-                  <td className="px-6 py-4">{ratings[`q${idx + 1}`]?.toFixed(2) || '-'}</td>
+                  <td className="px-6 py-4">
+                    {ratings[q.id]?.toFixed(2) ?? "-"}
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Comments Section (Optional) */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-md border dark:border-gray-700">
+        <h3 className="text-md font-semibold mb-2">Comments:</h3>
+        {Array.isArray(comments) ? (
+          comments.map((c, i) => (
+            <p key={i} className="text-sm text-gray-600 dark:text-gray-300">
+              • {c}
+            </p>
+          ))
+        ) : (
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            {comments}
+          </p>
+        )}
+      </div>
     </div>
-  )
+  );
 }

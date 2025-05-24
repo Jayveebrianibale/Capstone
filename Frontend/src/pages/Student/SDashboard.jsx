@@ -7,6 +7,8 @@ const SDashboard = () => {
   const [user, setUser] = useState(null);
   const [instructors, setInstructors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
 
   const greeting = () => {
     const currentHour = new Date().getHours();
@@ -47,6 +49,21 @@ const SDashboard = () => {
     }
   }, []);
 
+  useEffect(() => {
+    // Track completed evaluations from sessionStorage.submissionInfo
+    const submissionInfoRaw = sessionStorage.getItem('submissionInfo');
+    let completed = 0;
+    let total = instructors.length;
+    if (submissionInfoRaw) {
+      const submissionInfo = JSON.parse(submissionInfoRaw);
+      completed = Object.values(submissionInfo).filter(info => info.status === 'Evaluated').length;
+      // If you want total to be the number of instructors in submissionInfo, uncomment below:
+      // total = Object.keys(submissionInfo).length;
+    }
+    setCompletedCount(completed);
+    setTotalCount(total);
+  }, [instructors]);
+
   return (
     <main className="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen transition-all duration-300">
       <div
@@ -78,9 +95,7 @@ const SDashboard = () => {
           </div>
           <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400 mb-3">
             You’ve completed <strong>
-              {
-                instructors.filter(i => i.evaluationStatus === "Evaluated").length
-              } out of {instructors.length}
+              {completedCount} out of {totalCount}
             </strong> evaluations.
           </p>
           <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
@@ -88,9 +103,9 @@ const SDashboard = () => {
               className="bg-green-500 h-2 rounded-full transition-all"
               style={{
                 width: `${
-                  instructors.length === 0
+                  totalCount === 0
                     ? 0
-                    : (instructors.filter(i => i.evaluationStatus === "Evaluated").length / instructors.length) * 100
+                    : (completedCount / totalCount) * 100
                 }%`
               }}
             ></div> 

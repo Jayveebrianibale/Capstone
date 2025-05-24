@@ -26,9 +26,14 @@ const SEvaluations = () => {
     return saved ? JSON.parse(saved) : {};
   });
   const [savedEvaluations, setSavedEvaluations] = useState(() => {
-    const saved = sessionStorage.getItem('savedEvaluations');
+    const saved = localStorage.getItem('savedEvaluations');
     return saved ? JSON.parse(saved) : {};
   });
+  // ...
+  useEffect(() => {
+    localStorage.setItem('savedEvaluations', JSON.stringify(savedEvaluations));
+  }, [savedEvaluations]);
+  
   const [viewOnlyInstructorId, setViewOnlyInstructorId] = useState(null);
   const [noInstructors, setNoInstructors] = useState(false);
   const [error, setError] = useState('');
@@ -126,7 +131,17 @@ const SEvaluations = () => {
             // If there are responses in the evaluation, store them
             if (latestEvaluation.responses) {
               evaluationResponses[instructorId] = latestEvaluation.responses.reduce((acc, response) => {
-                acc[response.question_id] = { rating: response.rating };
+                // Try to reconstruct the label from the rating value and question category
+                const question = questions.find(q => q.id === response.question_id);
+                let label = '';
+                if (question && response.rating) {
+                  const opts = ratingOptions?.[question.category];
+                  if (opts) {
+                    const found = opts.find(opt => String(opt.value) === String(response.rating));
+                    label = found ? found.label : '';
+                  }
+                }
+                acc[response.question_id] = { rating: response.rating, label };
                 return acc;
               }, {});
               evaluationResponses[instructorId].comment = latestEvaluation.comment;
@@ -287,7 +302,7 @@ const SEvaluations = () => {
     }
   };
 
-  const handleResponseChange = (instructorId, questionId, value) => {
+  const handleResponseChange = (instructorId, questionId, value, label) => {
     setResponses((prev) => ({
       ...prev,
       [instructorId]: {
@@ -295,6 +310,7 @@ const SEvaluations = () => {
         [questionId]: {
           ...(prev[instructorId]?.[questionId] || {}),
           rating: value,
+          label: label,
         },
       },
     }));
@@ -312,16 +328,29 @@ const SEvaluations = () => {
 
   const handleSaveEvaluation = (instructorId) => {
     const evaluationData = responses[instructorId];
-    if (!evaluationData) {
-      toast.error('Please answer the questions before saving.');
+    // Check if all questions have a rating (comment is optional)
+    const missing = questions.some(q => !evaluationData || !evaluationData[q.id] || !evaluationData[q.id].rating);
+    if (missing) {
+      toast.error('Please answer all the questions before saving.');
       return;
     }
-
+    // Save both status and all ratings/labels for this instructor
     setSavedEvaluations((prev) => {
-      const updated = { ...prev, [instructorId]: 'Done' };
+      const updated = {
+        ...prev,
+        [instructorId]: {
+          status: 'Done',
+          ratings: Object.entries(evaluationData)
+            .filter(([key]) => key !== 'comment')
+            .reduce((acc, [questionId, val]) => {
+              acc[questionId] = { rating: val.rating, label: val.label };
+              return acc;
+            }, {}),
+          comment: evaluationData.comment || '',
+        },
+      };
       return updated;
     });
-
     toast.success("Evaluation saved! Don't forget to submit All.");
     setExpandedInstructorId(null);
   };
@@ -441,6 +470,20 @@ const SEvaluations = () => {
     setFormReady(year && semester);
   };
 
+  // Handler to expand instructor and always pre-fill responses from savedEvaluations if available
+  const handleExpandInstructor = (instructorId) => {
+    // Always restore from savedEvaluations when opening the form (Edit or View)
+    if (savedEvaluations[instructorId]) {
+      const { ratings = {}, comment = '' } = savedEvaluations[instructorId];
+      const newResponses = { ...ratings, comment };
+      setResponses((prev) => ({
+        ...prev,
+        [instructorId]: newResponses,
+      }));
+    }
+    setExpandedInstructorId(instructorId);
+  };
+
   return (
     <main className="p-4 dark:text-white dark:bg-gray-900 min-h-screen">
       <ToastContainer position="top-right" autoClose={3000} />
@@ -472,7 +515,7 @@ const SEvaluations = () => {
               <InstructorTable
                 instructors={currentInstructors}
                 expandedInstructorId={expandedInstructorId}
-                setExpandedInstructorId={setExpandedInstructorId}
+                setExpandedInstructorId={handleExpandInstructor}
                 responses={responses}
                 handleResponseChange={handleResponseChange}
                 handleCommentChange={handleCommentChange}

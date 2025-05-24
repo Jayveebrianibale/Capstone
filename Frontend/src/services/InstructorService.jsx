@@ -156,7 +156,18 @@ const InstructorService = {
     } catch (error) {
       throw error.response?.data || { message: 'Bulk upload failed' };
     }
+  },
+
+ getInstructorEvaluationResults: async (instructorId) => {
+  try {
+    const response = await api.get(`/instructor/${instructorId}/ratings`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching instructor evaluation results:', error.response?.data || error.message);
+    throw error;
   }
+},
 };
+
 
 export default InstructorService;

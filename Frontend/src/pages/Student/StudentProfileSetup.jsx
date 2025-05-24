@@ -108,6 +108,7 @@ function StudentProfileSetup() {
         educationLevel: educationLevel,
         selectedOption: educationLevel === "Higher Education" ? selectedProgramId : selectedYearLevel,
         yearLevel: educationLevel === "Higher Education" ? selectedYearLevel : null,
+        programName: educationLevel === "Higher Education" ? (programs.find(p => p.id === selectedProgramId)?.name || "") : null,
       };
 
       const response = await api.post(

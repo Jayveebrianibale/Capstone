@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import bgImage from '../../assets/Login.jpg';
-import { AnalyticsChart } from '../../contents/Instructor/AnalyticsChart';
+import AnalyticsChart from "@/contents/Instructor/AnalyticsChart";
 import { EvaluationTable } from '../../contents/Instructor/EvaluationTable';
 
 function InstructorDashboard() {
@@ -28,9 +28,9 @@ function InstructorDashboard() {
   const currentHour = new Date().getHours();
 
   const greeting = () => {
-    if (currentHour < 12) return 'Good Morning, Instructor! ☀️';
-    if (currentHour < 18) return 'Good Afternoon, Instructor! 🌤';
-    return 'Good Evening, Instructor! 🌙';
+    if (currentHour < 12) return 'Good Morning, Instructor!';
+    if (currentHour < 18) return 'Good Afternoon, Instructor!';
+    return 'Good Evening, Instructor!';
   };
 
   return (
@@ -67,7 +67,7 @@ function InstructorDashboard() {
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Evaluation Results
           </h2>
-          <EvaluationTable instructorId={instructorId} programCode={programCode} />
+          <EvaluationTable instructor={JSON.parse(localStorage.getItem('user'))} />
         </div>
       </div>
     </main>

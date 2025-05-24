@@ -9,7 +9,6 @@ use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\StudentController;
-use App\Http\Controllers\CourseController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\StudentProfileController;
 use App\Http\Controllers\LevelController;
@@ -43,12 +42,6 @@ Route::get('/top-instructors', [EvaluationController::class, 'topRatedInstructor
 Route::get('/instructor-distributions', [EvaluationController::class, 'getAllInstructorDistributions']);
 
 
-// Course Routes
-Route::post('/courses', [CourseController::class, 'createCourse']); 
-Route::get('/courses', [CourseController::class, 'getAllCourses']);
-Route::post('/students/{student}/enroll', [CourseController::class, 'enrollStudent']);
-Route::get('/students/{student}/courses', [CourseController::class, 'getEnrolledCourses']);
-
 // Instructor Routes
 Route::post('/instructors/{id}/assign-programs', [InstructorController::class, 'assignProgram']);
 Route::get('/instructors/program/{programId}/year/{yearLevel}', [InstructorController::class, 'getInstructorsByProgramAndYear']);
@@ -63,6 +56,8 @@ Route::post('instructors/{id}/send-result', [InstructorController::class, 'sendR
 Route::get('/instructors/{id}/programs', [InstructorController::class, 'getAssignedPrograms']);
 Route::post('/instructors/bulk-upload', [InstructorController::class, 'bulkUpload']);
 
+//get instructor results by intructor id
+Route::get('/instructor/{id}/ratings', [InstructorController::class, 'getInstructorAverageRatings']);
 
 Route::get('/test-cors', function () {
     return response()->json(['message' => 'CORS works!']);

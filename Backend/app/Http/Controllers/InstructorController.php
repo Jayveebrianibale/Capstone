@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Instructor;
 use App\Models\Program;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\GetInstructorsByProgramAndYearRequest;
@@ -13,6 +14,7 @@ use App\Mail\InstructorResultMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Models\Question;
 
 
 
@@ -24,68 +26,80 @@ class InstructorController extends Controller
     }
 
     //BULK UPLOAD
-    public function bulkUpload(Request $request) {
+    public function bulkUpload(Request $request)
+    {
         $request->validate([
             'file' => 'required|file|mimes:csv,txt',
         ]);
 
-        $file = $request->file('file');
-        $handle = fopen($file, 'r');
-
-        if (!$handle) {
+        $handle = fopen($request->file('file'), 'r');
+        if (! $handle) {
             return response()->json(['message' => 'Failed to open the file'], 400);
         }
 
-        $header = fgetcsv($handle); // Get the first row as header
+        $header  = fgetcsv($handle);
         $inserted = [];
-        $skipped = [];
+        $skipped  = [];
 
-        while (($row = fgetcsv($handle)) !== false) {
+        while ($row = fgetcsv($handle)) {
             $data = array_combine($header, $row);
 
             $validator = Validator::make($data, [
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:instructors,email',
+                'name'  => 'required|string|max:255',
+                'email' => 'required|email|unique:instructors,email|unique:users,email',
             ]);
 
             if ($validator->fails()) {
                 $skipped[] = [
-                    'data' => $data,
+                    'data'   => $data,
                     'errors' => $validator->errors()->all()
                 ];
                 continue;
             }
 
-            $inserted[] = Instructor::create($data);
+            // create Instructor
+            $instructor = Instructor::create($data);
+            $inserted[] = $instructor;
+
+            // create matching User
+            User::create([
+                'name'     => $data['name'],
+                'email'    => $data['email'],
+                'role'     => 'Instructor',
+                'password' => null,
+            ]);
         }
 
         fclose($handle);
 
         return response()->json([
-            'message' => 'Instructors upload complete',
+            'message'  => 'Instructors upload complete',
             'inserted' => count($inserted),
-            'skipped' => $skipped,
+            'skipped'  => $skipped,
         ]);
     }
 
 
     // Create a new instructor
-    public function store(Request $request) {
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:instructors,email',
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|unique:instructors,email|unique:users,email',
         ]);
 
-        $instructor = Instructor::create($validated);
+        $instructor = Instructor::create($data);
+
+        User::create([
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'role'     => 'Instructor',
+            'password' => null,
+        ]);
 
         return response()->json([
-            'message' => 'Instructor created successfully',
-            'instructor' => [
-                'id' => $instructor->id,
-                'name' => $instructor->name,
-                'email' => $instructor->email,
-            ],
+            'message'    => 'Instructor created successfully',
+            'instructor' => $instructor,
         ], 201);
     }
 
@@ -274,6 +288,27 @@ class InstructorController extends Controller
             'programs' => $instructor->programs
         ]);
     }
+
+
+    public function getInstructorAverageRatings($instructorId)
+    {
+        $averageRatings = DB::table('evaluation_responses')
+            ->join('evaluations', 'evaluation_responses.evaluation_id', '=', 'evaluations.id')
+            ->join('questions', 'evaluation_responses.question_id', '=', 'questions.id')
+            ->select(
+                'questions.id as question_id',
+                'questions.question as question_text',
+                DB::raw('AVG(evaluation_responses.rating) as avg_rating')
+            )
+            ->where('evaluations.instructor_id', $instructorId)
+            ->groupBy('questions.id', 'questions.question')
+            ->orderBy('questions.id')
+            ->get();
+    
+        return response()->json($averageRatings);
+    }
+    
+
 
 
 }

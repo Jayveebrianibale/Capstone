@@ -128,7 +128,7 @@ const InstructorTable = ({
                     <button
                       onClick={() => {
                         setViewOnlyInstructorId(instructor.id);
-                        setExpandedInstructorId(instructor.id);
+                        setExpandedInstructorId(instructor.id); // Always use the expand handler so responses are restored
                       }}
                       className="px-3 py-1.5 rounded-lg bg-gray-500 hover:bg-gray-600 text-white text-sm"
                     >
@@ -152,61 +152,67 @@ const InstructorTable = ({
 
                     {status === 'Evaluated' && submittedAt && (
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Submitted: {new Date(submittedAt).toLocaleString('en-PH', { 
-                      month: 'short', 
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true,
-                      timeZone: 'Asia/Manila'
+                      Submitted: {new Date(submittedAt).toLocaleString('en-PH', { timeZone: 'Asia/Manila'
+                    
                       })}
                     </div>
                     )}
                   </div>
+              {/* Desktop Layout */}
+              <div className="hidden md:grid md:grid-cols-4 gap-4 p-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700">
+                {/* Avatar and Name */}
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1F3463] flex items-center justify-center">
+                    <span className="text-white font-medium">
+                      {instructor.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      {instructor.name}
+                    </div>
+                  </div>
+                </div>
 
-                  {/* Desktop Layout */}
-            <div className="hidden md:grid md:grid-cols-4 gap-4 p-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700">
-              <div className="font-semibold text-gray-900 dark:text-white">
-                {instructor.name}
-              </div>
-              
-              <div className={`font-semibold ${statusClass}`}>
-                {status}
-              </div>
-              
-              <div>
-                {status === 'Evaluated' && submittedAt
-                  ? new Date(submittedAt).toLocaleString('en-US', { timeZone: 'Asia/Manila' })
-                  : '—'}
-              </div>
-              
-              <div className="flex justify-center">
-                {status === 'Evaluated' ? (
-                  <button
-                    onClick={() => {
-                      setViewOnlyInstructorId(instructor.id);
-                      setExpandedInstructorId(instructor.id);
-                    }}
-                    className="px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-600 text-white"
-                  >
-                    View
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setViewOnlyInstructorId(null);
-                      setExpandedInstructorId(isExpanded ? null : instructor.id);
-                    }}
-                    className={`px-4 py-2 rounded-lg transition ${
-                      saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
-                    } text-white`}
-                  >
-                    {saved ? 'Edit' : 'Evaluate'}
-                  </button>
-                )}
-              </div>
-            </div>
+                {/* Status */}
+                <div className={`font-semibold ${statusClass}`}>
+                  {status}
+                </div>
 
+                {/* Submitted At */}
+                <div>
+                  {status === 'Evaluated' && submittedAt
+                    ? new Date(submittedAt).toLocaleString('en-US', { timeZone: 'Asia/Manila' })
+                    : '—'}
+                </div>
+
+                {/* Action Button */}
+                <div className="flex justify-center">
+                  {status === 'Evaluated' ? (
+                    <button
+                      onClick={() => {
+                        setViewOnlyInstructorId(instructor.id);
+                        setExpandedInstructorId(instructor.id); // Always use the expand handler so responses are restored
+                      }}
+                      className="px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-600 text-white"
+                    >
+                      View
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setViewOnlyInstructorId(null);
+                        setExpandedInstructorId(isExpanded ? null : instructor.id);
+                      }}
+                      className={`px-4 py-2 rounded-lg transition ${
+                        saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
+                      } text-white`}
+                    >
+                      {saved ? 'Edit' : 'Evaluate'}
+                    </button>
+                  )}
+                </div>
+              </div>
             {/* Expanded Form Section */}
             {isExpanded && (
               <div className="col-span-full p-4 border-t dark:border-gray-700">
