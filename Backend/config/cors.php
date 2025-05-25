@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://capstone-tpes.vercel.app', 'http://localhost:5173'],
+    'allowed_origins' => ['https://tpes.vercel.app', 'http://localhost:5173'],
 
     'allowed_origins_patterns' => [],
 
