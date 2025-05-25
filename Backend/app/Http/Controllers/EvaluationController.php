@@ -205,7 +205,79 @@ class EvaluationController extends Controller {
                 'data' => $instructors
             ]);
         }
-    
-    
+
+        public function evaluationSubmissionStats(Request $request) {
+            $schoolYear = $request->input('school_year');
+            $semester   = $request->input('semester');
+
+            $instructorPrograms = DB::table('instructor_program')
+                ->join('instructors', 'instructor_program.instructor_id', '=', 'instructors.id')
+                ->join('programs',    'instructor_program.program_id',    '=', 'programs.id')
+                ->select(
+                    'instructor_program.instructor_id',
+                    'programs.id as program_id',
+                    'programs.code as program_code',
+                    'instructors.name as instructor_name',
+                    'programs.name as program_name',
+                    'instructor_program.yearLevel'
+                )
+                ->get();
+
+            $results = [];
+
+            foreach ($instructorPrograms as $ip) {
+                $studentIds = DB::table('users')
+                    ->where('role', 'Student')
+                    ->where('program_id', $ip->program_id)
+                    ->where('yearLevel',  $ip->yearLevel)
+                    ->pluck('id');
+
+                $totalStudents = $studentIds->count();
+
+                $submittedCount = DB::table('evaluations')
+                    ->where('instructor_id', $ip->instructor_id)
+                    ->whereIn('student_id', $studentIds)
+                    ->distinct()
+                    ->count('student_id');
+
+                $results[] = [
+                    'instructor'     => $ip->instructor_name,
+                    'program'        => $ip->program_name,
+                    'program_code'   => $ip->program_code,
+                    'yearLevel'      => $ip->yearLevel,
+                    'total_students' => $totalStudents,
+                    'submitted'      => $submittedCount,
+                    'not_submitted'  => $totalStudents - $submittedCount,
+                    'school_year'    => $schoolYear,
+                    'semester'       => $semester,
+                ];
+            }
+
+            return response()->json(['data' => $results]);
+        }
+
+        public function overallEvaluationSubmissionStats() {
+            // Get all students' IDs
+            $allStudents = DB::table('users')
+                ->where('role', 'Student')
+                ->pluck('id');
+        
+            // Get distinct student IDs who submitted evaluations
+            $submittedStudentIds = DB::table('evaluations')
+                ->distinct()
+                ->pluck('student_id');
+        
+            // Count submitted and not submitted
+            $submittedCount = $submittedStudentIds->count();
+            $notSubmittedCount = $allStudents->diff($submittedStudentIds)->count();
+        
+            return response()->json([
+                'total_students'    => $allStudents->count(),
+                'submitted'         => $submittedCount,
+                'not_submitted'     => $notSubmittedCount,
+            ]);
+        }
+        
+
 
 }

@@ -11,8 +11,12 @@ class StudentProfile extends Model
 
     protected $fillable = ['user_id', 'education_level', 'program', 'year_level', 'grade_level'];
 
-    public function user()
-    {
+    public function user() {
         return $this->belongsTo(User::class);
     }
+
+    public function student() {
+     return $this->belongsTo(Student::class, 'user_id');
+    }
+
 }
