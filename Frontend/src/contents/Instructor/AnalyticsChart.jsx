@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import {
   BarChart,
@@ -10,6 +8,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
 
 export default function AnalyticsChart() {
@@ -43,7 +42,8 @@ export default function AnalyticsChart() {
     { name: "Q9", rating: 4.9 },
   ];
 
-  // Colors based on theme
+  const colors = ['#1F3463', '#2F4F91', '#3E64B3', '#6C8CD5', '#A3B7E8'];
+
   const textColor = isDarkMode ? "#e5e7eb" : "#374151";
   const gridColor = isDarkMode
     ? "rgba(255, 255, 255, 0.1)"
@@ -58,7 +58,7 @@ export default function AnalyticsChart() {
     <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
-          key={isDarkMode ? "dark" : "light"} // force remount on theme change
+          key={isDarkMode ? "dark" : "light"}
           data={data}
           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
@@ -89,7 +89,14 @@ export default function AnalyticsChart() {
             verticalAlign="top"
             height={36}
           />
-          <Bar dataKey="rating" fill="#1F3463" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="rating" radius={[4, 4, 0, 0]}>
+            {data.map((_, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={colors[index % colors.length]}
+              />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
