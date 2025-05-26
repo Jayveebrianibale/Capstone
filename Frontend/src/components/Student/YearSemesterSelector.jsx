@@ -1,19 +1,37 @@
-const YearSemesterSelector = ({ 
-  selectedYear, setSelectedYear, 
-  selectedSemester, setSelectedSemester, 
+import React, { useEffect } from 'react';
+
+const YearSemesterSelector = ({
+  selectedYear, setSelectedYear,
+  selectedSemester, setSelectedSemester,
   setFormReady, fetchAssignedInstructors,
   submissionInfo
 }) => {
-  // Dynamically generate school years: current, next, and next+1
   const getDynamicSchoolYears = () => {
     const currentYear = new Date().getFullYear();
-    // If after June, increment to next school year start
     const now = new Date();
     const startYear = now.getMonth() >= 5 ? currentYear : currentYear - 1;
-    return [0, 1, 2].map(i => `${startYear + i}-${startYear + i + 1}`);
+    return [1].map(i => `${startYear + i}-${startYear + i + 1}`);
   };
   const schoolYears = getDynamicSchoolYears();
   const semesters = ['1st Semester', '2nd Semester'];
+
+  useEffect(() => {
+    if (selectedYear) {
+      return;
+    }
+
+    if (schoolYears.length > 0) {
+      const defaultYear = schoolYears[0];
+      setSelectedYear(defaultYear);
+      localStorage.setItem('selectedYear', defaultYear); // Keep localStorage consistent
+
+      // If a semester is already selected, this new default year might complete the pair
+      if (defaultYear && selectedSemester) {
+        fetchAssignedInstructors();
+        setFormReady(true);
+      }
+    }
+  }, [schoolYears, selectedYear, setSelectedYear, selectedSemester, fetchAssignedInstructors, setFormReady]);
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg mb-6">
@@ -31,7 +49,7 @@ const YearSemesterSelector = ({
               }
             }}
             className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:outline-none"
-            disabled={!!selectedYear && !!selectedSemester}
+            disabled={true}
           >
             <option value="">Select School Year</option>
             {schoolYears.map((year) => (

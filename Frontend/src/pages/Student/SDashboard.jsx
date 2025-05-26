@@ -57,8 +57,6 @@ const SDashboard = () => {
     if (submissionInfoRaw) {
       const submissionInfo = JSON.parse(submissionInfoRaw);
       completed = Object.values(submissionInfo).filter(info => info.status === 'Evaluated').length;
-      // If you want total to be the number of instructors in submissionInfo, uncomment below:
-      // total = Object.keys(submissionInfo).length;
     }
     setCompletedCount(completed);
     setTotalCount(total);
@@ -79,8 +77,9 @@ const SDashboard = () => {
         <div className="absolute inset-0 bg-black opacity-30 z-0" />
         <div className="relative z-10">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight break-words leading-tight drop-shadow-sm">
-            {greeting()} {user ? `${user.name.split(" ")[0]}' ${user.yearLevel}` : "Student"} 👋
+            {greeting()} {user ? `${user.name.split(" ")[0]}${user.name.split(" ").length > 1 ? " " + user.name.split(" ")[1] : ""}!` : "Student"}
           </h1>
+          <span>{user ? `${user.program_name} - ${user.yearLevel}` : ""}</span>
         </div>
       </div>
 
@@ -119,7 +118,7 @@ const SDashboard = () => {
             <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white">Next Evaluations</h2>
           </div>
           <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400">
-            ⏳ <strong>Evaluation schedule will be announced soon.</strong>
+            <h1>⏳ Evaluation schedule will be announced soon.</h1>
           </p>
         </div>
 
@@ -145,7 +144,7 @@ const SDashboard = () => {
             <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white truncate">Announcements</h2>
           </div>
           <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400">
-            📢 <strong>Announcements feature coming soon.</strong>
+             <h1>📢 Announcements feature coming soon.</h1>
           </p>
         </div>
       </div>
@@ -154,3 +153,4 @@ const SDashboard = () => {
 };
 
 export default SDashboard;
+

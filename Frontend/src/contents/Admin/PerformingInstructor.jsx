@@ -30,11 +30,11 @@ const PerformingInstructor = () => {
   };
 
   return (
-    <div className="overflow-x-auto p-2 sm:p-4 rounded-lg">
+    <div className="overflow-x-auto p-6 sm:p-4 rounded-lg">
       {loading ? (
         <p className="text-center py-5 text-gray-600 dark:text-gray-300">Loading...</p>
       ) : topInstructors.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-48 w-full bg-white dark:bg-gray-800 rounded-lg">
+        <div className="flex flex-col items-center justify-center h-64 w-full bg-white dark:bg-gray-800 rounded-lg">
           <FiAward className="w-12 h-12 text-gray-300 mb-3" />
           <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-1">
             No Performing Instructors Yet

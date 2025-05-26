@@ -150,7 +150,31 @@ const SEvaluations = () => {
         });
 
         setSubmissionInfo(evaluatedInstructors);
-        setResponses(evaluationResponses);
+        setResponses(prevResponses => {
+          const newResponseState = { ...prevResponses }; // Start with current state (contains sessionStorage data)
+          
+          // `evaluationResponses` is data derived from server for instructor responses.
+          // `evaluatedInstructors` contains status from server for each instructor.
+          for (const instructorId in evaluationResponses) {
+            if (evaluatedInstructors[instructorId]?.status === 'Evaluated') {
+              // If the server says this evaluation is complete, use the server's data for responses.
+              newResponseState[instructorId] = evaluationResponses[instructorId];
+            } else {
+              // If server does not mark it as 'Evaluated' (e.g., 'Not Started', or no specific status from server for this evaluation):
+              // We prefer existing data in newResponseState[instructorId] (which came from prevResponses/sessionStorage).
+              // Only if there's no existing session data for this instructor,
+              // and the server provides some initial data (though less likely for non-evaluated items),
+              // would we consider using the server's data.
+              if (!newResponseState[instructorId] && evaluationResponses[instructorId]) {
+                // This case means: no in-session data, but server provided something (e.g. an old draft not marked 'Evaluated')
+                newResponseState[instructorId] = evaluationResponses[instructorId];
+              }
+              // Otherwise (if newResponseState[instructorId] exists), the in-session data is preserved.
+            }
+          }
+          // Instructors in prevResponses but not in evaluationResponses are preserved by the initial spread.
+          return newResponseState;
+        });
         setEvaluationHistory(history);
 
         // If there are existing evaluations, set the year and semester

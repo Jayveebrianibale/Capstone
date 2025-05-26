@@ -158,15 +158,30 @@ const InstructorService = {
     }
   },
 
- getInstructorEvaluationResults: async (instructorId) => {
-  try {
-    const response = await api.get(`/instructor/${instructorId}/ratings`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching instructor evaluation results:', error.response?.data || error.message);
-    throw error;
-  }
-},
+  /**
+   * Fetch all comments for an instructor, including the student names who left them.
+   * @param {number|string} instructorId
+   * @returns {Promise<Array<{comment: string, student_name: string}>>}
+   */
+  getInstructorCommentsWithStudentNames: async (instructorId) => {
+    try {
+      const response = await api.get(`/instructor/${instructorId}/comments-with-student-names`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching instructor comments with student names:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  getInstructorEvaluationResults: async (instructorId) => {
+    try {
+      const response = await api.get(`/instructor/${instructorId}/ratings`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching instructor evaluation results:', error.response?.data || error.message);
+      throw error;
+    }
+  },
 };
 
 

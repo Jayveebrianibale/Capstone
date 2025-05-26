@@ -29,6 +29,16 @@ const EvaluationService = {
     const res = await api.get("/evaluation-submission-overall");
     return res.data;
   },
+
+  getProgramEvaluationStats: async () => {
+    const res = await api.get("/program-evaluation-stats");
+    return res.data.data;
+  },
+
+  getCourseEvaluationSubmissionCounts: async () => {
+    const res = await api.get("/course-evaluation-submission-counts");
+    return res.data.data;
+  },
   
 };
 

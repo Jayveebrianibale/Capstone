@@ -277,7 +277,74 @@ class EvaluationController extends Controller {
                 'not_submitted'     => $notSubmittedCount,
             ]);
         }
-        
 
+    public function programEvaluationStats(Request $request)
+    {
+        $programsData = DB::table('programs')
+            ->select('id as program_id', 'code as program_code', 'name as program_name')
+            ->get();
+
+        $results = [];
+
+        foreach ($programsData as $program) {
+            // Total students in this program
+            $totalStudents = DB::table('users')
+                ->where('role', 'Student')
+                ->where('program_id', $program->program_id)
+                ->count();
+
+            // Students in this program who have submitted at least one evaluation
+            // We need to count distinct students who have an entry in the evaluations table for any instructor.
+            $submittedStudents = DB::table('evaluations')
+                ->join('users', 'evaluations.student_id', '=', 'users.id')
+                ->where('users.role', 'Student')
+                ->where('users.program_id', $program->program_id)
+                ->distinct('evaluations.student_id')
+                ->count('evaluations.student_id');
+            
+            // Only add if there are students in the program, to avoid cluttering with empty programs
+            if ($totalStudents > 0) {
+                $results[] = [
+                    // 'instructor' field is not relevant here as per the desired output structure
+                    'program'        => $program->program_name,
+                    'program_code'   => $program->program_code,
+                    'yearLevel'      => null, 
+                    'total_students' => $totalStudents,
+                    'submitted'      => $submittedStudents,
+                    'not_submitted'  => $totalStudents - $submittedStudents,
+                    'school_year'    => null, 
+                    'semester'       => null  
+                ];
+            }
+        }
+
+        return response()->json(['data' => $results]);
+    }
+        
+    public function courseEvaluationSubmissionCounts(Request $request)
+    {
+    
+        $courses = DB::table('programs')
+            ->select('id as program_id', 'code as program_code', 'name as program_name')
+            ->get();
+
+        $results = [];
+
+        foreach ($courses as $course) {
+            $submittedCount = DB::table('evaluations')
+                ->join('users', 'evaluations.student_id', '=', 'users.id')
+                ->where('users.program_id', $course->program_id) 
+                ->distinct('evaluations.student_id')
+                ->count('evaluations.student_id');
+
+            $results[] = [
+                'course_code'   => $course->program_code, 
+                'course_name'   => $course->program_name,
+                'submitted_count' => $submittedCount,
+            ];
+        }
+
+        return response()->json(['data' => $results]);
+    }
 
 }

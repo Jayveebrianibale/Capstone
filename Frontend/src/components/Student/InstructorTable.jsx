@@ -82,6 +82,33 @@ const InstructorTable = ({
     ],
   };
 
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '—';
+    let dateToFormat = timestamp;
+    // If timestamp is a string like "YYYY-MM-DD HH:MM:SS" (meant as UTC)
+    // convert it to "YYYY-MM-DDTHH:MM:SSZ" to ensure correct UTC parsing.
+    if (typeof timestamp === 'string' && timestamp.includes(' ') && !timestamp.includes('T') && !timestamp.endsWith('Z')) {
+      dateToFormat = timestamp.replace(' ', 'T') + 'Z';
+    }
+    
+    const options = {
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
+      hour12: true,
+      timeZone: 'Asia/Manila'
+    };
+    try {
+      return new Date(dateToFormat).toLocaleString('en-PH', options);
+    } catch (e) {
+      console.error("Error formatting date:", e, "Original timestamp:", timestamp);
+      return 'Invalid Date';
+    }
+  };
+
+  const allEvaluationsSaved = instructors.length > 0 && Object.keys(savedEvaluations).length === instructors.length;
+  const noInstructorsExist = instructors.length === 0;
+  const isSubmitAllDisabled = noInstructorsExist || !allEvaluationsSaved;
+
   return (
     <div className="mt-6 border rounded-lg shadow-sm bg-white dark:bg-gray-800">
       {/* Desktop Header */}
@@ -152,9 +179,7 @@ const InstructorTable = ({
 
                     {status === 'Evaluated' && submittedAt && (
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Submitted: {new Date(submittedAt).toLocaleString('en-PH', { timeZone: 'Asia/Manila'
-                    
-                      })}
+                      Submitted: {formatDate(submittedAt)}
                     </div>
                     )}
                   </div>
@@ -182,7 +207,7 @@ const InstructorTable = ({
                 {/* Submitted At */}
                 <div>
                   {status === 'Evaluated' && submittedAt
-                    ? new Date(submittedAt).toLocaleString('en-US', { timeZone: 'Asia/Manila' })
+                    ? formatDate(submittedAt)
                     : '—'}
                 </div>
 
@@ -246,7 +271,12 @@ const InstructorTable = ({
         <div className="p-4 border-t dark:border-gray-700 text-right">
           <button
             onClick={handleSubmitAll}
-            className="w-full md:w-auto bg-[#1F3463] text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition"
+            disabled={isSubmitAllDisabled}
+            className={`w-full md:w-auto px-4 py-2 rounded-xl transition ${
+              isSubmitAllDisabled
+                ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
+                : 'bg-[#1F3463] text-white hover:bg-blue-700'
+            }`}
           >
             Submit All Evaluations
           </button>
@@ -256,4 +286,4 @@ const InstructorTable = ({
   );
 };
 
-export default InstructorTable;
+export default InstructorTable; 

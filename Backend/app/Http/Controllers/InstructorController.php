@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Models\Question;
+use App\Models\Evaluation;
 
 
 
@@ -308,7 +309,33 @@ class InstructorController extends Controller
         return response()->json($averageRatings);
     }
     
+public function getInstructorCommentsWithStudentNames($instructorId)
+    {
+        // Ensure the instructor exists
+        $instructor = Instructor::findOrFail($instructorId);
 
+        $comments = DB::table('evaluation_responses')
+            ->join('evaluations', 'evaluation_responses.evaluation_id', '=', 'evaluations.id')
+            ->join('users', 'evaluations.student_id', '=', 'users.id')
+            ->select(
+                'evaluation_responses.comment',
+                'users.name as student_name'
+            )
+            ->where('evaluations.instructor_id', $instructorId)
+            ->whereNotNull('evaluation_responses.comment')
+            ->where('evaluation_responses.comment', '<>', '')
+            ->distinct() 
+            ->get();
 
+        return response()->json($comments);
+    }
 
+    public function getCommentsWithStudentNames($id) {
+        $comments = Evaluation::where('instructor_id', $id)
+            ->whereNotNull('comment')
+            ->with('student:id,name')
+            ->get(['comment', 'student_id']);
+
+        return response()->json($comments);
+    }
 }

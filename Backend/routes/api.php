@@ -58,8 +58,12 @@ Route::post('/instructors/bulk-upload', [InstructorController::class, 'bulkUploa
 
 //get instructor results by intructor id
 Route::get('/instructor/{id}/ratings', [InstructorController::class, 'getInstructorAverageRatings']);
+Route::get('/instructors/{id}/comments-with-students', [InstructorController::class, 'getInstructorCommentsWithStudentNames']); // New route
 Route::get('/evaluation-submission-overall', [EvaluationController::class, 'overallEvaluationSubmissionStats']);
 Route::get('/evaluation-submission-stats', [EvaluationController::class, 'evaluationSubmissionStats']);
+Route::get('/program-evaluation-stats', [EvaluationController::class, 'programEvaluationStats']);
+Route::get('/course-evaluation-submission-counts', [EvaluationController::class, 'courseEvaluationSubmissionCounts']);
+Route::get('/instructor/{id}/comments-with-student-names', [InstructorController::class, 'getCommentsWithStudentNames']);
 
 Route::get('/test-cors', function () {
     return response()->json(['message' => 'CORS works!']);

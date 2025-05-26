@@ -1,37 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import bgImage from '../../assets/Login.jpg';
-import AnalyticsChart from "@/contents/Instructor/AnalyticsChart";
+import AnalyticsChart from '@/contents/Instructor/AnalyticsChart';
 import { EvaluationTable } from '../../contents/Instructor/EvaluationTable';
 
 function InstructorDashboard() {
-  const [instructorId, setInstructorId] = useState(null);
-  const [programCode, setProgramCode] = useState(null);
+  const [instructor, setInstructor] = useState(null);
 
   useEffect(() => {
     // Always get the latest user info from localStorage
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
-      setInstructorId(user.id || user.email || user.name);
-      if (user.programCode) setProgramCode(user.programCode);
-    }
-    // Fallback: try to get from localStorage directly
-    if (!instructorId) {
-      const id = localStorage.getItem('instructorId');
-      if (id) setInstructorId(id);
-    }
-    if (!programCode) {
-      const code = localStorage.getItem('programCode');
-      if (code) setProgramCode(code);
+      setInstructor(user);
     }
   }, []);
 
   const currentHour = new Date().getHours();
-
   const greeting = () => {
     if (currentHour < 12) return 'Good Morning, Instructor!';
     if (currentHour < 18) return 'Good Afternoon, Instructor!';
     return 'Good Evening, Instructor!';
   };
+
+  if (!instructor) {
+    return <div className="p-6">Loading dashboard…</div>;
+  }
 
   return (
     <main className="p-5 min-h-screen dark:bg-gray-900 space-y-6">
@@ -55,19 +47,20 @@ function InstructorDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-1">
-        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl p-6 shadow-sm dark:shadow-none mb-6">
+      <div className="grid grid-cols-1">
+        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl p-6 shadow-sm mb-6">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
             Overall Performance Analytics
           </h2>
-          <AnalyticsChart />
+          {/* pass just the instructor's ID */}
+          <AnalyticsChart instructorId={instructor.id} />
         </div>
 
-        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl p-6 shadow-sm dark:shadow-none mb-10">
+        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl p-6 shadow-sm mb-10">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Evaluation Results
           </h2>
-          <EvaluationTable instructor={JSON.parse(localStorage.getItem('user'))} />
+          <EvaluationTable instructor={instructor} />
         </div>
       </div>
     </main>
