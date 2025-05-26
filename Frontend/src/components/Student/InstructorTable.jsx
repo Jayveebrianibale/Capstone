@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
+
 import EvaluationForm from './EvaluationForm';
+
 
 const InstructorTable = ({
   instructors,
@@ -16,6 +18,7 @@ const InstructorTable = ({
   viewOnlyInstructorId,
   setViewOnlyInstructorId,
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
    const ratingOptions = {
     "Learning Environments": [
       { value: '5', label: '5 - Extremely positive and significantly enhances learning' },
@@ -270,15 +273,32 @@ const InstructorTable = ({
        ) && (
         <div className="p-4 border-t dark:border-gray-700 text-right">
           <button
-            onClick={handleSubmitAll}
-            disabled={isSubmitAllDisabled}
-            className={`w-full md:w-auto px-4 py-2 rounded-xl transition ${
-              isSubmitAllDisabled
-                ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
-                : 'bg-[#1F3463] text-white hover:bg-blue-700'
+            onClick={async () => {
+              setIsSubmitting(true);
+              try {
+                await handleSubmitAll(); // assuming it's a Promise
+              } finally {
+                setIsSubmitting(false);
+              }
+            }}
+            disabled={isSubmitAllDisabled || isSubmitting}
+            className={`mt-4 mb-4 ml-4 px-6 py-2 rounded-lg text-white ${
+              isSubmitting || isSubmitAllDisabled
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-[#1F3463] hover:bg-blue-700'
             }`}
           >
-            Submit All Evaluations
+            {isSubmitting ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l5-5-5-5v4a12 12 0 00-12 12h4z" />
+              </svg>
+              Submitting...
+            </span>
+          ) : (
+            'Submit All'
+          )}
           </button>
         </div>
       )}

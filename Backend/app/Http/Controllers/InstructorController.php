@@ -330,11 +330,20 @@ public function getInstructorCommentsWithStudentNames($instructorId)
         return response()->json($comments);
     }
 
-    public function getCommentsWithStudentNames($id) {
-        $comments = Evaluation::where('instructor_id', $id)
-            ->whereNotNull('comment')
-            ->with('student:id,name')
-            ->get(['comment', 'student_id']);
+    public function getCommentsWithStudentNames($instructorId) {
+        $comments = DB::table('evaluation_responses')
+            ->join('evaluations', 'evaluation_responses.evaluation_id', '=', 'evaluations.id')
+            ->join('users', 'evaluations.student_id', '=', 'users.id')
+            ->select(
+                DB::raw('MIN(evaluation_responses.comment) as comment'),
+                'users.name as student_name',
+                'evaluations.student_id'
+            )
+            ->where('evaluations.instructor_id', $instructorId)
+            ->whereNotNull('evaluation_responses.comment')
+            ->where('evaluation_responses.comment', '<>', '')
+            ->groupBy('evaluations.student_id', 'users.name')
+            ->get();
 
         return response()->json($comments);
     }
