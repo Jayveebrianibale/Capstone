@@ -17,101 +17,78 @@ use App\Models\Setting;
 
 class EvaluationController extends Controller {
 
-    public function index(Request $request) {
-        $user = $request->user();
 
-        // Get the active phase (falls back to “1st Evaluation” if not set)
-        $currentPhase = Setting::get('current_phase', '1st Evaluation');
+    public function index(Request $request)
+            {
+                $user = $request->user();
+                $evaluations = Evaluation::with(['instructor', 'student']) 
+                    ->where('student_id', $user->id)
+                    ->get()
+                    ->groupBy('instructor_id');
 
-        // Fetch only evaluations in the active phase
-        $evaluations = Evaluation::with(['instructor', 'student'])
-            ->where('student_id', $user->id)
-            ->where('phase', $currentPhase)
-            ->get()
-            ->groupBy('instructor_id');
-
-        return response()->json([
-            'phase'       => $currentPhase,
-            'evaluations' => $evaluations,
-        ]);
-    }
+                return response()->json($evaluations);
+            }
 
 
-    public function store(Request $request) {
-        $user = auth()->user();
+            public function store(Request $request)
+        {
+            $user = auth()->user();
 
-        if ($user->role !== 'Student') {
-            return response()->json(['message' => 'Only students can submit evaluations.'], 403);
-        }
+            if ($user->role !== 'Student') {
+                return response()->json(['message' => 'Only students can submit evaluations.'], 403);
+            }
 
-        $validated = $request->validate([
-            'instructor_id'             => 'required|exists:instructors,id',
-            'responses'                 => 'required|array|min:1',
-            'responses.*.question_id'   => 'required|exists:questions,id',
-            'responses.*.rating'        => 'required|integer|between:1,5',
-            'comment'                   => 'nullable|string',
-            'school_year'               => 'required|string',
-            'semester'                  => 'required|string',
-        ]);
+                $validated = $request->validate([
+                    'instructor_id' => 'required|exists:instructors,id',
+                    'responses' => 'required|array|min:1',
+                    'responses.*.question_id' => 'required|exists:questions,id',
+                    'responses.*.rating' => 'required|integer|between:1,5',
+                    'comment' => 'nullable|string',
+                    'school_year' => 'required|string',
+                    'semester' => 'required|string',
+                ]);
 
-        // Determine the active phase
-        $currentPhase = Setting::get('current_phase', '1st Evaluation');
 
-        // Prevent duplicate submission in this phase
-        $existing = Evaluation::where('student_id', $user->id)
-            ->where('instructor_id', $validated['instructor_id'])
-            ->where('phase', $currentPhase)
-            ->first();
 
-        if ($existing) {
-            return response()->json([
-                'message' => 'You have already submitted an evaluation for this instructor in the current phase.'
-            ], 409);
-        }
+            // ✅ Check if this student already evaluated this instructor
+            $existingEvaluation = Evaluation::where('student_id', $user->id)
+                ->where('instructor_id', $validated['instructor_id'])
+                ->first();
 
-        // Create the evaluation record
-        $evaluation = Evaluation::create([
-            'student_id'    => $user->id,
-            'instructor_id' => $validated['instructor_id'],
-            'school_year'   => $validated['school_year'],
-            'semester'      => $validated['semester'],
-            'phase'         => $currentPhase,          // ← store the phase
-            'status'        => 'Evaluated',
-            'evaluated_at'  => now(),
-            'phase' => Setting::get('current_phase'),
-        ]);
+            if ($existingEvaluation) {
+                return response()->json(['message' => 'You have already submitted an evaluation for this instructor.'], 409);
+            }
 
-        // Save each response
-        foreach ($validated['responses'] as $response) {
-            EvaluationResponse::create([
-                'evaluation_id' => $evaluation->id,
-                'question_id'   => $response['question_id'],
-                'rating'        => $response['rating'],
-                'comment'       => $validated['comment'] ?? null,
-            ]);
-        }
+            // ✅ Create evaluation and responses
+                $evaluation = Evaluation::create([
+                    'student_id' => $user->id,
+                    'instructor_id' => $validated['instructor_id'],
+                    'school_year' => $validated['school_year'],
+                    'semester' => $validated['semester'],
+                    'status' => 'Evaluated',
+                    'evaluated_at' => now(),
+                ]);
+
+
+
+
+            foreach ($validated['responses'] as $response) {
+                EvaluationResponse::create([
+                    'evaluation_id' => $evaluation->id,
+                    'question_id' => $response['question_id'],
+                    'rating' => $response['rating'],
+                    'comment' => $validated['comment'] ?? null,
+                ]);
+            }
 
         return response()->json([
-            'message'      => 'Evaluation submitted successfully.',
-            'phase'        => $currentPhase,
-            'status'       => $evaluation->status,
-            'evaluated_at' => $evaluation->evaluated_at->toDateTimeString(),
-        ], 201);
-    }
+                'message' => 'Evaluation submitted successfully.',
+                'status' => $evaluation->status,
+                'evaluated_at' => $evaluation->evaluated_at,
+            ], 201);
 
+        }
 
-    public function archive(Request $request) {
-        $user = $request->user();
-        $currentPhase = Setting::get('current_phase');
-
-        $archivedEvaluations = Evaluation::with(['instructor', 'student'])
-            ->where('student_id', $user->id)
-            ->where('phase', '<', $currentPhase)
-            ->get()
-            ->groupBy('instructor_id');
-
-        return response()->json($archivedEvaluations);
-    }
 
 
     public function getEvaluationWithResponses($evaluationId) {
