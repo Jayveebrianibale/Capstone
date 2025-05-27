@@ -13,29 +13,26 @@ export function EvaluationTable({ instructor }) {
     async function fetchData() {
       setLoading(true);
       try {
-        // 1. Fetch all questions
         const fetchedQuestions = await QuestionsService.getAll();
         setQuestions(fetchedQuestions);
 
-        // 2. Fetch instructor results
-        if (instructor?.id) {
+        if (instructor?.instructor_id) {
           const results = await InstructorService.getInstructorEvaluationResults(
-            instructor.id
+            instructor.instructor_id
           );
-
-          // Map question_id → avg_rating
+        
           const ratingMap = {};
           results.forEach((item) => {
             ratingMap[item.question_id] = parseFloat(item.avg_rating);
           });
           setRatings(ratingMap);
-
-          // Assume comments come back as an array on results.comments
+        
           setComments(results.comments ?? []);
         } else {
           setRatings({});
           setComments(["Instructor ID not found"]);
         }
+        
       } catch (err) {
         console.error("Error fetching data:", err);
         setQuestions([]);
@@ -51,7 +48,6 @@ export function EvaluationTable({ instructor }) {
 
   return (
     <div className="space-y-6">
-      {/* Evaluation Table */}
       <div className="rounded-md border overflow-x-auto max-w-full dark:border-gray-700">
         <table className="min-w-[700px] w-full text-sm text-left text-gray-700 dark:text-gray-200">
           <thead className="bg-gray-100 dark:bg-gray-700">
@@ -91,8 +87,8 @@ export function EvaluationTable({ instructor }) {
         </table>
       </div>
 
-      {/* Comments Section */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-md border dark:border-gray-700">
+      {/* Comments section is hidden */}
+      {/* <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-md border dark:border-gray-700">
         <h3 className="text-md font-semibold mb-2">Comments:</h3>
         {comments.length > 0 ? (
           comments.map((c, i) => (
@@ -105,7 +101,7 @@ export function EvaluationTable({ instructor }) {
             No comments available.
           </p>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }

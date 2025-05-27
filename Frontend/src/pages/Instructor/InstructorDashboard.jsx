@@ -52,15 +52,14 @@ function InstructorDashboard() {
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
             Overall Performance Analytics
           </h2>
-          {/* pass just the instructor's ID */}
-          <AnalyticsChart instructorId={instructor.id} />
+          <AnalyticsChart instructorId={instructor.instructor_id} />
         </div>
 
         <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl p-6 shadow-sm mb-10">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Evaluation Results
           </h2>
-          <EvaluationTable instructor={instructor} />
+          <EvaluationTable instructor={JSON.parse(sessionStorage.getItem("user"))} />
         </div>
       </div>
     </main>
