@@ -15,11 +15,11 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', '*'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://t6-tpes.vercel.app'],
+    'allowed_origins' => ['https://tpes.vercel.app', 'http://localhost:5173'],
 
     'allowed_origins_patterns' => [],
 

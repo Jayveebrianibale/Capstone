@@ -1,14 +1,4 @@
-<<<<<<< HEAD
-import axios from "axios";
-
-const API_URL = "https://capstone-production-bf29.up.railway.app/api/evaluations";
-
-const api = axios.create({
-  baseURL: API_URL,
-});
-=======
 import api from "../services/api";
->>>>>>> Jeibii
 
 const EvaluationService = {
   getStudentEvaluations: async () => {
@@ -17,23 +7,39 @@ const EvaluationService = {
   },
 
   getTopInstructors: async () => {
-<<<<<<< HEAD
-    const response = await axios.get("https://capstone-production-bf29.up.railway.app/api/top-instructors");
-    return response.data;
-=======
     const res = await api.get("/top-instructors");
     return res.data;
->>>>>>> Jeibii
   },
 
   getAllInstructorDistributions: async () => {
-<<<<<<< HEAD
-    const res = await axios.get('https://capstone-production-bf29.up.railway.app/api/instructor-distributions');
-=======
     const res = await api.get("/instructor-distributions");
->>>>>>> Jeibii
     return res.data.data;
   },
+
+  getEvaluationSubmissionStats: async (schoolYear, semester) => {
+    const params = {};
+    if (schoolYear) params.school_year = schoolYear;
+    if (semester) params.semester = semester;
+  
+    const res = await api.get("/evaluation-submission-stats", { params });
+    return res.data.data;
+  },
+
+  getOverallEvaluationSubmissionStats: async () => {
+    const res = await api.get("/evaluation-submission-overall");
+    return res.data;
+  },
+
+  getProgramEvaluationStats: async () => {
+    const res = await api.get("/program-evaluation-stats");
+    return res.data.data;
+  },
+
+  getCourseEvaluationSubmissionCounts: async () => {
+    const res = await api.get("/course-evaluation-submission-counts");
+    return res.data.data;
+  },
+  
 };
 
 export default EvaluationService;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import EvaluationForm from './EvaluationForm';
 
 const InstructorTable = ({
@@ -16,8 +16,11 @@ const InstructorTable = ({
   viewOnlyInstructorId,
   setViewOnlyInstructorId,
 }) => {
-   const ratingOptions = {
-    "Learning Environment": [
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSubmitAllModal, setShowSubmitAllModal] = useState(false);
+  
+  const ratingOptions = {
+    "Learning Environments": [
       { value: '5', label: '5 - Extremely positive and significantly enhances learning' },
       { value: '4', label: '4 - Positive and slightly enhances learning' },
       { value: '3', label: '3 - Neutral, neither positive nor negative' },
@@ -80,6 +83,41 @@ const InstructorTable = ({
       { value: '2', label: '2 - Unsatisfied' },
       { value: '1', label: '1 - Very unsatisfied' },
     ],
+  };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '—';
+    let dateToFormat = timestamp;
+    if (typeof timestamp === 'string' && timestamp.includes(' ') && !timestamp.includes('T') && !timestamp.endsWith('Z')) {
+      dateToFormat = timestamp.replace(' ', 'T') + 'Z';
+    }
+    
+    const options = {
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
+      hour12: true,
+      timeZone: 'Asia/Manila'
+    };
+    try {
+      return new Date(dateToFormat).toLocaleString('en-PH', options);
+    } catch (e) {
+      console.error("Error formatting date:", e, "Original timestamp:", timestamp);
+      return 'Invalid Date';
+    }
+  };
+
+  const allEvaluationsSaved = instructors.length > 0 && Object.keys(savedEvaluations).length === instructors.length;
+  const noInstructorsExist = instructors.length === 0;
+  const isSubmitAllDisabled = noInstructorsExist || !allEvaluationsSaved;
+
+  const handleSubmitAllWithConfirmation = async () => {
+    setShowSubmitAllModal(false);
+    setIsSubmitting(true);
+    try {
+      await handleSubmitAll();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -152,61 +190,65 @@ const InstructorTable = ({
 
                     {status === 'Evaluated' && submittedAt && (
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Submitted: {new Date(submittedAt).toLocaleString('en-PH', { 
-                      month: 'short', 
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true,
-                      timeZone: 'Asia/Manila'
-                      })}
+                      Submitted: {formatDate(submittedAt)}
                     </div>
                     )}
                   </div>
+              {/* Desktop Layout */}
+              <div className="hidden md:grid md:grid-cols-4 gap-4 p-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700">
+                {/* Avatar and Name */}
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1F3463] flex items-center justify-center">
+                    <span className="text-white font-medium">
+                      {instructor.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      {instructor.name}
+                    </div>
+                  </div>
+                </div>
 
-                  {/* Desktop Layout */}
-            <div className="hidden md:grid md:grid-cols-4 gap-4 p-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700">
-              <div className="font-semibold text-gray-900 dark:text-white">
-                {instructor.name}
-              </div>
-              
-              <div className={`font-semibold ${statusClass}`}>
-                {status}
-              </div>
-              
-              <div>
-                {status === 'Evaluated' && submittedAt
-                  ? new Date(submittedAt).toLocaleString('en-US', { timeZone: 'Asia/Manila' })
-                  : '—'}
-              </div>
-              
-              <div className="flex justify-center">
-                {status === 'Evaluated' ? (
-                  <button
-                    onClick={() => {
-                      setViewOnlyInstructorId(instructor.id);
-                      setExpandedInstructorId(instructor.id);
-                    }}
-                    className="px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-600 text-white"
-                  >
-                    View
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setViewOnlyInstructorId(null);
-                      setExpandedInstructorId(isExpanded ? null : instructor.id);
-                    }}
-                    className={`px-4 py-2 rounded-lg transition ${
-                      saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
-                    } text-white`}
-                  >
-                    {saved ? 'Edit' : 'Evaluate'}
-                  </button>
-                )}
-              </div>
-            </div>
+                {/* Status */}
+                <div className={`font-semibold ${statusClass}`}>
+                  {status}
+                </div>
 
+                {/* Submitted At */}
+                <div>
+                  {status === 'Evaluated' && submittedAt
+                    ? formatDate(submittedAt)
+                    : '—'}
+                </div>
+
+                {/* Action Button */}
+                <div className="flex justify-center">
+                  {status === 'Evaluated' ? (
+                    <button
+                      onClick={() => {
+                        setViewOnlyInstructorId(instructor.id);
+                        setExpandedInstructorId(instructor.id);
+                      }}
+                      className="px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-600 text-white"
+                    >
+                      View
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setViewOnlyInstructorId(null);
+                        setExpandedInstructorId(isExpanded ? null : instructor.id);
+                      }}
+                      className={`px-4 py-2 rounded-lg transition ${
+                        saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
+                      } text-white`}
+                    >
+                      {saved ? 'Edit' : 'Evaluate'}
+                    </button>
+                  )}
+                </div>
+              </div>
             {/* Expanded Form Section */}
             {isExpanded && (
               <div className="col-span-full p-4 border-t dark:border-gray-700">
@@ -231,7 +273,7 @@ const InstructorTable = ({
         );
       })}
 
-      {/* Submit All Button - Only show if there are saved evaluations and not all are submitted */}
+      {/* Submit All Button */}
       {Object.keys(savedEvaluations).length > 0 && 
        !instructors.every(instructor => 
          instructor.evaluationHistory || 
@@ -239,11 +281,59 @@ const InstructorTable = ({
        ) && (
         <div className="p-4 border-t dark:border-gray-700 text-right">
           <button
-            onClick={handleSubmitAll}
-            className="w-full md:w-auto bg-[#1F3463] text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition"
+            onClick={() => setShowSubmitAllModal(true)}
+            disabled={isSubmitAllDisabled || isSubmitting}
+            className={`mt-4 mb-4 ml-4 px-6 py-2 rounded-lg text-white ${
+              isSubmitting || isSubmitAllDisabled
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-[#1F3463] hover:bg-blue-700'
+            }`}
           >
-            Submit All Evaluations
+            Submit All
           </button>
+        </div>
+      )}
+
+      {/* Submit All Confirmation Modal */}
+      {showSubmitAllModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              Confirm Submission
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to submit all evaluations? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowSubmitAllModal(false)}
+                className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitAllWithConfirmation}
+                disabled={isSubmitting}
+                className={`px-4 py-2 rounded-lg text-white ${
+                  isSubmitting
+                    ? 'bg-blue-400 cursor-not-allowed'
+                    : 'bg-[#1F3463] hover:bg-blue-700'
+                }`}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l5-5-5-5v4a12 12 0 00-12 12h4z" />
+                    </svg>
+                    Submitting...
+                  </span>
+                ) : (
+                  'Submit'
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

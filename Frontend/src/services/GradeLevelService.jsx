@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-import axios from "axios";
-
-const API_URL = "https://capstone-production-bf29.up.railway.app/api/grade-levels";
-=======
 import api from '../services/api';
->>>>>>> Jeibii
 
 const GradeLevelService = {
   // Get all grade levels

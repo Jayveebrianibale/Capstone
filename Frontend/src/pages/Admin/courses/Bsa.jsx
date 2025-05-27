@@ -3,6 +3,7 @@ import InstructorTable from "../../../contents/Admin/InstructorTable";
 import Tabs from "../../../components/Tabs";
 import ContentHeader from "../../../contents/Admin/ContentHeader";
 import ProgramService from "../../../services/ProgramService";
+import EvaluationService from "../../../services/EvaluationService"; // Added EvaluationService
 import { toast } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
@@ -39,6 +40,7 @@ function Bsa() {
   const [mergedInstructorsByYear, setMergedInstructorsByYear] = useState([[], [], [], []]);
   const [noInstructors, setNoInstructors] = useState(false);
   const [fetchError, setFetchError] = useState(false);
+  const [submittedCount, setSubmittedCount] = useState(0); // Added state for submitted count
   const { loading, setLoading } = useLoading();
 
   const tabLabels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
@@ -59,15 +61,24 @@ function Bsa() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [instructorsData, resultsData] = await Promise.all([
+      const [instructorsData, resultsData, courseEvalCounts] = await Promise.all([
         ProgramService.getInstructorsByProgramCode(programCode),
         ProgramService.getInstructorResultsByProgram(programCode),
+        EvaluationService.getCourseEvaluationSubmissionCounts(), // Fetch course evaluation counts
       ]);
 
-      if (!Array.isArray(instructorsData) || !Array.isArray(resultsData)) {
-        throw new Error("Invalid data format received");
+      if (!Array.isArray(instructorsData) || !Array.isArray(resultsData) || !Array.isArray(courseEvalCounts)) {
+        throw new Error("Invalid data format received from one or more endpoints");
       }
 
+      // Find the submitted count for the current programCode
+      const currentCourseStats = courseEvalCounts.find(course => course.course_code === programCode);
+      if (currentCourseStats) {
+        setSubmittedCount(currentCourseStats.submitted_count);
+      } else {
+        setSubmittedCount(0); // Default to 0 if not found
+      }
+      
       const groupByYear = (data) => {
         const grouped = [[], [], [], []];
         data.forEach((item) => {
@@ -148,7 +159,7 @@ function Bsa() {
         <>
           <ContentHeader
             title="Instructors"
-            stats={["Submitted: 0"]}
+            stats={[`Submitted: ${submittedCount}`]}
             onSearch={handleSearch}
             onExport={handleExport}
             onAdd={handleAddInstructor}

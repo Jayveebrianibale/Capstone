@@ -7,6 +7,8 @@ const SDashboard = () => {
   const [user, setUser] = useState(null);
   const [instructors, setInstructors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
 
   const greeting = () => {
     const currentHour = new Date().getHours();
@@ -47,6 +49,19 @@ const SDashboard = () => {
     }
   }, []);
 
+  useEffect(() => {
+    // Track completed evaluations from sessionStorage.submissionInfo
+    const submissionInfoRaw = sessionStorage.getItem('submissionInfo');
+    let completed = 0;
+    let total = instructors.length;
+    if (submissionInfoRaw) {
+      const submissionInfo = JSON.parse(submissionInfoRaw);
+      completed = Object.values(submissionInfo).filter(info => info.status === 'Evaluated').length;
+    }
+    setCompletedCount(completed);
+    setTotalCount(total);
+  }, [instructors]);
+
   return (
     <main className="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen transition-all duration-300">
       <div
@@ -62,8 +77,9 @@ const SDashboard = () => {
         <div className="absolute inset-0 bg-black opacity-30 z-0" />
         <div className="relative z-10">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight break-words leading-tight drop-shadow-sm">
-            {greeting()} {user ? `${user.name.split(" ")[0]}' ${user.yearLevel}` : "Student"} 👋
+            {greeting()} {user ? `${user.name.split(" ")[0]}${user.name.split(" ").length > 1 ? " " + user.name.split(" ")[1] : ""}!` : "Student"}
           </h1>
+          <span>{user ? `${user.program_name} - ${user.yearLevel}` : ""}</span>
         </div>
       </div>
 
@@ -78,9 +94,7 @@ const SDashboard = () => {
           </div>
           <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400 mb-3">
             You’ve completed <strong>
-              {
-                instructors.filter(i => i.evaluationStatus === "Evaluated").length
-              } out of {instructors.length}
+              {completedCount} out of {totalCount}
             </strong> evaluations.
           </p>
           <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
@@ -88,9 +102,9 @@ const SDashboard = () => {
               className="bg-green-500 h-2 rounded-full transition-all"
               style={{
                 width: `${
-                  instructors.length === 0
+                  totalCount === 0
                     ? 0
-                    : (instructors.filter(i => i.evaluationStatus === "Evaluated").length / instructors.length) * 100
+                    : (completedCount / totalCount) * 100
                 }%`
               }}
             ></div> 
@@ -104,7 +118,7 @@ const SDashboard = () => {
             <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white">Next Evaluations</h2>
           </div>
           <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400">
-            ⏳ <strong>Evaluation schedule will be announced soon.</strong>
+            <h1>⏳ Evaluation schedule will be announced soon.</h1>
           </p>
         </div>
 
@@ -130,7 +144,7 @@ const SDashboard = () => {
             <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white truncate">Announcements</h2>
           </div>
           <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400">
-            📢 <strong>Announcements feature coming soon.</strong>
+             <h1>📢 Announcements feature coming soon.</h1>
           </p>
         </div>
       </div>
@@ -139,3 +153,4 @@ const SDashboard = () => {
 };
 
 export default SDashboard;
+

@@ -1,98 +1,111 @@
-"use client";
+import { useEffect, useState } from "react";
+import QuestionsService from "../../services/QuestionService";
+import InstructorService from "../../services/InstructorService";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
   Legend,
-} from "chart.js";
-import { Bar } from "react-chartjs-2";
-import { useEffect, useState } from "react";
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-export function AnalyticsChart() {
+export default function AnalyticsChart({ instructorId }) {
+  const [data, setData] = useState([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // Dark-mode watcher
   useEffect(() => {
-    // Check if dark mode is enabled
-    const isDark = document.documentElement.classList.contains('dark');
-    setIsDarkMode(isDark);
-
-    // Create a MutationObserver to watch for theme changes
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'class') {
-          const isDark = document.documentElement.classList.contains('dark');
-          setIsDarkMode(isDark);
-        }
-      });
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains("dark"));
+    };
+    checkDarkMode();
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
     });
-
-    // Start observing the document with the configured parameters
-    observer.observe(document.documentElement, { attributes: true });
-
     return () => observer.disconnect();
   }, []);
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top",
-        labels: {
-          color: isDarkMode ? '#e5e7eb' : '#374151'
-        }
-      },
-      title: {
-        display: false,
-      },
-    },
-    scales: {
-      y: {
-        min: 0,
-        max: 5,
-        ticks: {
-          stepSize: 1,
-          color: isDarkMode ? '#e5e7eb' : '#374151'
-        },
-        grid: {
-          color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-        }
-      },
-      x: {
-        ticks: {
-          color: isDarkMode ? '#e5e7eb' : '#374151'
-        },
-        grid: {
-          color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-        }
-      }
-    },
-  };
+  // Fetch questions + ratings
+  useEffect(() => {
+    async function loadChart() {
+      if (!instructorId) return;
+      const questions = await QuestionsService.getAll();
+      const results = await InstructorService.getInstructorEvaluationResults(
+        instructorId
+      );
+      const ratingMap = results.reduce((acc, x) => {
+        acc[x.question_id] = parseFloat(x.avg_rating);
+        return acc;
+      }, {});
+      // Build chart-ready array
+      setData(
+        questions.map((q) => ({
+          name: `Qn${q.id}`,  
+          rating: ratingMap[q.id] ?? 0,
+        }))
+      );
+    }
+    loadChart();
+  }, [instructorId]);
 
-  const labels = ["Q1", "Q2", "Q3", 
-    "Q4", "Q5", "Q6", "Q7", 
-    "Q8", "Q9"];
-
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: "Average Rating",
-        data: [4.5, 4.9, 2.2, 3.0, 4.5, 2.8, 3.2, 4.6, 4.9],
-        backgroundColor: isDarkMode ? "#4B5563" : "#1F3463",
-        borderRadius: 4,
-      },
-    ],
-  };
+  const colors = ['#1F3463', '#2F4F91', '#3E64B3', '#6C8CD5', '#A3B7E8'];
+  const textColor = isDarkMode ? "#e5e7eb" : "#374151";
+  const gridColor = isDarkMode
+    ? "rgba(255, 255, 255, 0.1)"
+    : "rgba(0, 0, 0, 0.1)";
+  const tooltipBg = isDarkMode ? "#1f2937" : "#fff";
+  const tooltipBorder = isDarkMode
+    ? "rgba(255, 255, 255, 0.1)"
+    : "rgba(0, 0, 0, 0.1)";
+  const tooltipTextColor = isDarkMode ? "#e5e7eb" : "#374151";
 
   return (
     <div className="h-[300px] w-full">
-      <Bar options={options} data={data} />
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid stroke={gridColor} />
+          <XAxis
+            dataKey="name"
+            tick={{ fill: textColor, fontWeight: 500 }}
+            stroke={gridColor}
+          />
+          <YAxis
+            domain={[0, 5]}
+            ticks={[0, 1, 2, 3, 4, 5]}
+            tick={{ fill: textColor, fontWeight: 500 }}
+            stroke={gridColor}
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: tooltipBg,
+              border: `1px solid ${tooltipBorder}`,
+              color: tooltipTextColor,
+              fontWeight: "500",
+            }}
+            labelStyle={{ color: tooltipTextColor, fontWeight: "500" }}
+            itemStyle={{ color: tooltipTextColor, fontWeight: "500" }}
+          />
+          <Legend
+            wrapperStyle={{ color: textColor, fontWeight: "500" }}
+            verticalAlign="top"
+            height={36}
+          />
+          <Bar dataKey="rating" radius={[4, 4, 0, 0]}>
+            {data.map((_, idx) => (
+              <Cell key={idx} fill={colors[idx % colors.length]} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

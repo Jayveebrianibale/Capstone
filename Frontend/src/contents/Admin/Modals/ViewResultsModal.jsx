@@ -4,40 +4,54 @@ import { FiMail, FiLoader, FiCheck } from 'react-icons/fi';
 import { HiOutlineDocumentText } from 'react-icons/hi';
 import InstructorService from '../../../services/InstructorService';
 import { toast, ToastContainer } from 'react-toastify';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
 
 const baseURL = import.meta.env.VITE_API_URL;
 
 const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
   const [questions, setQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
+  const [studentComments, setStudentComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(true);
   const [error, setError] = useState(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [showNames, setShowNames] = useState(false);
+
 
   useEffect(() => {
-    const getQuestions = async () => {
-      if (isOpen) {
+    const fetchData = async () => {
+      if (isOpen && instructor?.id) {
         try {
           setLoadingQuestions(true);
+          setLoadingComments(true);
+          
           const fetchedQuestions = await QuestionsService.getAll();
           setQuestions(fetchedQuestions);
+          
+          const fetchedComments = await InstructorService.getInstructorCommentsWithStudentNames(instructor.id);
+          setStudentComments(fetchedComments || []);
+
           setError(null);
         } catch (err) {
-          console.error('Error fetching questions:', err);
-          setError('Failed to load questions');
+          console.error('Error fetching data for modal:', err);
+          setError('Failed to load evaluation details');
+          setStudentComments([]); // Clear comments on error
         } finally {
           setLoadingQuestions(false);
+          setLoadingComments(false);
         }
       }
     };
 
-    getQuestions();
-  }, [isOpen]);
+    fetchData();
+  }, [isOpen, instructor?.id]);
 
   if (!isOpen || !instructor) return null;
 
   const ratings = instructor.ratings || {};
-  const comments = instructor.comments || 'No comments';
+  // const comments = instructor.comments || 'No comments'; // This will be replaced by studentComments
   const percentage = instructor.overallRating ?? 0;
 
   const handleSend = async () => {
@@ -133,15 +147,48 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
 
           {/* Comments Section */}
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-              Student Comments
-            </h3>
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <p className="text-gray-700 dark:text-gray-300 italic">
-                {comments}
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+          Student Comments
+        </h3>
+        <button
+          onClick={() => setShowNames(!showNames)}
+          className="text-[#1F3463] dark:text-indigo-400 text-lg hover:opacity-75 focus:outline-none"
+          title={showNames ? 'Hide names' : 'Show names'}
+        >
+          {showNames ? <FaEye /> : <FaEyeSlash />}
+        </button> 
+      </div>
+
+      {loadingComments ? (
+        <div className="text-center py-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#1F3463] mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading comments...</p>
+        </div>
+      ) : studentComments.length > 0 ? (
+        <div className="space-y-3 max-h-60 overflow-y-auto bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+          {studentComments.map((commentEntry, index) => (
+            <div
+              key={index}
+              className="pb-2 mb-2 border-b border-gray-200 dark:border-gray-600 last:border-b-0 last:pb-0 last:mb-0"
+            >
+              <p className="text-sm text-gray-800 dark:text-gray-200">
+                "{commentEntry.comment}"
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-right">
+                - {showNames ? (commentEntry.student_name || 'Anonymous Student') : 'Anonymous'} ({commentEntry.program_code || 'N/A'})
               </p>
             </div>
-          </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+          <p className="text-gray-700 dark:text-gray-300 italic">
+            No comments submitted for this instructor.
+          </p>
+        </div>
+      )}
+    </div>
         </div>
 
         {/* Footer */}

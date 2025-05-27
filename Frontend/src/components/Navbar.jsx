@@ -4,7 +4,7 @@ import DarkModeToggle from "../components/DarkmodeToggle";
 
 const baseURL = import.meta.env.VITE_API_URL.replace('/api', '');
 
-function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, activePage}) {
+function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, activePage }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
@@ -43,16 +43,23 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, ac
           {displayTitle}
         </h1>
       </div>
-      <div className="flex items-center gap-2 mr-2">
-        <DarkModeToggle darkMode={darkMode} handleDarkModeToggle={handleDarkModeToggle} />
-        {user && (user.role === "admin" || user.role === "Admin" || user.role === "ADMIN") && (
-          <button className="relative p-2 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white focus:outline-none">
+
+      <div className="flex items-center mr-2">
+        <div>
+          <DarkModeToggle darkMode={darkMode} handleDarkModeToggle={handleDarkModeToggle} />
+        </div>
+
+        {/* Notification icon for admins with reduced padding and margin */}
+        {user && (user.role.toLowerCase() === "admin") && (
+          <button
+            className="relative mr-1 px-2 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white focus:outline-none"
+            aria-label="Notifications"
+          >
             <FaBell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
-              3
-            </span>
           </button>
         )}
+
+        {/* User profile button with gap between image and text */}
         <div
           className="relative"
           onMouseEnter={() => setShowDropdown(true)}
@@ -70,7 +77,7 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, ac
               <span className="hidden sm:block text-gray-700 dark:text-gray-200 font-normal text-sm">
                 {user.role}
               </span>
-          </button>
+            </button>
           )}
 
           {showDropdown && user && (
@@ -83,6 +90,7 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, ac
                   {user.email}
                 </span>
               </div>
+              {/* Add other dropdown items here if needed */}
             </div>
           )}
         </div>

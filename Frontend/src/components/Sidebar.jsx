@@ -55,8 +55,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
         ],
       },
       { name: "Questionnaires", icon: TbMessageQuestion, path: "/Questions" },
-      { name: "Instructors", icon: SlPeople, path: "/Instructors" },
       { name: "Programs/Levels", icon: MdOutlineCastForEducation, path: "/Programs" },
+      { name: "Instructors", icon: SlPeople, path: "/Instructors" },
+      
     ],
     Instructor: [{ name: "Evaluation Results", icon: CiHome, path: "/InstructorDashboard" }],
   };

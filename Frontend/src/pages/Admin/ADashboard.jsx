@@ -5,22 +5,20 @@ import CompletionandPerformingInstructors from '../../contents/Admin/Completiona
 import bgImage from "../../assets/Login.jpg";
 import InstructorService from '../../services/InstructorService';
 import StudentService from '../../services/StudentService';
+import EvaluationService from '../../services/EvaluationService';
 
 function ADashboard() {
   const [instructorsCount, setInstructorsCount] = useState(0);
   const [studentsCount, setStudentsCount] = useState(0);
+  const [submittedCount, setSubmittedCount] = useState(0);
+  const [notSubmittedCount, setNotSubmittedCount] = useState(0);
+
   const currentHour = new Date().getHours();
 
   const greeting = () => {
-    if (currentHour < 12) return "Good Morning, Admin! ☀️";
-    if (currentHour < 18) return "Good Afternoon, Admin! 🌤";
-    return "Good Evening, Admin! 🌙";
-  };
-
-  const getBackgroundColor = () => {
-    if (currentHour < 12) return "bg-[#4B5563]"; // Morning - lighter color
-    if (currentHour < 18) return "bg-[#1F3463]"; // Afternoon - medium color
-    return "bg-[#1F3463]"; // Evening - dark color
+    if (currentHour < 12) return "Good Morning, Admin!";
+    if (currentHour < 18) return "Good Afternoon, Admin!";
+    return "Good Evening, Admin!";
   };
 
   useEffect(() => {
@@ -28,8 +26,14 @@ function ADashboard() {
       try {
         const instructors = await InstructorService.getAll();
         const students = await StudentService.getAll();
+
         setInstructorsCount(instructors.length);
         setStudentsCount(students.length);
+
+        const evaluationStats = await EvaluationService.getOverallEvaluationSubmissionStats();
+        setSubmittedCount(evaluationStats.submitted);
+        setNotSubmittedCount(evaluationStats.not_submitted);
+
       } catch (error) {
         console.error("Error fetching counts:", error);
       }
@@ -40,14 +44,14 @@ function ADashboard() {
   const stats = [
     { title: 'Number of Students', count: studentsCount, color: 'text-[#2196f3]', icon: <FiUsers size={28} /> },
     { title: 'Number of Instructors', count: instructorsCount, color: 'text-[#4caf50]', icon: <FiUserCheck size={28} /> },
-    { title: 'Evaluation Submitted', count: 0, color: 'text-[#9c27b0]', icon: <FiCheckCircle size={28} /> },
-    { title: 'Evaluation Not Submitted', count: 0, color: 'text-[#f44336]', icon: <FiAlertCircle size={28} /> },
+    { title: 'Evaluation Submitted', count: submittedCount, color: 'text-[#9c27b0]', icon: <FiCheckCircle size={28} /> },
+    { title: 'Evaluation Not Submitted', count: notSubmittedCount, color: 'text-[#f44336]', icon: <FiAlertCircle size={28} /> },
   ];
 
   return (
     <main className="p-5 min-h-screen dark:bg-gray-900 space-y-6">
       <div
-        className={`relative rounded-2xl overflow-hidden shadow-md ${getBackgroundColor()} p-6 sm:p-8 text-white`}
+        className={"relative rounded-2xl overflow-hidden shadow-md bg-[#1F3463] p-6 sm:p-8 text-white"}
         style={{
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',

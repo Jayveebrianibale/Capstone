@@ -119,7 +119,11 @@ function Instructors() {
 
   // Download sample CSV for instructors
   const handleDownloadTemplate = () => {
-    const csvContent = `name,email\nJohn Doe,johndoe@email.com\nJane Smith,janesmith@email.com\n`;
+    const csvContent = `name,email,programs
+    John Doe,johndoe@email.com,"[{""code"":""BSIS"",""yearLevel"":1},{""code"":""BSA"",""yearLevel"":2}]"
+    Jane Smith,janesmith@email.com,"[{""code"":""BAB"",""yearLevel"":1}]"
+    `;
+  
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -129,6 +133,7 @@ function Instructors() {
     link.click();
     document.body.removeChild(link);
   };
+  
 
   // Handler to fetch and show assigned programs
   const handleCheckDetails = async (instructor) => {
@@ -286,9 +291,9 @@ function Instructors() {
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1F3463] flex items-center justify-center">
-                          <span className="text-white font-medium">
-                            {inst.name.charAt(0).toUpperCase()}
-                          </span>
+                        <span className="text-white font-medium">
+                          {inst.name?.trim() ? inst.name.trim().charAt(0).toUpperCase() : "?"}
+                        </span>
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900 dark:text-white">

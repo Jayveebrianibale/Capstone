@@ -11,80 +11,85 @@ use App\Models\EvaluationResponse;
 use App\Models\Question;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use App\Models\Setting;
+
 
 
 class EvaluationController extends Controller {
 
-        public function index(Request $request)
+
+    public function index(Request $request)
+            {
+                $user = $request->user();
+                $evaluations = Evaluation::with(['instructor', 'student']) 
+                    ->where('student_id', $user->id)
+                    ->get()
+                    ->groupBy('instructor_id');
+
+                return response()->json($evaluations);
+            }
+
+
+            public function store(Request $request)
         {
-            $user = $request->user();
-            $evaluations = Evaluation::with(['instructor', 'student']) 
-                ->where('student_id', $user->id)
-                ->get()
-                ->groupBy('instructor_id');
+            $user = auth()->user();
 
-            return response()->json($evaluations);
+            if ($user->role !== 'Student') {
+                return response()->json(['message' => 'Only students can submit evaluations.'], 403);
+            }
+
+                $validated = $request->validate([
+                    'instructor_id' => 'required|exists:instructors,id',
+                    'responses' => 'required|array|min:1',
+                    'responses.*.question_id' => 'required|exists:questions,id',
+                    'responses.*.rating' => 'required|integer|between:1,5',
+                    'comment' => 'nullable|string',
+                    'school_year' => 'required|string',
+                    'semester' => 'required|string',
+                ]);
+
+
+
+            // ✅ Check if this student already evaluated this instructor
+            $existingEvaluation = Evaluation::where('student_id', $user->id)
+                ->where('instructor_id', $validated['instructor_id'])
+                ->first();
+
+            if ($existingEvaluation) {
+                return response()->json(['message' => 'You have already submitted an evaluation for this instructor.'], 409);
+            }
+
+            // ✅ Create evaluation and responses
+                $evaluation = Evaluation::create([
+                    'student_id' => $user->id,
+                    'instructor_id' => $validated['instructor_id'],
+                    'school_year' => $validated['school_year'],
+                    'semester' => $validated['semester'],
+                    'status' => 'Evaluated',
+                    'evaluated_at' => now(),
+                ]);
+
+
+
+
+            foreach ($validated['responses'] as $response) {
+                EvaluationResponse::create([
+                    'evaluation_id' => $evaluation->id,
+                    'question_id' => $response['question_id'],
+                    'rating' => $response['rating'],
+                    'comment' => $validated['comment'] ?? null,
+                ]);
+            }
+
+        return response()->json([
+                'message' => 'Evaluation submitted successfully.',
+                'status' => $evaluation->status,
+                'evaluated_at' => $evaluation->evaluated_at,
+            ], 201);
+
         }
 
 
-        public function store(Request $request)
-    {
-        $user = auth()->user();
-
-        if ($user->role !== 'Student') {
-            return response()->json(['message' => 'Only students can submit evaluations.'], 403);
-        }
-
-            $validated = $request->validate([
-                'instructor_id' => 'required|exists:instructors,id',
-                'responses' => 'required|array|min:1',
-                'responses.*.question_id' => 'required|exists:questions,id',
-                'responses.*.rating' => 'required|integer|between:1,5',
-                'comment' => 'nullable|string',
-                'school_year' => 'required|string',
-                'semester' => 'required|string',
-            ]);
-
-
-
-        // ✅ Check if this student already evaluated this instructor
-        $existingEvaluation = Evaluation::where('student_id', $user->id)
-            ->where('instructor_id', $validated['instructor_id'])
-            ->first();
-
-        if ($existingEvaluation) {
-            return response()->json(['message' => 'You have already submitted an evaluation for this instructor.'], 409);
-        }
-
-        // ✅ Create evaluation and responses
-            $evaluation = Evaluation::create([
-                'student_id' => $user->id,
-                'instructor_id' => $validated['instructor_id'],
-                'school_year' => $validated['school_year'],
-                'semester' => $validated['semester'],
-                'status' => 'Evaluated',
-                'evaluated_at' => now(),
-            ]);
-
-
-
-
-        foreach ($validated['responses'] as $response) {
-            EvaluationResponse::create([
-                'evaluation_id' => $evaluation->id,
-                'question_id' => $response['question_id'],
-                'rating' => $response['rating'],
-                'comment' => $validated['comment'] ?? null,
-            ]);
-        }
-
-       return response()->json([
-            'message' => 'Evaluation submitted successfully.',
-            'status' => $evaluation->status,
-            'evaluated_at' => $evaluation->evaluated_at,
-        ], 201);
-
-    }
 
     public function getEvaluationWithResponses($evaluationId) {
             
@@ -205,6 +210,148 @@ class EvaluationController extends Controller {
                 'data' => $instructors
             ]);
         }
+
+        public function evaluationSubmissionStats(Request $request) {
+            $schoolYear = $request->input('school_year');
+            $semester   = $request->input('semester');
+
+            $instructorPrograms = DB::table('instructor_program')
+                ->join('instructors', 'instructor_program.instructor_id', '=', 'instructors.id')
+                ->join('programs',    'instructor_program.program_id',    '=', 'programs.id')
+                ->select(
+                    'instructor_program.instructor_id',
+                    'programs.id as program_id',
+                    'programs.code as program_code',
+                    'instructors.name as instructor_name',
+                    'programs.name as program_name',
+                    'instructor_program.yearLevel'
+                )
+                ->get();
+
+            $results = [];
+
+            foreach ($instructorPrograms as $ip) {
+                $studentIds = DB::table('users')
+                    ->where('role', 'Student')
+                    ->where('program_id', $ip->program_id)
+                    ->where('yearLevel',  $ip->yearLevel)
+                    ->pluck('id');
+
+                $totalStudents = $studentIds->count();
+
+                $submittedCount = DB::table('evaluations')
+                    ->where('instructor_id', $ip->instructor_id)
+                    ->whereIn('student_id', $studentIds)
+                    ->distinct()
+                    ->count('student_id');
+
+                $results[] = [
+                    'instructor'     => $ip->instructor_name,
+                    'program'        => $ip->program_name,
+                    'program_code'   => $ip->program_code,
+                    'yearLevel'      => $ip->yearLevel,
+                    'total_students' => $totalStudents,
+                    'submitted'      => $submittedCount,
+                    'not_submitted'  => $totalStudents - $submittedCount,
+                    'school_year'    => $schoolYear,
+                    'semester'       => $semester,
+                ];
+            }
+
+            return response()->json(['data' => $results]);
+        }
+
+        public function overallEvaluationSubmissionStats() {
+            // Get all students' IDs
+            $allStudents = DB::table('users')
+                ->where('role', 'Student')
+                ->pluck('id');
         
+            // Get distinct student IDs who submitted evaluations
+            $submittedStudentIds = DB::table('evaluations')
+                ->distinct()
+                ->pluck('student_id');
+        
+            // Count submitted and not submitted
+            $submittedCount = $submittedStudentIds->count();
+            $notSubmittedCount = $allStudents->diff($submittedStudentIds)->count();
+        
+            return response()->json([
+                'total_students'    => $allStudents->count(),
+                'submitted'         => $submittedCount,
+                'not_submitted'     => $notSubmittedCount,
+            ]);
+        }
+
+    public function programEvaluationStats(Request $request)
+    {
+        $programsData = DB::table('programs')
+            ->select('id as program_id', 'code as program_code', 'name as program_name')
+            ->get();
+
+        $results = [];
+
+        foreach ($programsData as $program) {
+            // Total students in this program
+            $totalStudents = DB::table('users')
+                ->where('role', 'Student')
+                ->where('program_id', $program->program_id)
+                ->count();
+
+            // Students in this program who have submitted at least one evaluation
+            // We need to count distinct students who have an entry in the evaluations table for any instructor.
+            $submittedStudents = DB::table('evaluations')
+                ->join('users', 'evaluations.student_id', '=', 'users.id')
+                ->where('users.role', 'Student')
+                ->where('users.program_id', $program->program_id)
+                ->distinct('evaluations.student_id')
+                ->count('evaluations.student_id');
+            
+            // Only add if there are students in the program, to avoid cluttering with empty programs
+            if ($totalStudents > 0) {
+                $results[] = [
+                    // 'instructor' field is not relevant here as per the desired output structure
+                    'program'        => $program->program_name,
+                    'program_code'   => $program->program_code,
+                    'yearLevel'      => null, 
+                    'total_students' => $totalStudents,
+                    'submitted'      => $submittedStudents,
+                    'not_submitted'  => $totalStudents - $submittedStudents,
+                    'school_year'    => null, 
+                    'semester'       => null  
+                ];
+            }
+        }
+
+        return response()->json(['data' => $results]);
+    }
+        
+    public function courseEvaluationSubmissionCounts(Request $request)
+    {
+    
+        $courses = DB::table('programs')
+            ->select('id as program_id', 'code as program_code', 'name as program_name')
+            ->get();
+
+        $results = [];
+
+        foreach ($courses as $course) {
+            $submittedCount = DB::table('evaluations')
+                ->join('users', 'evaluations.student_id', '=', 'users.id')
+                ->where('users.program_id', $course->program_id) 
+                ->distinct('evaluations.student_id')
+                ->count('evaluations.student_id');
+
+            $results[] = [
+                'course_code'   => $course->program_code, 
+                'course_name'   => $course->program_name,
+                'submitted_count' => $submittedCount,
+            ];
+        }
+
+        return response()->json(['data' => $results]);
+    }
+
+
 
 }

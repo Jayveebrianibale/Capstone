@@ -52,12 +52,9 @@ useEffect(() => {
     return;
   }
 
-<<<<<<< HEAD
-  axios.get("https://capstone-production-bf29.up.railway.app/api/user", {
-=======
   api.get("/user", {
->>>>>>> Jeibii
     headers: { Authorization: `Bearer ${token}` },
+    withCredentials: true,
   })
     .then((response) => {
       const updatedUser = response.data;

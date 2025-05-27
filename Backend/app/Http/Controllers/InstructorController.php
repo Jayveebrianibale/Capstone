@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Instructor;
 use App\Models\Program;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\GetInstructorsByProgramAndYearRequest;
@@ -13,6 +14,9 @@ use App\Mail\InstructorResultMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Models\Question;
+use App\Models\Evaluation;
+use Illuminate\Validation\Rule;
 
 
 
@@ -28,67 +32,135 @@ class InstructorController extends Controller
         $request->validate([
             'file' => 'required|file|mimes:csv,txt',
         ]);
-
-        $file = $request->file('file');
-        $handle = fopen($file, 'r');
-
-        if (!$handle) {
+    
+        $handle = fopen($request->file('file'), 'r');
+        if (! $handle) {
             return response()->json(['message' => 'Failed to open the file'], 400);
         }
-
-        $header = fgetcsv($handle); // Get the first row as header
+    
+        $header   = fgetcsv($handle);
         $inserted = [];
-        $skipped = [];
-
-        while (($row = fgetcsv($handle)) !== false) {
+        $skipped  = [];
+    
+        while ($row = fgetcsv($handle)) {
+            if (count($row) !== count($header)) {
+                $skipped[] = [
+                    'data' => $row,
+                    'errors' => ['Invalid row structure: column count mismatch']
+                ];
+                continue;
+            }
+    
             $data = array_combine($header, $row);
-
+    
+            // Trim name and email to remove leading/trailing whitespace
+            $data['name'] = trim($data['name']);
+            $data['email'] = trim($data['email']);
+    
             $validator = Validator::make($data, [
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:instructors,email',
+                'name'     => 'required|string|max:255',
+                'email'    => 'required|email|unique:instructors,email|unique:users,email',
+                'programs' => 'nullable|string',
             ]);
-
+    
             if ($validator->fails()) {
                 $skipped[] = [
-                    'data' => $data,
+                    'data'   => $data,
                     'errors' => $validator->errors()->all()
                 ];
                 continue;
             }
-
-            $inserted[] = Instructor::create($data);
+    
+            DB::beginTransaction();
+    
+            try {
+                $instructor = Instructor::create([
+                    'name'  => $data['name'],
+                    'email' => $data['email']
+                ]);
+    
+                User::create([
+                    'name'     => $data['name'],
+                    'email'    => $data['email'],
+                    'role'     => 'Instructor',
+                    'password' => null,
+                ]);
+    
+                if (!empty($data['programs'])) {
+                    $programs = json_decode($data['programs'], true);
+    
+                    if (is_array($programs)) {
+                        foreach ($programs as $entry) {
+                            $programCode = $entry['code'] ?? null;
+                            $yearLevel = (int)($entry['yearLevel'] ?? 0);
+    
+                            if ($programCode && $yearLevel >= 1 && $yearLevel <= 4) {
+                                $program = Program::where('code', $programCode)->first();
+    
+                                if ($program) {
+                                    $exists = $instructor->programs()
+                                        ->where('program_id', $program->id)
+                                        ->wherePivot('yearLevel', $yearLevel)
+                                        ->exists();
+    
+                                    if (! $exists) {
+                                        $instructor->programs()->attach($program->id, [
+                                            'yearLevel' => $yearLevel
+                                        ]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+    
+                DB::commit();
+                $inserted[] = $instructor;
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                $skipped[] = [
+                    'data' => $data,
+                    'errors' => ['Exception: ' . $e->getMessage()]
+                ];
+            }
         }
-
+    
         fclose($handle);
-
+    
         return response()->json([
-            'message' => 'Instructors upload complete',
+            'message'  => 'Instructors upload complete',
             'inserted' => count($inserted),
-            'skipped' => $skipped,
+            'skipped'  => $skipped,
         ]);
     }
-
+    
 
     // Create a new instructor
     public function store(Request $request) {
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:instructors,email',
+        $data = $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('instructors')->whereNull('deleted_at'),
+                Rule::unique('users')->whereNull('deleted_at'),
+            ],
         ]);
 
-        $instructor = Instructor::create($validated);
+        $instructor = Instructor::create($data);
+
+        User::create([
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'role'     => 'Instructor',
+            'password' => null,
+        ]);
 
         return response()->json([
-            'message' => 'Instructor created successfully',
-            'instructor' => [
-                'id' => $instructor->id,
-                'name' => $instructor->name,
-                'email' => $instructor->email,
-            ],
+            'message'    => 'Instructor created successfully',
+            'instructor' => $instructor,
         ], 201);
     }
-
 
     // Update an instructor's information
     public function update(Request $request, $id)
@@ -105,13 +177,23 @@ class InstructorController extends Controller
     }
 
     // Delete an instructor
-    public function destroy($id)
-    {
+    public function destroy($id) {
         $instructor = Instructor::findOrFail($id);
-        $instructor->delete();
+
+        DB::transaction(function () use ($instructor) {
+            // Soft delete the instructor
+            $instructor->delete();
+
+            // Find related user by email and soft delete
+            $user = User::where('email', $instructor->email)->first();
+            if ($user) {
+                $user->delete();
+            }
+        });
 
         return response()->json(['message' => 'Instructor deleted successfully']);
     }
+
 
     // Assign one or more programs with year levels to an instructor
     public function assignProgram(Request $request, $id)
@@ -275,5 +357,65 @@ class InstructorController extends Controller
         ]);
     }
 
+
+    public function getInstructorAverageRatings($instructorId)
+    {
+        $averageRatings = DB::table('evaluation_responses')
+            ->join('evaluations', 'evaluation_responses.evaluation_id', '=', 'evaluations.id')
+            ->join('questions', 'evaluation_responses.question_id', '=', 'questions.id')
+            ->select(
+                'questions.id as question_id',
+                'questions.question as question_text',
+                DB::raw('AVG(evaluation_responses.rating) as avg_rating')
+            )
+            ->where('evaluations.instructor_id', $instructorId)
+            ->groupBy('questions.id', 'questions.question')
+            ->orderBy('questions.id')
+            ->get();
+    
+        return response()->json($averageRatings);
+    }
+    
+public function getInstructorCommentsWithStudentNames($instructorId)
+    {
+        // Ensure the instructor exists
+        $instructor = Instructor::findOrFail($instructorId);
+
+        $comments = DB::table('evaluation_responses')
+            ->join('evaluations', 'evaluation_responses.evaluation_id', '=', 'evaluations.id')
+            ->join('users', 'evaluations.student_id', '=', 'users.id')
+            ->select(
+                'evaluation_responses.comment',
+                'users.name as student_name'
+            )
+            ->where('evaluations.instructor_id', $instructorId)
+            ->whereNotNull('evaluation_responses.comment')
+            ->where('evaluation_responses.comment', '<>', '')
+            ->distinct() 
+            ->get();
+
+        return response()->json($comments);
+    }
+
+    public function getCommentsWithStudentNames($instructorId)
+{
+    $comments = DB::table('evaluation_responses')
+        ->join('evaluations', 'evaluation_responses.evaluation_id', '=', 'evaluations.id')
+        ->join('users', 'evaluations.student_id', '=', 'users.id')
+        ->join('programs', 'users.program_id', '=', 'programs.id') // join programs
+        ->select(
+            DB::raw('MIN(evaluation_responses.comment) as comment'),
+            'users.name as student_name',
+            'evaluations.student_id',
+            'programs.code as program_code' // add program code
+        )
+        ->where('evaluations.instructor_id', $instructorId)
+        ->whereNotNull('evaluation_responses.comment')
+        ->where('evaluation_responses.comment', '<>', '')
+        ->groupBy('evaluations.student_id', 'users.name', 'programs.code') // group by program code too
+        ->get();
+
+    return response()->json($comments);
+}
 
 }
