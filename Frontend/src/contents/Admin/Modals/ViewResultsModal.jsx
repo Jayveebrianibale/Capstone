@@ -4,6 +4,8 @@ import { FiMail, FiLoader, FiCheck } from 'react-icons/fi';
 import { HiOutlineDocumentText } from 'react-icons/hi';
 import InstructorService from '../../../services/InstructorService';
 import { toast, ToastContainer } from 'react-toastify';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -15,6 +17,8 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
   const [error, setError] = useState(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [showNames, setShowNames] = useState(false);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -143,31 +147,48 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
 
           {/* Comments Section */}
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-              Student Comments
-            </h3>
-            {loadingComments ? (
-              <div className="text-center py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#1F3463] mx-auto"></div>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading comments...</p>
-              </div>
-            ) : studentComments.length > 0 ? (
-              <div className="space-y-3 max-h-60 overflow-y-auto bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                {studentComments.map((commentEntry, index) => (
-                  <div key={index} className="pb-2 mb-2 border-b border-gray-200 dark:border-gray-600 last:border-b-0 last:pb-0 last:mb-0">
-                    <p className="text-sm text-gray-800 dark:text-gray-200">"{commentEntry.comment}"</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 text-right">- {commentEntry.student_name || 'Anonymous Student'}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                <p className="text-gray-700 dark:text-gray-300 italic">
-                  No comments submitted for this instructor.
-                </p>
-              </div>
-            )}
-          </div>
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+          Student Comments
+        </h3>
+        <button
+          onClick={() => setShowNames(!showNames)}
+          className="text-[#1F3463] dark:text-indigo-400 text-lg hover:opacity-75 focus:outline-none"
+          title={showNames ? 'Hide names' : 'Show names'}
+        >
+          {showNames ? <FaEye /> : <FaEyeSlash />}
+        </button> 
+      </div>
+
+      {loadingComments ? (
+        <div className="text-center py-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#1F3463] mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading comments...</p>
+        </div>
+      ) : studentComments.length > 0 ? (
+        <div className="space-y-3 max-h-60 overflow-y-auto bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+          {studentComments.map((commentEntry, index) => (
+            <div
+              key={index}
+              className="pb-2 mb-2 border-b border-gray-200 dark:border-gray-600 last:border-b-0 last:pb-0 last:mb-0"
+            >
+              <p className="text-sm text-gray-800 dark:text-gray-200">
+                "{commentEntry.comment}"
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-right">
+                - {showNames ? (commentEntry.student_name || 'Anonymous Student') : 'Anonymous'} ({commentEntry.program_code || 'N/A'})
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+          <p className="text-gray-700 dark:text-gray-300 italic">
+            No comments submitted for this instructor.
+          </p>
+        </div>
+      )}
+    </div>
         </div>
 
         {/* Footer */}

@@ -330,21 +330,25 @@ public function getInstructorCommentsWithStudentNames($instructorId)
         return response()->json($comments);
     }
 
-    public function getCommentsWithStudentNames($instructorId) {
-        $comments = DB::table('evaluation_responses')
-            ->join('evaluations', 'evaluation_responses.evaluation_id', '=', 'evaluations.id')
-            ->join('users', 'evaluations.student_id', '=', 'users.id')
-            ->select(
-                DB::raw('MIN(evaluation_responses.comment) as comment'),
-                'users.name as student_name',
-                'evaluations.student_id'
-            )
-            ->where('evaluations.instructor_id', $instructorId)
-            ->whereNotNull('evaluation_responses.comment')
-            ->where('evaluation_responses.comment', '<>', '')
-            ->groupBy('evaluations.student_id', 'users.name')
-            ->get();
+    public function getCommentsWithStudentNames($instructorId)
+{
+    $comments = DB::table('evaluation_responses')
+        ->join('evaluations', 'evaluation_responses.evaluation_id', '=', 'evaluations.id')
+        ->join('users', 'evaluations.student_id', '=', 'users.id')
+        ->join('programs', 'users.program_id', '=', 'programs.id') // join programs
+        ->select(
+            DB::raw('MIN(evaluation_responses.comment) as comment'),
+            'users.name as student_name',
+            'evaluations.student_id',
+            'programs.code as program_code' // add program code
+        )
+        ->where('evaluations.instructor_id', $instructorId)
+        ->whereNotNull('evaluation_responses.comment')
+        ->where('evaluation_responses.comment', '<>', '')
+        ->groupBy('evaluations.student_id', 'users.name', 'programs.code') // group by program code too
+        ->get();
 
-        return response()->json($comments);
-    }
+    return response()->json($comments);
+}
+
 }

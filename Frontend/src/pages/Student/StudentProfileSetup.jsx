@@ -11,13 +11,14 @@ function StudentProfileSetup() {
   const didRedirect = useRef(false);
   const navigate = useNavigate();
 
-  const [step, setStep] = useState(0); // Start at 0 for intro state
+  const [step, setStep] = useState(0);
   const [educationLevel, setEducationLevel] = useState("");
   const [programs, setPrograms] = useState([]);
   const [selectedProgramId, setSelectedProgramId] = useState("");
   const [selectedYearLevel, setSelectedYearLevel] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const yearLevelOptions = [
     { value: "1st Year", label: "1st Year" },
@@ -27,6 +28,12 @@ function StudentProfileSetup() {
   ];
 
   const totalSteps = educationLevel === "Higher Education" ? 3 : 2;
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     fetchPrograms();
@@ -153,16 +160,75 @@ function StudentProfileSetup() {
     return false;
   };
 
+  const renderEducationLevelOptions = () => {
+    const levels = ["Higher Education", "Senior High", "Junior High", "Intermediate"];
+    const cols = windowWidth < 640 ? 1 : 2;
+    const gridClass = `grid grid-cols-${cols} gap-4`;
+    
+    return (
+      <div className={gridClass}>
+        {levels.map((level) => (
+          <div
+            key={level}
+            onClick={() => {
+              setEducationLevel(level);
+              setSelectedProgramId("");
+              setSelectedYearLevel("");
+            }}
+            className={`cursor-pointer border rounded-xl px-4 py-6 text-center text-sm font-medium transition-colors ${
+              educationLevel === level 
+                ? "border-[#1F3463] bg-[#1F3463]/10 text-[#1F3463]" 
+                : "border-gray-300 text-gray-600 hover:border-[#1F3463]/50 hover:bg-[#1F3463]/5"
+            }`}
+          >
+            {level}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderSelect = (value, onChange, options, placeholder, disabledOption) => {
+    return (
+      <div className="relative w-full">
+        <select
+          className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463] hover:border-[#1F3463]/50 transition-colors appearance-none pr-10 truncate"
+          value={value}
+          onChange={onChange}
+        >
+          <option value="" disabled>{disabledOption || "Select an option"}</option>
+          {options.map((option) => (
+            <option 
+              key={option.value || option.id} 
+              value={option.value || option.id}
+              className="truncate"
+            >
+              {option.label || option.name}
+            </option>
+          ))}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+          <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="relative min-h-screen flex justify-center items-center bg-gray-100 p-4">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       {loading && <FullScreenLoader />}
-      <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-xl p-16 grid grid-cols-1 md:grid-cols-3 gap-10">
+      
+      <div className={`relative w-full max-w-4xl bg-white rounded-3xl shadow-xl p-4 md:p-8 lg:p-16 ${
+        windowWidth < 768 ? "grid-cols-1" : "grid grid-cols-1 md:grid-cols-3"
+      } gap-6 md:gap-10`}>
         {/* Sidebar steps */}
-        <div className="md:col-span-1 space-y-6 pr-8 border-r border-gray-200"> 
+        <div className={`md:col-span-1 space-y-6 ${windowWidth >= 768 ? "pr-8 border-r border-gray-200" : ""}`}> 
           <div>
-            <h2 className="text-2xl font-semibold text-gray-800">Evaluation Profile Setup</h2> 
-            <p className="text-sm text-gray-600 mt-1">Complete the steps to activate your account.</p> 
+            <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Evaluation Profile Setup</h2> 
+            <p className="text-xs md:text-sm text-gray-600 mt-1">Complete the steps to activate your account.</p> 
           </div>
           
           {/* Progress Bar and Step Counter */}
@@ -180,7 +246,7 @@ function StudentProfileSetup() {
             </div>
           </div>
           
-          <ul className="space-y-5 pt-2">
+          <ul className="space-y-3 md:space-y-5 pt-2">
             {step === 0 && (
               <li className="flex items-center gap-3 p-3 rounded-lg bg-[#1F3463]/10">
                 <div className="w-5 h-5 rounded-full bg-[#1F3463]"></div>
@@ -226,16 +292,16 @@ function StudentProfileSetup() {
                       ></div>
                     )}
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col min-w-0">
                     <span
-                      className={`font-medium ${
+                      className={`font-medium truncate ${
                         active ? "text-[#1F3463]" : completed ? "text-gray-700" : "text-gray-500"
                       }`}
                     >
                       {baseLabel}
                     </span>
                     {completed && selectedValue && (
-                      <span className={`text-xs mt-0.5 ${
+                      <span className={`text-xs mt-0.5 truncate ${
                         active ? "text-[#1F3463]/80" : "text-gray-500"
                       }`}>
                         {selectedValue}
@@ -249,124 +315,90 @@ function StudentProfileSetup() {
         </div>
 
         {/* Step form */}
-        <div className="md:col-span-2 space-y-6">
+        <div className="md:col-span-2 space-y-4 md:space-y-6">
           <AnimatePresence mode="wait">
             {step === 0 && (
-              <motion.div key="intro" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-6">
-                <h3 className="text-2xl font-semibold text-gray-800">Welcome to Profile Setup</h3>
-                <p className="text-gray-600">Let's get started by setting up your academic profile. This will help us personalize your evaluation experience.</p>
-                <div className="pt-4">
+              <motion.div key="intro" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4 md:space-y-6">
+                <h3 className="text-xl md:text-2xl font-semibold text-gray-800">Welcome to Profile Setup</h3>
+                <p className="text-gray-600 text-sm md:text-base">
+                  Let's get started by setting up your academic profile. This will help us personalize your evaluation experience.
+                </p>
+                <div className="pt-2 md:pt-4">
                   <button
                     onClick={() => setStep(1)}
-                    className="flex items-center justify-center gap-2 px-6 py-3 text-white rounded-xl transition min-w-[150px] bg-[#1F3463] hover:bg-[#15294e]"
+                    className="flex items-center justify-center gap-2 px-4 py-2 md:px-6 md:py-3 text-white rounded-xl transition w-full md:w-auto bg-[#1F3463] hover:bg-[#15294e]"
                   >
                     Begin Setup
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
                 </div>
               </motion.div>
             )}
 
             {step === 1 && (
-              <motion.div key="step1" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-6">
-                <h3 className="text-2xl font-semibold text-gray-800">What is your Education Level?</h3>
+              <motion.div key="step1" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4 md:space-y-6">
+                <h3 className="text-xl md:text-2xl font-semibold text-gray-800">What is your Education Level?</h3>
                 {!educationLevel && (
-                  <p className="text-sm text-red-500 -mt-4">Please select your education level to continue</p>
+                  <p className="text-xs md:text-sm text-red-500 -mt-2 md:-mt-4">Please select your education level to continue</p>
                 )}
-                <div className="grid grid-cols-2 gap-4">
-                  {["Higher Education", "Senior High", "Junior High", "Intermediate"].map((level) => (
-                    <div
-                      key={level}
-                      onClick={() => {
-                        setEducationLevel(level);
-                        setSelectedProgramId("");
-                        setSelectedYearLevel("");
-                      }}
-                      className={`cursor-pointer border rounded-xl px-4 py-6 text-center text-sm font-medium transition-colors ${
-                        educationLevel === level 
-                          ? "border-[#1F3463] bg-[#1F3463]/10 text-[#1F3463]" 
-                          : "border-gray-300 text-gray-600 hover:border-[#1F3463]/50 hover:bg-[#1F3463]/5"
-                      }`}
-                    >
-                      {level}
-                    </div>
-                  ))}
-                </div>
+                {renderEducationLevelOptions()}
               </motion.div>
             )}
 
             {step === 2 && (
-              <motion.div key="step2" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-6">
-                <h3 className="text-2xl font-semibold text-gray-800">
+              <motion.div key="step2" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4 md:space-y-6">
+                <h3 className="text-xl md:text-2xl font-semibold text-gray-800">
                   {educationLevel === "Higher Education" ? "Select your program" : "Select your grade level"}
                 </h3>
                 {!selectedProgramId && (
-                  <p className="text-sm text-red-500 -mt-4">Please make a selection to continue</p>
+                  <p className="text-xs md:text-sm text-red-500 -mt-2 md:-mt-4">Please make a selection to continue</p>
                 )}
-                <select
-                  className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463] hover:border-[#1F3463]/50 transition-colors"
-                  value={selectedProgramId}
-                  onChange={(e) => setSelectedProgramId(e.target.value)}
-                >
-                  <option value="">Select an option</option>
-                  {programs
-                    .filter(p => p.category === educationLevel)
-                    .map((program) => (
-                      <option key={program.id} value={program.id}>
-                        {program.name}
-                      </option>
-                    ))}
-                </select>
+                {renderSelect(
+                  selectedProgramId,
+                  (e) => setSelectedProgramId(e.target.value),
+                  programs.filter(p => p.category === educationLevel),
+                  "Select an option",
+                  "Select an option"
+                )}
               </motion.div>
             )}
 
             {step === 3 && educationLevel === "Higher Education" && (
-              <motion.div key="step3" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-6">
-                <h3 className="text-2xl font-semibold text-gray-800">Select your year Level</h3>
+              <motion.div key="step3" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4 md:space-y-6">
+                <h3 className="text-xl md:text-2xl font-semibold text-gray-800">Select your year Level</h3>
                 {!selectedYearLevel && (
-                  <p className="text-sm text-red-500 -mt-4">Please select your year level</p>
+                  <p className="text-xs md:text-sm text-red-500 -mt-2 md:-mt-4">Please select your year level</p>
                 )}
-                <select
-                  className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463] hover:border-[#1F3463]/50 transition-colors"
-                  value={selectedYearLevel}
-                  onChange={(e) => setSelectedYearLevel(e.target.value)}
-                >
-                  <option value="">Select year level</option>
-                  {yearLevelOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                {renderSelect(
+                  selectedYearLevel,
+                  (e) => setSelectedYearLevel(e.target.value),
+                  yearLevelOptions,
+                  "Select year level",
+                  "Select year level"
+                )}
               </motion.div>
             )}
           </AnimatePresence>
 
           {/* Navigation buttons */}
           {step > 0 && (
-            <div className="flex justify-between mt-8">
-              {step > 1 ? (
-                <button
-                  onClick={() => setStep(step - 1)}
-                  className="flex items-center gap-2 text-gray-700 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back
-                </button>
-              ) : (
-                <button
-                  onClick={() => setStep(0)}
-                  className="flex items-center gap-2 text-gray-700 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Start Over
-                </button>
-              )}
+            <div className={`flex ${windowWidth < 640 ? 'flex-col-reverse gap-3' : 'justify-between'} mt-6 md:mt-8`}>
+              <button
+                onClick={() => step > 1 ? setStep(step - 1) : setStep(0)}
+                className={`flex items-center gap-2 text-gray-700 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
+                  windowWidth < 640 ? 'w-full justify-center' : ''
+                }`}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {step > 1 ? "Back" : "Start Over"}
+              </button>
               
               <button
                 onClick={step === totalSteps ? handleSubmit : () => setStep(step + 1)}
                 disabled={isNextDisabled() || (loading && step === totalSteps)}
-                className={`flex items-center justify-center gap-2 px-6 py-3 text-white rounded-xl transition min-w-[150px] ${
+                className={`flex items-center justify-center gap-2 px-4 py-2 md:px-6 md:py-3 text-white rounded-xl transition ${
+                  windowWidth < 640 ? 'w-full' : 'min-w-[150px]'
+                } ${
                   (isNextDisabled() || (loading && step === totalSteps))
                     ? "bg-gray-300 cursor-not-allowed"
                     : "bg-[#1F3463] hover:bg-[#15294e]"
@@ -388,7 +420,7 @@ function StudentProfileSetup() {
           )}
 
           {errorMessage && (
-            <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
+            <p className="text-red-500 text-xs md:text-sm mt-2">{errorMessage}</p>
           )}
         </div>
       </div>
