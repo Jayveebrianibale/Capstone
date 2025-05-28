@@ -187,10 +187,25 @@ class EvaluationController extends Controller {
             return response()->json($topInstructors);
         }
         // Get all average ratings for instructors (5, 4, 3, 2, 1)
-        public function getAllInstructorDistributions() {
+        public function getAllInstructorDistributions(Request $request) {
+            $educationLevel = $request->query('educationLevel');
+
+            $validLevels = ['Higher Education', 'Intermediate', 'Junior High', 'Senior High'];
+
+            // Optional: validate the educationLevel input
+            if ($educationLevel && !in_array($educationLevel, $validLevels)) {
+                return response()->json([
+                    'message' => 'Invalid education level.'
+                ], 400);
+            }
+
             $instructors = DB::table('evaluations')
                 ->join('evaluation_responses', 'evaluations.id', '=', 'evaluation_responses.evaluation_id')
                 ->join('instructors', 'evaluations.instructor_id', '=', 'instructors.id')
+                ->join('users', 'evaluations.student_id', '=', 'users.id')
+                ->when($educationLevel, function ($query, $educationLevel) {
+                    return $query->where('users.educationLevel', $educationLevel);
+                })
                 ->select(
                     'instructors.id',
                     'instructors.name',
@@ -205,11 +220,12 @@ class EvaluationController extends Controller {
                 ->groupBy('instructors.id', 'instructors.name')
                 ->orderByDesc('percentage')
                 ->get();
-        
+
             return response()->json([
                 'data' => $instructors
             ]);
         }
+
 
         public function evaluationSubmissionStats(Request $request) {
             $schoolYear = $request->input('school_year');

@@ -13,7 +13,7 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
   const [loading, setLoading] = useState(false);
 
   const categories = [
-    "Learning Environment", "Student Development", "Content Knowledge",
+    "Learning Environments", "Student Development", "Content Knowledge",
     "Application of Content", "Planning for Instruction", "Teaching Strategies",
     "Ethical Practice", "Leadership and Collaboration", "Overall Rating",
   ];

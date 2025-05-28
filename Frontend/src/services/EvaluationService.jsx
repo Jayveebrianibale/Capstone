@@ -11,8 +11,18 @@ const EvaluationService = {
     return res.data;
   },
 
-  getAllInstructorDistributions: async () => {
-    const res = await api.get("/instructor-distributions");
+  /**
+   * Fetch instructor distributions, optionally filtered by education level
+   * @param {string|null} educationLevel
+   * @returns {Promise<Array>}
+   */
+  getAllInstructorDistributions: async (educationLevel = null) => {
+    const params = {};
+    if (educationLevel && educationLevel !== 'All') {
+      params.educationLevel = educationLevel;
+    }
+
+    const res = await api.get("/instructor-distributions", { params });
     return res.data.data;
   },
 
@@ -20,7 +30,7 @@ const EvaluationService = {
     const params = {};
     if (schoolYear) params.school_year = schoolYear;
     if (semester) params.semester = semester;
-  
+
     const res = await api.get("/evaluation-submission-stats", { params });
     return res.data.data;
   },
@@ -39,7 +49,6 @@ const EvaluationService = {
     const res = await api.get("/course-evaluation-submission-counts");
     return res.data.data;
   },
-  
 };
 
 export default EvaluationService;
