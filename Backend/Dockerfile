@@ -1,16 +1,8 @@
 ﻿FROM php:8.2-cli
-
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    unzip \
-    curl \
-    git \
-    zip \
-    libzip-dev \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev && \
+    unzip curl git zip libzip-dev libpng-dev libonig-dev libxml2-dev && \
     docker-php-ext-install pdo_mysql mbstring zip exif pcntl
 
 RUN curl -sS https://getcomposer.org/installer | php && \
@@ -19,12 +11,9 @@ RUN curl -sS https://getcomposer.org/installer | php && \
 COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
-
-RUN php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+RUN php artisan config:cache && php artisan route:cache && php artisan view:cache
 
 EXPOSE 8000
 
-CMD sh -c 'php artisan serve --host=0.0.0.0 --port=${PORT:-8000}'
-
+# <-- swap out artisan serve for PHP’s built-in server:
+CMD sh -c 'php -S 0.0.0.0:${PORT:-8000} -t public'
