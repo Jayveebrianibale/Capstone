@@ -4,12 +4,11 @@ FROM composer:latest AS composer
 # Stage 2: PHP with extensions
 FROM php:8.2-cli
 
-# Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    zip \
     unzip \
+    curl \
+    git \
+    zip \
     libzip-dev \
     libpng-dev \
     libonig-dev \
