@@ -184,14 +184,6 @@ function Bsais() {
               </div>
             )}
           </div>
-
-          <button
-            onClick={handleAddInstructor}
-            className="fixed bottom-4 right-4 bg-[#1F3463] text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition"
-            title="Add Instructor"
-          >
-            <FaPlus size={12} />
-          </button>
         </>
       )}
     </main>
