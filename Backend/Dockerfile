@@ -26,5 +26,4 @@ RUN php artisan config:cache && \
 
 EXPOSE 8000
 
-CMD php artisan serve --host=0.0.0.0 --port=$(expr $PORT + 0)
-
+CMD ["bash", "-c", "php artisan serve --host=0.0.0.0 --port=$(expr $PORT + 0)"]
