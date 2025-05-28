@@ -306,4 +306,4 @@ const InstructorTable = ({
   );
 };
 
-export default InstructorTable; 
+export default InstructorTable;
