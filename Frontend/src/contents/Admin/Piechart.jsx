@@ -60,7 +60,7 @@ export default function CustomPieChart() {
             description: descriptions[r],
           };
         })
-        .filter(item => item.value > 0); // Optional: Remove if you want to show empty ratings
+        .filter(item => item.value > 0);
   
       setDistribution(ratings);
     });
