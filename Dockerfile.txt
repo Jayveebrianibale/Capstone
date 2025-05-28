@@ -4,33 +4,40 @@ FROM composer:latest AS composer
 # Stage 2: PHP with extensions
 FROM php:8.2-cli
 
-# Install system dependencies
+# Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo pdo_mysql zip
+    git \
+    curl \
+    zip \
+    unzip \
+    libzip-dev \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev && \
+    docker-php-ext-install pdo pdo_mysql zip
 
-# Install Composer
+# Copy composer binary from composer stage
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /var/www
 
-# Copy project files
+# Copy all project files
 COPY . .
 
-# Install PHP dependencies
+# Install PHP dependencies (no dev, optimized)
 RUN composer install --no-dev --optimize-autoloader
 
-# Generate Laravel key (if needed)
+# Generate Laravel app key
 RUN php artisan key:generate
 
-# Cache config/routes/views
+# Cache config, routes, and views
 RUN php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache
 
-# Expose Laravel port
+# Expose port 8000
 EXPOSE 8000
 
-# Start Laravel dev server
+# Start Laravel dev server on 0.0.0.0:8000
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
