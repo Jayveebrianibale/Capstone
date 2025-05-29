@@ -99,7 +99,6 @@ useEffect(() => {
       localStorage.removeItem("authToken");
       localStorage.removeItem("role");
       localStorage.removeItem("activePage");
-      localStorage.removeItem("savedEvaluations");
       sessionStorage.removeItem("savedEvaluations");
   
       navigate("/login");
