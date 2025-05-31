@@ -23,8 +23,24 @@ use Illuminate\Validation\Rule;
 class InstructorController extends Controller
 {
     // Return a list of all instructors as JSON
-    public function index() {
-        return response()->json(Instructor::all());
+    public function index(Request $request) {
+        $educationLevel = $request->query('educationLevel');
+        $validLevels = ['Higher Education', 'Intermediate', 'Junior High', 'Senior High'];
+
+        // Validate education level if provided
+        if ($educationLevel && !in_array($educationLevel, $validLevels)) {
+            return response()->json([
+                'message' => 'Invalid education level.'
+            ], 400);
+        }
+
+        $query = Instructor::query();
+
+        if ($educationLevel) {
+            $query->where('educationLevel', $educationLevel);
+        }
+
+        return response()->json($query->get());
     }
 
     //BULK UPLOAD

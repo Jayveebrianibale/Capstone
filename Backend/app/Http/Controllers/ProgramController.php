@@ -280,4 +280,3 @@ public function bulkUpload(Request $request) {
         return response()->json($results);
     }
 }
-

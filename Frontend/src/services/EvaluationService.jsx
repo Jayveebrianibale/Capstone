@@ -35,8 +35,13 @@ const EvaluationService = {
     return res.data.data;
   },
 
-  getOverallEvaluationSubmissionStats: async () => {
-    const res = await api.get("/evaluation-submission-overall");
+  getOverallEvaluationSubmissionStats: async (educationLevel = null) => {
+    const params = {};
+    if (educationLevel && educationLevel !== 'All') {
+      params.educationLevel = educationLevel;
+    }
+  
+    const res = await api.get("/evaluation-submission-overall", { params });
     return res.data;
   },
 

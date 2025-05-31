@@ -1,9 +1,33 @@
 import api from "../services/api";
 
 const InstructorService = {
-  getAll: async () => {
-    const response = await api.get("/instructors");
-    return response.data;
+  getAll: async (educationLevel = null) => {
+    try {
+      const params = {};
+      if (educationLevel && educationLevel !== 'All') {
+        params.educationLevel = educationLevel;
+      }
+      
+      const response = await api.get("/instructors", { params });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch instructors:', error);
+      throw error;
+    }
+  },
+  getCount: async (educationLevel = null) => {
+    try {
+      const params = {};
+      if (educationLevel && educationLevel !== 'All') {
+        params.educationLevel = educationLevel;
+      }
+      
+      const response = await api.get("/instructors", { params });
+      return response.data.length;
+    } catch (error) {
+      console.error('Failed to fetch instructor count:', error);
+      throw error;
+    }
   },
 
   create: async (instructorData) => {

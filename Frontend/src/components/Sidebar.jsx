@@ -133,7 +133,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
           ))}
         </div>
         <button
-          className="flex w-full items-center gap-3 p-3 rounded-lg text-sm hover:bg-red-600 transition-colors duration-200"
+          className="flex w-full items-center gap-3 p-3 rounded-lg text-sm hover:bg-[#2a4585] transition-colors duration-200"
           onClick={openLogoutModal}
         >
           <CiLogout className="w-5 h-5" />

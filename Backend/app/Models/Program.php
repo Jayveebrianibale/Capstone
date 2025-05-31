@@ -8,7 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Program extends Model {
     use HasFactory;
 
-    protected $fillable = ['name', 'code', 'yearLevel', 'category'];
+    protected $fillable = ['name', 'code', 'yearLevel', 'category', 'status'];
+    
+    protected $attributes = [
+        'status' => 'active'
+    ];
 
     public function levels() {
         return $this->hasMany(Level::class);

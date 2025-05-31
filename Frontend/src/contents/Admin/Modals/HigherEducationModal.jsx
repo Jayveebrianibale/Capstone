@@ -165,7 +165,7 @@ export default function HigherEducationModal({
                 <option value="2nd Year">2nd Year</option>
                 <option value="3rd Year">3rd Year</option>
                 <option value="4th Year">4th Year</option>
-                <option value="All Years">All Years (1st–4th)</option>
+                <option value="1st-4th Year">1st - 4th Year</option> 
               </select>
             </div>
           </div>

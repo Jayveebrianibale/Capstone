@@ -277,16 +277,40 @@ class EvaluationController extends Controller {
             return response()->json(['data' => $results]);
         }
 
-        public function overallEvaluationSubmissionStats() {
-            // Get all students' IDs
-            $allStudents = DB::table('users')
-                ->where('role', 'Student')
-                ->pluck('id');
+        public function overallEvaluationSubmissionStats(Request $request) {
+            $educationLevel = $request->query('educationLevel');
+            $validLevels = ['Higher Education', 'Intermediate', 'Junior High', 'Senior High'];
         
-            // Get distinct student IDs who submitted evaluations
-            $submittedStudentIds = DB::table('evaluations')
-                ->distinct()
-                ->pluck('student_id');
+            // Validate education level if provided
+            if ($educationLevel && !in_array($educationLevel, $validLevels)) {
+                return response()->json([
+                    'message' => 'Invalid education level.'
+                ], 400);
+            }
+        
+            // Base query for all students
+            $allStudentsQuery = DB::table('users')
+                ->where('role', 'Student');
+        
+            // Apply education level filter if provided
+            if ($educationLevel) {
+                $allStudentsQuery->where('educationLevel', $educationLevel);
+            }
+        
+            $allStudents = $allStudentsQuery->pluck('id');
+        
+            // Base query for submitted evaluations
+            $submittedQuery = DB::table('evaluations')
+                ->select('student_id')
+                ->distinct();
+        
+            // If filtering by education level, join with users table
+            if ($educationLevel) {
+                $submittedQuery->join('users', 'evaluations.student_id', '=', 'users.id')
+                    ->where('users.educationLevel', $educationLevel);
+            }
+        
+            $submittedStudentIds = $submittedQuery->pluck('student_id');
         
             // Count submitted and not submitted
             $submittedCount = $submittedStudentIds->count();
@@ -296,6 +320,7 @@ class EvaluationController extends Controller {
                 'total_students'    => $allStudents->count(),
                 'submitted'         => $submittedCount,
                 'not_submitted'     => $notSubmittedCount,
+                'education_level'   => $educationLevel ?: 'All'
             ]);
         }
 
