@@ -324,48 +324,62 @@ class EvaluationController extends Controller {
             ]);
         }
 
-    public function programEvaluationStats(Request $request)
-    {
-        $programsData = DB::table('programs')
-            ->select('id as program_id', 'code as program_code', 'name as program_name')
-            ->get();
-
-        $results = [];
-
-        foreach ($programsData as $program) {
-            // Total students in this program
-            $totalStudents = DB::table('users')
-                ->where('role', 'Student')
-                ->where('program_id', $program->program_id)
-                ->count();
-
-            // Students in this program who have submitted at least one evaluation
-            // We need to count distinct students who have an entry in the evaluations table for any instructor.
-            $submittedStudents = DB::table('evaluations')
-                ->join('users', 'evaluations.student_id', '=', 'users.id')
-                ->where('users.role', 'Student')
-                ->where('users.program_id', $program->program_id)
-                ->distinct('evaluations.student_id')
-                ->count('evaluations.student_id');
-            
-            // Only add if there are students in the program, to avoid cluttering with empty programs
-            if ($totalStudents > 0) {
-                $results[] = [
-                    // 'instructor' field is not relevant here as per the desired output structure
-                    'program'        => $program->program_name,
-                    'program_code'   => $program->program_code,
-                    'yearLevel'      => null, 
-                    'total_students' => $totalStudents,
-                    'submitted'      => $submittedStudents,
-                    'not_submitted'  => $totalStudents - $submittedStudents,
-                    'school_year'    => null, 
-                    'semester'       => null  
-                ];
+        public function programEvaluationStats(Request $request) {
+            // 1) Fetch all programs
+            $programsData = DB::table('programs')
+                ->select('id as program_id', 'code as program_code', 'name as program_name')
+                ->get();
+        
+            $results = [];
+        
+            foreach ($programsData as $program) {
+                // 2) For each program, get distinct yearLevel values among Student users
+                $yearLevels = DB::table('users')
+                    ->where('role', 'Student')
+                    ->where('program_id', $program->program_id)
+                    ->distinct()
+                    ->pluck('yearLevel'); 
+        
+                // If no students exist, skip to next program
+                if ($yearLevels->isEmpty()) {
+                    continue;
+                }
+        
+                // 3) Loop through each yearLevel and compute stats
+                foreach ($yearLevels as $yearLevel) {
+                    // Total students in this program & year level
+                    $totalStudents = DB::table('users')
+                        ->where('role', 'Student')
+                        ->where('program_id', $program->program_id)
+                        ->where('yearLevel', $yearLevel)
+                        ->count();
+        
+                    // Students in this program & year level who have submitted ≥1 evaluation
+                    $submittedStudents = DB::table('evaluations')
+                        ->join('users', 'evaluations.student_id', '=', 'users.id')
+                        ->where('users.role', 'Student')
+                        ->where('users.program_id', $program->program_id)
+                        ->where('users.yearLevel', $yearLevel)
+                        ->distinct('evaluations.student_id')
+                        ->count('evaluations.student_id');
+        
+                    // 4) Push result for this (program, yearLevel)
+                    $results[] = [
+                        'program'        => $program->program_name,
+                        'program_code'   => $program->program_code,
+                        'yearLevel'      => $yearLevel,
+                        'total_students' => $totalStudents,
+                        'submitted'      => $submittedStudents,
+                        'not_submitted'  => $totalStudents - $submittedStudents,
+                        'school_year'    => null,
+                        'semester'       => null,
+                    ];
+                }
             }
+        
+            return response()->json(['data' => $results]);
         }
-
-        return response()->json(['data' => $results]);
-    }
+        
         
     public function courseEvaluationSubmissionCounts(Request $request)
     {

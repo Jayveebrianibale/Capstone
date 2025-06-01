@@ -30,7 +30,7 @@ const PerformingInstructor = () => {
   };
 
   return (
-    <div className="overflow-x-auto p-6 sm:p-4 rounded-lg">
+    <div className="overflow-x-auto p-8 sm:p-4 rounded-lg">
       {loading ? (
         <p className="text-center py-5 text-gray-600 dark:text-gray-300">Loading...</p>
       ) : topInstructors.length === 0 ? (
@@ -45,7 +45,7 @@ const PerformingInstructor = () => {
         </div>
       ) : (
         <>
-          <div className="flex items-center space-x-2 mb-4">
+          <div className="flex items-center p-8 space-x-2">
             <FiAward className="text-yellow-500 text-2xl" />
             <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               Top Performing Instructors
@@ -71,7 +71,7 @@ const PerformingInstructor = () => {
                     key={item.id}
                     className="text-center even:bg-gray-50 dark:even:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
-                    <td className="px-4 py-3 flex items-center justify-center space-x-2">
+                    <td className="py-3 flex items-center justify-center gap-1">
                       {medalEmoji[index] && <span className="text-xl">{medalEmoji[index]}</span>}
                       <span>{item.name}</span>
                     </td>

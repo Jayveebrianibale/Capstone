@@ -15,12 +15,11 @@ ChartJS.register(ArcElement, Tooltip, Legend, Title, ChartDataLabels);
 
 export default function CustomPieChart() {
   const [distribution, setDistribution] = useState([]);
-  const [tooltip, setTooltip] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [educationLevel, setEducationLevel] = useState('All');
   const [isLoading, setIsLoading] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const chartRef = useRef(null);
 
   const educationLevels = [
@@ -46,6 +45,20 @@ export default function CustomPieChart() {
     2: '#6C8CD5',
     1: '#A3B7E8',
   };
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -115,11 +128,92 @@ export default function CustomPieChart() {
     ],
   };
 
+  // Custom Tooltip Styles based on dark mode
+  const tooltipBg = isDarkMode ? '#1f2937' : '#fff';
+  const tooltipBorder = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  const tooltipTextColor = isDarkMode ? '#e5e7eb' : '#374151';
+
+  // Custom Tooltip Component
+  const CustomTooltip = ({ active, payload }) => {
+    if (!active || !payload || !payload.length) return null;
+    
+    const data = payload[0];
+    const item = distribution.find(d => d.label === data.name);
+    
+    return (
+      <div
+        style={{
+          backgroundColor: tooltipBg,
+          border: `1px solid ${tooltipBorder}`,
+          color: tooltipTextColor,
+          padding: '10px',
+          borderRadius: '5px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        }}
+      >
+        <p style={{ fontWeight: 'bold' }}>{item.description}</p>
+        <p>Count: {item.value}</p>
+        <p>Percentage: {item.percentage.toFixed(2)}%</p>
+      </div>
+    );
+  };
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      tooltip: { enabled: false },
+      tooltip: {
+        enabled: false, // Disable default tooltip
+        external: (context) => {
+          // This function is called by Chart.js to render external tooltip
+          const { chart, tooltip } = context;
+          const tooltipEl = document.getElementById('chartjs-tooltip');
+          
+          // Create tooltip element if it doesn't exist
+          if (!tooltipEl) {
+            const newTooltip = document.createElement('div');
+            newTooltip.id = 'chartjs-tooltip';
+            newTooltip.style.position = 'absolute';
+            newTooltip.style.pointerEvents = 'none';
+            newTooltip.style.transform = 'translate(-50%, 0)';
+            newTooltip.style.transition = 'all .1s ease';
+            document.body.appendChild(newTooltip);
+          }
+          
+          // Hide if no tooltip
+          if (tooltip.opacity === 0) {
+            tooltipEl.style.opacity = '0';
+            return;
+          }
+          
+          // Set tooltip content and position
+          if (tooltip.dataPoints) {
+            const dataPoint = tooltip.dataPoints[0];
+            const item = distribution.find(d => d.label === dataPoint.label);
+            
+            tooltipEl.innerHTML = `
+              <div style="
+                background: ${tooltipBg};
+                border: 1px solid ${tooltipBorder};
+                color: ${tooltipTextColor};
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+              ">
+                <p style="font-weight: bold; margin: 0 0 5px 0;">${item.description}</p>
+                <p style="margin: 0 0 3px 0;">Count: ${item.value}</p>
+                <p style="margin: 0;">Percentage: ${item.percentage.toFixed(2)}%</p>
+              </div>
+            `;
+          }
+          
+          // Position the tooltip
+          const position = chart.canvas.getBoundingClientRect();
+          tooltipEl.style.opacity = '1';
+          tooltipEl.style.left = `${position.left + tooltip.caretX}px`;
+          tooltipEl.style.top = `${position.top + tooltip.caretY}px`;
+        }
+      },
       datalabels: {
         color: 'white',
         formatter: (value, context) => {
@@ -132,24 +226,6 @@ export default function CustomPieChart() {
         anchor: 'center',
       },
       legend: { display: false },
-    },
-    interaction: { mode: 'nearest', intersect: true },
-    onHover: (event, chartElements) => {
-      if (chartElements.length > 0) {
-        const idx = chartElements[0].index;
-        const rect = chartRef.current?.canvas.getBoundingClientRect();
-        if (!rect) return;
-        const { clientX, clientY } = event;
-        const x = clientX - rect.left;
-        const y = clientY - rect.top;
-        const item = distribution[idx];
-        setTooltip(
-          `${item.description}\nCount: ${item.value}\nPercentage: ${item.percentage.toFixed(2)}%`
-        );
-        setTooltipPosition({ x, y: y - 20 });
-      } else {
-        setTooltip(null);
-      }
     },
   };
 
@@ -228,18 +304,6 @@ export default function CustomPieChart() {
 
           <div className="relative w-full max-w-[250px] aspect-square">
             <Pie ref={chartRef} data={chartData} options={options} />
-            {tooltip && (
-              <div
-                className="absolute bg-gray-900 text-white p-2 rounded text-xs sm:text-sm pointer-events-none z-10 max-w-[180px] text-center"
-                style={{
-                  top: `${tooltipPosition.y}px`,
-                  left: `${tooltipPosition.x}px`,
-                  transform: 'translate(-50%, -100%)',
-                }}
-              >
-                {tooltip}
-              </div>
-            )}
           </div>
 
           <div className="text-center mt-3 sm:mt-4">

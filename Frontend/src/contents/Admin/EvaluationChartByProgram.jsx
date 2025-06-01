@@ -8,21 +8,29 @@ import {
   ResponsiveContainer,
   Legend,
   CartesianGrid,
+  Cell
 } from 'recharts';
 import EvaluationService from '../../services/EvaluationService';
 
-// Custom color palette for light mode (you can adjust for dark mode if desired)
-const colors = ['#1F3463', '#2F4F91', '#3E64B3', '#6C8CD5', '#A3B7E8'];
+// Program-specific colors as requested
+const programColors = {
+  BAB: '#1F3463',       // darkBlue
+  BSSW: '#FFD700',      // yellow
+  BSAIS: '#7B61FF',     // violet
+  BSIS: '#800000',      // maroon
+  ACT: '#FF8C00',       // orange
+  BSA: '#CDA4FF',       // lightViolet
+  default: '#A3B7E8'    // fallback color
+};
 
 const EvaluationChartByProgram = () => {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Dark mode detection
   useEffect(() => {
     const checkDarkMode = () => {
-      setIsDarkMode(document.documentElement.classList.contains("dark"));
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
     };
     checkDarkMode();
 
@@ -44,6 +52,7 @@ const EvaluationChartByProgram = () => {
             program: item.program_code,
             Submitted: item.submitted,
             NotSubmitted: item.not_submitted,
+            yearLevel: item.yearLevel,
           }));
           setData(formatted);
         } else {
@@ -59,12 +68,40 @@ const EvaluationChartByProgram = () => {
     fetchChartData();
   }, []);
 
-  // Colors based on dark mode
-  const textColor = isDarkMode ? "#e5e7eb" : "#374151"; // light gray vs dark gray
-  const gridColor = isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
-  const tooltipBg = isDarkMode ? "#1f2937" : "#fff";
-  const tooltipBorder = isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
-  const tooltipTextColor = isDarkMode ? "#e5e7eb" : "#374151";
+  const textColor = isDarkMode ? '#e5e7eb' : '#374151';
+  const gridColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  const tooltipBg = isDarkMode ? '#1f2937' : '#fff';
+  const tooltipBorder = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  const tooltipTextColor = isDarkMode ? '#e5e7eb' : '#374151';
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const { program, yearLevel } = payload[0].payload;
+      return (
+        <div
+          style={{
+            backgroundColor: tooltipBg,
+            border: `1px solid ${tooltipBorder}`,
+            color: tooltipTextColor,
+            padding: '10px',
+            borderRadius: '5px',
+          }}
+        >
+          <p style={{ fontWeight: 'bold' }}>{program} (Year {yearLevel})</p>
+          {payload.map((entry, index) => (
+            <p key={index}>
+              {entry.name}: {entry.value}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const getColorForProgram = (program) => {
+    return programColors[program] || programColors.default;
+  };
 
   return (
     <div className="p-4">
@@ -90,23 +127,21 @@ const EvaluationChartByProgram = () => {
               tick={{ fill: textColor, fontWeight: 500 }}
               stroke={gridColor}
             />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: tooltipBg,
-                border: `1px solid ${tooltipBorder}`,
-                color: tooltipTextColor,
-                fontWeight: '500',
-              }}
-              labelStyle={{ color: tooltipTextColor, fontWeight: '500' }}
-              itemStyle={{ color: tooltipTextColor, fontWeight: '500' }}
-            />
+            <Tooltip content={<CustomTooltip />} />
             <Legend
               wrapperStyle={{ color: textColor, fontWeight: '500' }}
               verticalAlign="top"
               height={36}
             />
-            <Bar dataKey="Submitted" fill={colors[0]} />
-            <Bar dataKey="NotSubmitted" fill={colors[3]} />
+            <Bar dataKey="Submitted" name="Submitted">
+              {data.map((entry, index) => (
+                <Cell 
+                  key={`submitted-${index}`} 
+                  fill={getColorForProgram(entry.program)} 
+                />
+              ))}
+            </Bar>
+            <Bar dataKey="NotSubmitted" name="Not Submitted" fill="#A3B7E8" />
           </BarChart>
         </ResponsiveContainer>
       ) : (
