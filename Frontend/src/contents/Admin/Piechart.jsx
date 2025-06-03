@@ -46,6 +46,16 @@ export default function CustomPieChart() {
     1: '#A3B7E8',
   };
 
+  // const colors = {
+  //   5: '#003a7d',  
+  //   4: '#008dff',  
+  //   3: '#f9e858',  
+  //   2: '#c701ff',  
+  //   1: '#d83034', 
+  // };
+  
+  
+
   useEffect(() => {
     const checkDarkMode = () => {
       setIsDarkMode(document.documentElement.classList.contains('dark'));
@@ -219,7 +229,7 @@ export default function CustomPieChart() {
         formatter: (value, context) => {
           const idx = context.dataIndex;
           const realValue = distribution[idx]?.percentage || 0;
-          return `${realValue.toFixed(1)}%`;
+          return realValue >= 8 ? `${realValue.toFixed(1)}%` : null;
         },
         font: { weight: 'bold', size: isMobile ? 12 : 14 },
         align: 'center',

@@ -2,14 +2,13 @@ import React, { useState, useEffect } from "react";
 import QuestionModal from "../../contents/Admin/Modals/QuestionModal";
 import ConfirmModal from "../../components/ConfirmModal";
 import QuestionsService from '../../services/QuestionService';
+import PhaseSwitcher from "../../components/PhaseSwitcher";
 import {
   FaPlus,
   FaEdit,
   FaTrash,
   FaSort,
   FaQuestionCircle,
-  FaToggleOn,
-  FaToggleOff,
 } from "react-icons/fa";
 import { FiUpload } from 'react-icons/fi';
 import { toast, ToastContainer } from "react-toastify";
@@ -19,7 +18,6 @@ import "react-toastify/dist/ReactToastify.css";
 
 function Questionnaires() {
   const [questions, setQuestions] = useState([]);
-  const [isEnabled, setIsEnabled] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [questionToEdit, setQuestionToEdit] = useState(null);
@@ -74,11 +72,6 @@ function Questionnaires() {
     setIsEditing(true);
     setQuestionToEdit(question);
     setShowModal(true);
-  };
-
-  const toggleEnable = () => {
-    setIsEnabled(!isEnabled);
-    toast.success(`Questions ${isEnabled ? "disabled" : "enabled"}`);
   };
 
   const confirmDelete = (id) => {
@@ -185,24 +178,7 @@ function Questionnaires() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3 justify-start md:justify-end">
-          <button
-            onClick={toggleEnable}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
-              isEnabled
-                ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300"
-                : "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300"
-            }`}
-          >
-            <span className="text-sm font-semibold">
-              {isEnabled ? "Active" : "Disabled"}
-            </span>
-            {isEnabled ? (
-              <FaToggleOn className="w-5 h-5 text-green-600 dark:text-green-400" />
-            ) : (
-              <FaToggleOff className="w-5 h-5 text-red-600 dark:text-red-400" />
-            )}
-          </button>
-
+            <PhaseSwitcher className="hidden md:inline-block" />
           <button
             onClick={handleAddClick}
             className="bg-[#1F3463] hover:bg-[#19294f] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg"

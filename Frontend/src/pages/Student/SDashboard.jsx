@@ -76,7 +76,7 @@ const SDashboard = () => {
       >
         <div className="absolute inset-0 bg-black opacity-30 z-0" />
         <div className="relative z-10">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight break-words leading-tight drop-shadow-sm">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight drop-shadow-md">
             {greeting()} {user ? `${user.name.split(" ")[0]}${user.name.split(" ").length > 1 ? " " + user.name.split(" ")[1] : ""}!` : "Student"}
           </h1>
           <span>{user ? `${user.program_name} - ${user.yearLevel}` : ""}</span>

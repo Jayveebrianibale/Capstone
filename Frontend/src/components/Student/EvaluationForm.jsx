@@ -3,22 +3,24 @@ import React, { useEffect, useRef } from 'react';
 const EvaluationForm = ({
   instructor,
   questions = [],
-  responses,
+  responses = {},
   handleResponseChange,
   handleCommentChange,
   handleSaveEvaluation,
-  savedEvaluations,
-  ratingOptions,
+  evaluationResponses = {},
+  ratingOptions = {},
   viewOnly = false,
   onClose,
 }) => {
   const firstUnansweredRef = useRef(null);
+  const instructorId = instructor?.id;
+  const instructorResponses = responses?.[instructorId] || {};
 
   useEffect(() => {
     if (firstUnansweredRef.current) {
       firstUnansweredRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  }, [responses, instructor.id]);
+  }, [responses, instructorId]);
 
   return (
     <div className="relative space-y-6 border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
@@ -31,28 +33,31 @@ const EvaluationForm = ({
           ✕
         </button>
       )}
+
       {questions.length > 0 ? (
         questions.map((q, idx) => {
-          const missing = !responses[instructor.id]?.[q.id]?.rating;
-          const firstMissingIdx = questions.findIndex(qq => !responses[instructor.id]?.[qq.id]?.rating);
+          const firstMissingIdx = questions.findIndex(qq => !instructorResponses?.[qq.id]?.rating);
+          const missing = !instructorResponses?.[q.id]?.rating;
           const showWarning = missing && idx === firstMissingIdx;
-          const prevUnanswered = idx > 0 && questions.slice(0, idx).some(qq => !responses[instructor.id]?.[qq.id]?.rating);
+          const prevUnanswered = idx > 0 && questions.slice(0, idx).some(qq => !instructorResponses?.[qq.id]?.rating);
+
           return (
             <div
               key={q.id}
               ref={showWarning ? firstUnansweredRef : null}
-              className={`space-y-2 p-4 border rounded-lg border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900`}
+              className="space-y-2 p-4 border rounded-lg border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
             >
               <h3 className="font-semibold text-base text-gray-800 dark:text-white">
                 {idx + 1}. {q.category}
               </h3>
               <p className="text-base text-gray-600 dark:text-gray-300">{q.question}</p>
               <select
-                value={responses[instructor.id]?.[q.id]?.rating || ''}
+                value={instructorResponses?.[q.id]?.rating || ''}
                 onChange={(e) => {
                   const selectedValue = e.target.value;
-                  const selectedLabel = ratingOptions?.[q.category]?.find(opt => String(opt.value) === String(selectedValue))?.label || '';
-                  handleResponseChange(instructor.id, q.id, selectedValue, selectedLabel);
+                  const selectedLabel =
+                    ratingOptions?.[q.category]?.find(opt => String(opt.value) === String(selectedValue))?.label || '';
+                  handleResponseChange(instructorId, q.id, selectedValue, selectedLabel);
                 }}
                 disabled={viewOnly || prevUnanswered}
                 className={`w-full mt-1 p-2 border rounded-md focus:outline-none focus:ring-2 ${
@@ -79,9 +84,7 @@ const EvaluationForm = ({
       )}
 
       <div className="space-y-2">
-        <label className="block text-base font-semibold text-gray-900 dark:text-white">
-          Additional Comments:
-        </label>
+        <label className="block text-base font-semibold text-gray-900 dark:text-white">Additional Comments:</label>
         <textarea
           className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
             viewOnly
@@ -89,8 +92,8 @@ const EvaluationForm = ({
               : 'bg-white dark:bg-gray-700 text-black dark:text-white border-gray-300 focus:ring-green-500'
           }`}
           rows="4"
-          value={responses[instructor.id]?.comment || ''}
-          onChange={(e) => handleCommentChange(instructor.id, e.target.value)}
+          value={instructorResponses?.comment || ''}
+          onChange={(e) => handleCommentChange(instructorId, e.target.value)}
           placeholder="Share any additional comments or feedback for the instructor’s improvement... (optional)"
           disabled={viewOnly}
         />
@@ -99,10 +102,10 @@ const EvaluationForm = ({
       {!viewOnly && (
         <div className="flex justify-end">
           <button
-            onClick={() => handleSaveEvaluation(instructor.id)}
+            onClick={() => handleSaveEvaluation(instructorId)}
             className="px-6 py-2 rounded-md text-sm font-medium transition-all bg-green-600 text-white hover:bg-green-700"
           >
-            {savedEvaluations[instructor.id] ? 'Update Evaluation' : 'Save Evaluation'}
+            {evaluationResponses?.[instructorId] ? 'Update Evaluation' : 'Save Evaluation'}
           </button>
         </div>
       )}

@@ -12,6 +12,9 @@ use App\Models\Question;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Setting;
+use App\Models\EvaluationArchive;
+use App\Models\EvaluationResponseArchive;
+
 
 
 
@@ -30,12 +33,19 @@ class EvaluationController extends Controller {
             }
 
 
-            public function store(Request $request)
-        {
+            public function store(Request $request) {
             $user = auth()->user();
+            $currentPhase = Setting::first()->evaluation_phase ?? 'Phase 1';
 
             if ($user->role !== 'Student') {
                 return response()->json(['message' => 'Only students can submit evaluations.'], 403);
+            }
+
+            if ($currentPhase !== 'Phase 1') {
+                return response()->json([
+                    'message' => 'Evaluations are currently closed. Phase 1 has ended.',
+                    'current_phase' => $currentPhase
+                ], 403);
             }
 
                 $validated = $request->validate([
@@ -408,5 +418,66 @@ class EvaluationController extends Controller {
     }
 
 
+// Add these new methods:
+    public function getCurrentPhase() {
+        $phase = Setting::first()->evaluation_phase ?? 'Phase 1';
+        return response()->json(['phase' => $phase]); }
+
+        public function switchPhase(Request $request) {
+            $request->validate([
+                'phase' => 'required|in:Phase 1,Phase 2'
+            ]);
+
+            $currentPhase = Setting::first()->evaluation_phase ?? 'Phase 1';
+            $newPhase = $request->phase;
+
+            // Only archive when moving from Phase 1 to Phase 2
+            if ($currentPhase === 'Phase 1' && $newPhase === 'Phase 2') {
+                $this->archiveEvaluations();
+            }
+
+            Setting::first()->update(['evaluation_phase' => $newPhase]);
+
+            return response()->json([
+                'message' => "Switched to $newPhase successfully",
+                'previous_phase' => $currentPhase,
+                'new_phase' => $newPhase
+            ]);
+    }
+
+    protected function archiveEvaluations(){
+        DB::transaction(function () {
+            $evaluations = Evaluation::with('responses')->get();
+
+            foreach ($evaluations as $evaluation) {
+                $archivedEvaluation = EvaluationArchive::create([
+                    'student_id' => $evaluation->student_id,
+                    'instructor_id' => $evaluation->instructor_id,
+                    'school_year' => $evaluation->school_year,
+                    'semester' => $evaluation->semester,
+                    'status' => $evaluation->status,
+                    'evaluated_at' => $evaluation->evaluated_at,
+                    'phase' => 'Phase 1',
+                    'created_at' => $evaluation->created_at,
+                    'updated_at' => $evaluation->updated_at
+                ]);
+
+                foreach ($evaluation->responses as $response) {
+                    EvaluationResponseArchive::create([
+                        'evaluation_id' => $archivedEvaluation->id,
+                        'question_id' => $response->question_id,
+                        'rating' => $response->rating,
+                        'comment' => $response->comment,
+                        'created_at' => $response->created_at,
+                        'updated_at' => $response->updated_at
+                    ]);
+                }
+
+                
+                $evaluation->responses()->delete();
+                $evaluation->delete();
+            }
+        });
+    }
 
 }

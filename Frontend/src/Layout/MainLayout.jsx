@@ -100,6 +100,8 @@ useEffect(() => {
       localStorage.removeItem("role");
       localStorage.removeItem("activePage");
       sessionStorage.removeItem("savedEvaluations");
+      localStorage.removeItem("darkMode");
+      localStorage.removeItem("savedEvaluations");
   
       navigate("/login");
     } catch (error) {

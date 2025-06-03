@@ -40,6 +40,8 @@ Route::post('/evaluations/submit-all', [EvaluationController::class, 'submitAll'
 Route::get('/programs/{code}/instructor-results', [ProgramController::class, 'getInstructorResultsByProgram']);
 Route::get('/top-instructors', [EvaluationController::class, 'topRatedInstructors']);
 Route::get('/instructor-distributions', [EvaluationController::class, 'getAllInstructorDistributions']);
+Route::get('/evaluation-phase', [EvaluationController::class, 'getCurrentPhase']);
+Route::post('/evaluation-phase', [EvaluationController::class, 'switchPhase']);
 
 
 // Instructor Routes

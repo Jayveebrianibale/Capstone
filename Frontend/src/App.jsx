@@ -1,7 +1,7 @@
 import{ useEffect } from "react";
-
+import "react-toastify/dist/ReactToastify.css";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { ToastContainer } from "react-toastify";
 import MainLayout from "./Layout/MainLayout";
 
 import Login from "./Auth/Login";
@@ -68,7 +68,7 @@ function App() {
   
   return (
     <Router>
-      <Toaster position="top-right" reverseOrder={false} />
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="overflow-x-hidden">
         <Routes>
           {/* Redirect root to login */}

@@ -27,7 +27,7 @@ function StudentProfileSetup() {
     { value: "4th Year", label: "4th Year" },
   ];
 
-  const totalSteps = educationLevel === "Higher Education" ? 3 : 2;
+  const totalSteps = (educationLevel === "Higher Education" ? 3 : 2) + 1; // +1 for welcome step
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -175,12 +175,28 @@ function StudentProfileSetup() {
               setSelectedProgramId("");
               setSelectedYearLevel("");
             }}
-            className={`cursor-pointer border rounded-xl px-4 py-6 text-center text-sm font-medium transition-colors ${
+            className={`relative cursor-pointer border rounded-xl px-4 py-6 text-center text-sm font-medium transition-colors ${
               educationLevel === level 
                 ? "border-[#1F3463] bg-[#1F3463]/10 text-[#1F3463]" 
                 : "border-gray-300 text-gray-600 hover:border-[#1F3463]/50 hover:bg-[#1F3463]/5"
             }`}
           >
+            {educationLevel === level && (
+              <div className="absolute top-2 right-2">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 24 24" 
+                  fill="currentColor" 
+                  className="w-5 h-5 text-[#1F3463]"
+                >
+                  <path 
+                    fillRule="evenodd" 
+                    d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+              </div>
+            )}
             {level}
           </div>
         ))}
@@ -226,22 +242,22 @@ function StudentProfileSetup() {
       } gap-6 md:gap-10`}>
         {/* Sidebar steps */}
         <div className={`md:col-span-1 space-y-6 ${windowWidth >= 768 ? "pr-8 border-r border-gray-200" : ""}`}> 
-          <div>
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Evaluation Profile Setup</h2> 
-            <p className="text-xs md:text-sm text-gray-600 mt-1">Complete the steps to activate your account.</p> 
-          </div>
           
           {/* Progress Bar and Step Counter */}
           <div className="pt-2">
             <div className="flex justify-between mb-1 items-center">
               <span className="text-xs font-medium text-[#1F3463]">
-                {step > 0 ? `STEP ${step} OF ${totalSteps}` : "GETTING STARTED"}
+                {step === 0 ? "GETTING STARTED" : `STEP ${step} OF ${totalSteps - 1}`}
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2"> 
               <div
                 className="bg-[#1F3463] h-2 rounded-full transition-all duration-300 ease-in-out" 
-                style={{ width: step > 0 ? `${(step / totalSteps) * 100}%` : "0%" }}
+                style={{ 
+                  width: step > 0 
+                    ? `${((step) / (totalSteps - 1)) * 100}%`
+                    : "0%" 
+                }}
               ></div>
             </div>
           </div>
@@ -394,27 +410,34 @@ function StudentProfileSetup() {
               </button>
               
               <button
-                onClick={step === totalSteps ? handleSubmit : () => setStep(step + 1)}
-                disabled={isNextDisabled() || (loading && step === totalSteps)}
+                onClick={() => {
+                  if (step === 1 && !educationLevel) return;
+                  if (step === totalSteps - 1) {
+                    handleSubmit();
+                  } else {
+                    setStep(step + 1);
+                  }
+                }}
+                disabled={isNextDisabled() || (loading && step === totalSteps - 1)}
                 className={`flex items-center justify-center gap-2 px-4 py-2 md:px-6 md:py-3 text-white rounded-xl transition ${
                   windowWidth < 640 ? 'w-full' : 'min-w-[150px]'
                 } ${
-                  (isNextDisabled() || (loading && step === totalSteps))
+                  (isNextDisabled() || (loading && step === totalSteps - 1))
                     ? "bg-gray-300 cursor-not-allowed"
                     : "bg-[#1F3463] hover:bg-[#15294e]"
                 }`}
               >
-                {loading && step === totalSteps ? (
+                {loading && step === totalSteps - 1 ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Finishing...
                   </>
-                ) : step === totalSteps ? (
+                ) : step === totalSteps - 1 ? (
                   "Finish Setup"
                 ) : (
                   "Continue"
                 )}
-                {!(loading && step === totalSteps) && step !== totalSteps && <ArrowRight className="w-4 h-4" />}
+                {!(loading && step === totalSteps - 1) && step !== totalSteps - 1 && <ArrowRight className="w-4 h-4" />}
               </button>
             </div>
           )}
