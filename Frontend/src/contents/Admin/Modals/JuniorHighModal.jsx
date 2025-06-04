@@ -130,6 +130,7 @@ function JuniorHighModal({ isOpen, onClose, onSave, isEditing, program }) {
                 value={formData.sectionName}
                 onChange={handleChange}
                 placeholder="Enter section name"
+                maxLength={30}
                 disabled={isLoading || isSubmitting}
                 className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl
                   focus:ring-2 focus:ring-[#1F3463] focus:border-transparent

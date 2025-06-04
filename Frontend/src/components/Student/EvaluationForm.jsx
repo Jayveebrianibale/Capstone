@@ -84,7 +84,7 @@ const EvaluationForm = ({
       )}
 
       <div className="space-y-2">
-        <label className="block text-base font-semibold text-gray-900 dark:text-white">Additional Comments:</label>
+        <label className="block text-base font-semibold text-gray-900 dark:text-white">Provide any specific suggestions for how the teacher could improve their teaching methods:</label>
         <textarea
           className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
             viewOnly
@@ -94,8 +94,9 @@ const EvaluationForm = ({
           rows="4"
           value={instructorResponses?.comment || ''}
           onChange={(e) => handleCommentChange(instructorId, e.target.value)}
-          placeholder="Share any additional comments or feedback for the instructor’s improvement... (optional)"
+          placeholder="Share any additional comments or thoughts about your experience with the teacher (Optional)"
           disabled={viewOnly}
+          maxLength={300}
         />
       </div>
 

@@ -1,6 +1,7 @@
 import BaseModal from "./BaseModal";
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function HigherEducationModal({
   isOpen,
@@ -9,6 +10,10 @@ export default function HigherEducationModal({
   isEditing,
   program,
 }) {
+  
+  const MAX_NAME_CHARS = 100;  
+  const MAX_CODE_CHARS = 20;  
+
   const [formData, setFormData] = useState({
     name: "",
     code: "",
@@ -17,6 +22,10 @@ export default function HigherEducationModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [limitExceeded, setLimitExceeded] = useState({
+    name: false,
+    code: false
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -41,11 +50,51 @@ export default function HigherEducationModal({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value.trimStart() }));
+    const newValue = value.trimStart();
+    
+    // Validate character limits
+    if (name === "name" && newValue.length > MAX_NAME_CHARS) {
+      setLimitExceeded(prev => ({ ...prev, name: true }));
+    } else if (name === "name") {
+      setLimitExceeded(prev => ({ ...prev, name: false }));
+    }
+
+    if (name === "code" && newValue.length > MAX_CODE_CHARS) {
+      setLimitExceeded(prev => ({ ...prev, code: true }));
+    } else if (name === "code") {
+      setLimitExceeded(prev => ({ ...prev, code: false }));
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
+  };
+
+  const validateForm = () => {
+    const errors = [];
+    
+    if (!formData.name.trim()) errors.push("Program name is required");
+    if (!formData.code.trim()) errors.push("Program code is required");
+    if (!formData.yearLevel) errors.push("Year level is required");
+    
+    if (formData.name.length > MAX_NAME_CHARS) {
+      errors.push(`Program name cannot exceed ${MAX_NAME_CHARS} characters`);
+    }
+    
+    if (formData.code.length > MAX_CODE_CHARS) {
+      errors.push(`Program code cannot exceed ${MAX_CODE_CHARS} characters`);
+    }
+
+    return errors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+      validationErrors.forEach(error => toast.error(error));
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const programData = {
@@ -58,6 +107,7 @@ export default function HigherEducationModal({
       onClose();
     } catch (error) {
       console.error("Error saving program:", error);
+      toast.error("Failed to save program. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -99,6 +149,7 @@ export default function HigherEducationModal({
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Program Name
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <input
                 type="text"
@@ -107,19 +158,28 @@ export default function HigherEducationModal({
                 onChange={handleChange}
                 placeholder="Enter program name"
                 disabled={isLoading || isSubmitting}
-                className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl
+                className={`w-full px-4 py-2.5 bg-white dark:bg-gray-700 border ${
+                  limitExceeded.name ? "border-yellow-500" : "border-gray-200 dark:border-gray-600"
+                } rounded-xl
                   focus:ring-2 focus:ring-[#1F3463] focus:border-transparent
                   placeholder-gray-400 dark:placeholder-gray-500
                   text-gray-900 dark:text-gray-100
                   transition-all duration-200
-                  disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled:opacity-50 disabled:cursor-not-allowed`}
                 required
+                maxLength={MAX_NAME_CHARS}
               />
+              <div className="flex justify-between mt-1">
+                <span className={`text-xs ${limitExceeded.name ? "text-yellow-600" : "text-gray-500 dark:text-gray-400"}`}>
+                  {limitExceeded.name ? "Maximum length exceeded" : `${formData.name.length}/${MAX_NAME_CHARS} characters`}
+                </span>
+              </div>
             </div>
             {/* Program Code */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Program Code
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <input
                 type="text"
@@ -128,19 +188,28 @@ export default function HigherEducationModal({
                 onChange={handleChange}
                 placeholder="Enter program code"
                 disabled={isLoading || isSubmitting}
-                className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl
+                className={`w-full px-4 py-2.5 bg-white dark:bg-gray-700 border ${
+                  limitExceeded.code ? "border-yellow-500" : "border-gray-200 dark:border-gray-600"
+                } rounded-xl
                   focus:ring-2 focus:ring-[#1F3463] focus:border-transparent
                   placeholder-gray-400 dark:placeholder-gray-500
                   text-gray-900 dark:text-gray-100
                   transition-all duration-200
-                  disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled:opacity-50 disabled:cursor-not-allowed`}
                 required
+                maxLength={MAX_CODE_CHARS}
               />
+              <div className="flex justify-between mt-1">
+                <span className={`text-xs ${limitExceeded.code ? "text-yellow-600" : "text-gray-500 dark:text-gray-400"}`}>
+                  {limitExceeded.code ? "Maximum length exceeded" : `${formData.code.length}/${MAX_CODE_CHARS} characters`}
+                </span>
+              </div>
             </div>
             {/* Year Level */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Year Level
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <select
                 name="yearLevel"

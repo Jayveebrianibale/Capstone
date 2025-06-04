@@ -131,6 +131,16 @@ const InstructorService = {
     }
   },
 
+  sendBulkResults: async (programCode) => {
+      try {
+          const response = await api.post(`/programs/${programCode}/send-bulk-results`);
+          return response.data;
+      } catch (err) {
+          console.error(err);
+          throw err;
+      }
+  },
+
   checkProgramAssignment: async (instructorId, programId) => {
     try {
       const token = localStorage.getItem('authToken');

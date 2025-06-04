@@ -102,7 +102,7 @@ class GoogleAuthController extends Controller
 
                 // Issue token and redirect
                 $token = $user->createToken('authToken')->plainTextToken;
-                return redirect("https://tpes.vercel.app/login?token={$token}");
+                return redirect("http://localhost:5173/login?token={$token}");
 
             } catch (Exception $e) {
                 return response()->json([

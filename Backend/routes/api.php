@@ -42,6 +42,8 @@ Route::get('/top-instructors', [EvaluationController::class, 'topRatedInstructor
 Route::get('/instructor-distributions', [EvaluationController::class, 'getAllInstructorDistributions']);
 Route::get('/evaluation-phase', [EvaluationController::class, 'getCurrentPhase']);
 Route::post('/evaluation-phase', [EvaluationController::class, 'switchPhase']);
+//Bulk send email to instructors
+Route::post('/programs/{programCode}/send-bulk-results', [InstructorController::class, 'sendBulkResults']);
 
 
 // Instructor Routes

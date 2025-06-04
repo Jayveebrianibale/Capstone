@@ -144,9 +144,15 @@ export default function InstructorModal({
                   value={formData.name}
                   onChange={e => handleChange(e, idx)}
                   placeholder="John Doe"
-                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all"
-                  required
+                  maxLength={30}
+                  className="w-full pl-10 pr-4 py-2.5 
+                            bg-white dark:bg-gray-800 
+                            border border-gray-300 dark:border-gray-600 
+                            text-gray-900 dark:text-gray-100
+                            placeholder-gray-400 dark:placeholder-gray-500
+                            rounded-lg focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all"
                 />
+
               </div>
               {/* Email Input */}
               <div className="space-y-2">
@@ -160,10 +166,15 @@ export default function InstructorModal({
                     name="email"
                     value={formData.email}
                     onChange={e => handleChange(e, idx)}
-                    placeholder="john.doe@example.com"
-                    className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all"
-                    required
-                  />
+                    placeholder="john.doe@laverdad.edu.ph"
+                    maxLength={50}
+                    className="w-full pl-10 pr-4 py-2.5 
+                            bg-white dark:bg-gray-800 
+                            border border-gray-300 dark:border-gray-600 
+                            text-gray-900 dark:text-gray-100
+                            placeholder-gray-400 dark:placeholder-gray-500
+                            rounded-lg focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all"
+                />
                 </div>
               </div>
             </div>

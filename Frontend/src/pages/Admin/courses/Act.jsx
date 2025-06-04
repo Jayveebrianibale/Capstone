@@ -3,11 +3,12 @@ import InstructorTable from "../../../contents/Admin/InstructorTable";
 import Tabs from "../../../components/Tabs";
 import ContentHeader from "../../../contents/Admin/ContentHeader";
 import ProgramService from "../../../services/ProgramService";
-import EvaluationService from "../../../services/EvaluationService"; // Added EvaluationService
+import EvaluationService from "../../../services/EvaluationService";
+import InstructorService from "../../../services/InstructorService"; // Added InstructorService
 import { toast } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
-import { Users, UserX } from "lucide-react";
+import { Users, UserX, Loader2 } from "lucide-react"; // Added Loader2
 
 // Utility to map year level string/number to a number (1-2)
 function mapYearLevelToNumber(yearLevel) {
@@ -34,11 +35,56 @@ function Act() {
   const [mergedInstructorsByYear, setMergedInstructorsByYear] = useState([[], []]);
   const [noInstructors, setNoInstructors] = useState(false);
   const [fetchError, setFetchError] = useState(false);
-  const [submittedCount, setSubmittedCount] = useState(0); // Added state for submitted count
+  const [submittedCount, setSubmittedCount] = useState(0);
+  const [bulkSending, setBulkSending] = useState(false); // Added state for bulk sending
+  const [bulkSendStatus, setBulkSendStatus] = useState(null); // Added state for bulk send status
+  const [showConfirmModal, setShowConfirmModal] = useState(false); // Added state for confirmation modal
   const { loading, setLoading } = useLoading();
 
   const tabLabels = ["1st Year", "2nd Year"];
   const programCode = "ACT";
+
+  const handleBulkSend = async () => { // Added handleBulkSend function
+    setShowConfirmModal(false);
+    setBulkSending(true);
+    try {
+      const response = await InstructorService.sendBulkResults(programCode);
+
+      // Success case - show success message
+      setBulkSendStatus(response);
+      toast.success(
+        `Successfully sent results to ${response.sent_count} instructors`,
+        { autoClose: 5000 }
+      );
+
+      if (response.failed_count > 0) {
+        toast.warning(
+          `Failed to send to ${response.failed_count} instructors`,
+          { autoClose: 7000 }
+        );
+        console.log("Failed emails:", response.failed_emails);
+      }
+    } catch (err) {
+      // Improved error handling
+      console.error("Bulk send error:", err);
+
+      if (err.sent_count !== undefined) {
+        // This is actually a success case but was caught as error
+        setBulkSendStatus(err);
+        toast.success(
+          `Sent to ${err.sent_count} instructors (${err.failed_count} failed)`,
+          { autoClose: 5000 }
+        );
+      } else {
+        toast.error(
+          err.message || "Failed to perform bulk send operation",
+          { autoClose: 5000 }
+        );
+      }
+    } finally {
+      setBulkSending(false);
+    }
+  };
 
   const handleSearch = (query) => {
     console.log("Search:", query);
@@ -58,7 +104,7 @@ function Act() {
       const [instructorsData, resultsData, courseEvalCounts] = await Promise.all([
         ProgramService.getInstructorsByProgramCode(programCode),
         ProgramService.getInstructorResultsByProgram(programCode),
-        EvaluationService.getCourseEvaluationSubmissionCounts(), // Fetch course evaluation counts
+        EvaluationService.getCourseEvaluationSubmissionCounts(),
       ]);
 
       if (!Array.isArray(instructorsData) || !Array.isArray(resultsData) || !Array.isArray(courseEvalCounts)) {
@@ -72,7 +118,7 @@ function Act() {
       } else {
         setSubmittedCount(0); // Default to 0 if not found
       }
-      
+
       const groupByYear = (data) => {
         const grouped = [[], []];
         data.forEach((item) => {
@@ -157,6 +203,7 @@ function Act() {
             onSearch={handleSearch}
             onExport={handleExport}
             onAdd={handleAddInstructor}
+            onBulkSend={() => setShowConfirmModal(true)} // Added onBulkSend prop
           />
 
           <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -178,6 +225,62 @@ function Act() {
             )}
           </div>
         </>
+      )}
+
+      {/* Confirmation Modal */} {/* Added Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
+              Confirm Bulk Send
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to send results to all instructors in this program?
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-100 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                disabled={bulkSending}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkSend}
+                className={`px-4 py-2 flex items-center justify-center gap-2 ${
+                  bulkSending
+                    ? "bg-blue-600 cursor-not-allowed"
+                    : "bg-[#1F3463] hover:bg-blue-700"
+                } text-white rounded transition-colors min-w-[80px]`}
+                disabled={bulkSending}
+              >
+                {bulkSending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Send"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Overlay for Bulk Send */} {/* Added Loading Overlay */}
+      {bulkSending && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl flex flex-col items-center">
+            <Loader2 className="h-8 w-8 animate-spin text-[#1F3463] mb-4" />
+            <p className="text-gray-700 dark:text-gray-300">
+              Sending results to all instructors...
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              This may take a few moments
+            </p>
+          </div>
+        </div>
       )}
     </main>
   );

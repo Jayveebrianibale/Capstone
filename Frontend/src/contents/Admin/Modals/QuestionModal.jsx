@@ -3,15 +3,20 @@ import { X } from "lucide-react";
 import { toast } from "react-toastify";
 
 export default function QuestionModal({ isOpen, onClose, onSave, isEditing, questionToEdit }) {
+  // Constants for limits
+  const MAX_CHARACTERS = 250;
+  const MAX_WORDS = 50;
+
   const [formData, setFormData] = useState({
     question: "",
-    type: "Likert Scale", // Set Likert Scale as default
+    type: "Likert Scale", 
     category: ""
   });
 
   const [questions, setQuestions] = useState([{ question: "", type: "Likert Scale", category: "" }]);
   const [loading, setLoading] = useState(false);
   const [missingFields, setMissingFields] = useState([]);
+  const [limitExceeded, setLimitExceeded] = useState([]);
   const questionRefs = useRef([]);
 
   const categories = [
@@ -20,32 +25,68 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
     "Ethical Practice", "Leadership and Collaboration", "Overall Rating",
   ];
 
-  // Only keep Likert Scale as the response type
   const questionTypes = ["Likert Scale"];
+
+  // Helper function to count words
+  const countWords = (str) => {
+    return str.trim() === '' ? 0 : str.trim().split(/\s+/).length;
+  };
+
+  // Validate input limits
+  const validateLimits = (value, index = null) => {
+    const charLimit = value.length > MAX_CHARACTERS;
+    const wordLimit = countWords(value) > MAX_WORDS;
+    
+    if (index !== null) {
+      // For multiple questions
+      const newLimitExceeded = [...limitExceeded];
+      if (charLimit || wordLimit) {
+        newLimitExceeded[index] = { charLimit, wordLimit };
+      } else {
+        delete newLimitExceeded[index];
+      }
+      setLimitExceeded(newLimitExceeded);
+    } else {
+      // For single question (edit mode)
+      if (charLimit || wordLimit) {
+        setLimitExceeded([{ charLimit, wordLimit }]);
+      } else {
+        setLimitExceeded([]);
+      }
+    }
+    
+    return !charLimit && !wordLimit;
+  };
 
   useEffect(() => {
     if (isEditing && questionToEdit) {
       setFormData({
         question: questionToEdit.question || "",
-        type: questionToEdit.type || "Likert Scale", // Ensure Likert Scale is set if empty
+        type: questionToEdit.type || "Likert Scale", 
         category: questionToEdit.category || ""
       });
       setQuestions([{ ...questionToEdit, type: questionToEdit.type || "Likert Scale" }]);
+      validateLimits(questionToEdit.question || "");
     } else {
       setFormData({ question: "", type: "Likert Scale", category: "" });
       setQuestions([{ question: "", type: "Likert Scale", category: "" }]);
+      setLimitExceeded([]);
     }
     setMissingFields([]);
   }, [isEditing, questionToEdit, isOpen]);
 
   // For single question (edit mode)
   const handleFormChange = (field, value) => {
+    if (field === "question") {
+      validateLimits(value);
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [field]: value
     }));
     setQuestions([{ ...formData, [field]: value }]);
-    // Remove field from missing fields if it's now filled
+    
     if (value.trim() !== "") {
       setMissingFields(prev => prev.filter(f => f !== field));
     }
@@ -53,10 +94,14 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
 
   // For multiple questions (add mode)
   const handleChange = (index, field, value) => {
+    if (field === "question") {
+      validateLimits(value, index);
+    }
+    
     const updatedQuestions = [...questions];
     updatedQuestions[index][field] = value;
     setQuestions(updatedQuestions);
-    // Remove field from missing fields if it's now filled
+    
     if (value.trim() !== "") {
       setMissingFields(prev => prev.filter(f => f !== `${index}-${field}`));
     }
@@ -64,20 +109,27 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
 
   const validateQuestions = () => {
     const newMissingFields = [];
+    let limitsValid = true;
     
     if (isEditing) {
       if (formData.question.trim() === "") newMissingFields.push("question");
-      // Don't validate type since it's always Likert Scale
       if (formData.category.trim() === "") newMissingFields.push("category");
+      limitsValid = validateLimits(formData.question);
     } else {
       questions.forEach((q, index) => {
         if (q.question.trim() === "") newMissingFields.push(`${index}-question`);
-        // Don't validate type since it's always Likert Scale
         if (q.category.trim() === "") newMissingFields.push(`${index}-category`);
+        limitsValid = limitsValid && validateLimits(q.question, index);
       });
     }
     
     setMissingFields(newMissingFields);
+    
+    if (!limitsValid) {
+      toast.error(`Question text exceeds limits (max ${MAX_CHARACTERS} characters or ${MAX_WORDS} words)`);
+      return false;
+    }
+    
     return newMissingFields.length === 0;
   };
 
@@ -120,7 +172,6 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
   const handleSave = async () => {
     if (loading) return;
     if (!validateQuestions()) {
-      toast.error("Please fill in all required fields");
       return;
     }
     setLoading(true);
@@ -160,10 +211,36 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
                   placeholder="Enter your question..."
                   value={formData.question}
                   onChange={(e) => handleFormChange("question", e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${missingFields.includes("question") ? "border-red-500" : "border-gray-300 dark:border-gray-600"} rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
+                  className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${
+                    missingFields.includes("question") ? "border-red-500" : 
+                    (limitExceeded[0]?.charLimit || limitExceeded[0]?.wordLimit) ? "border-yellow-500" : 
+                    "border-gray-300 dark:border-gray-600"
+                  } rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
                 />
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                  <span>
+                    {limitExceeded[0]?.charLimit ? (
+                      <span className="text-red-500">{formData.question.length}/{MAX_CHARACTERS} characters</span>
+                    ) : (
+                      <span>{formData.question.length}/{MAX_CHARACTERS} characters</span>
+                    )}
+                  </span>
+                  <span>
+                    {limitExceeded[0]?.wordLimit ? (
+                      <span className="text-red-500">{countWords(formData.question)}/{MAX_WORDS} words</span>
+                    ) : (
+                      <span>{countWords(formData.question)}/{MAX_WORDS} words</span>
+                    )}
+                  </span>
+                </div>
                 {missingFields.includes("question") && (
                   <p className="text-red-500 text-sm">Question is required</p>
+                )}
+                {(limitExceeded[0]?.charLimit || limitExceeded[0]?.wordLimit) && (
+                  <p className="text-yellow-600 text-sm">
+                    {limitExceeded[0].charLimit && `Maximum ${MAX_CHARACTERS} characters exceeded. `}
+                    {limitExceeded[0].wordLimit && `Maximum ${MAX_WORDS} words exceeded.`}
+                  </p>
                 )}
               </div>
               {/* Settings Grid */}
@@ -231,10 +308,36 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
                     placeholder="Enter your question..."
                     value={q.question}
                     onChange={(e) => handleChange(index, "question", e.target.value)}
-                    className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${missingFields.includes(`${index}-question`) ? "border-red-500" : "border-gray-300 dark:border-gray-600"} rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${
+                      missingFields.includes(`${index}-question`) ? "border-red-500" : 
+                      (limitExceeded[index]?.charLimit || limitExceeded[index]?.wordLimit) ? "border-yellow-500" : 
+                      "border-gray-300 dark:border-gray-600"
+                    } rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
                   />
+                  <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <span>
+                      {limitExceeded[index]?.charLimit ? (
+                        <span className="text-red-500">{q.question.length}/{MAX_CHARACTERS} characters</span>
+                      ) : (
+                        <span>{q.question.length}/{MAX_CHARACTERS} characters</span>
+                      )}
+                    </span>
+                    <span>
+                      {limitExceeded[index]?.wordLimit ? (
+                        <span className="text-red-500">{countWords(q.question)}/{MAX_WORDS} words</span>
+                      ) : (
+                        <span>{countWords(q.question)}/{MAX_WORDS} words</span>
+                      )}
+                    </span>
+                  </div>
                   {missingFields.includes(`${index}-question`) && (
                     <p className="text-red-500 text-sm">Question is required</p>
+                  )}
+                  {(limitExceeded[index]?.charLimit || limitExceeded[index]?.wordLimit) && (
+                    <p className="text-yellow-600 text-sm">
+                      {limitExceeded[index].charLimit && `Maximum ${MAX_CHARACTERS} characters exceeded. `}
+                      {limitExceeded[index].wordLimit && `Maximum ${MAX_WORDS} words exceeded.`}
+                    </p>
                   )}
                 </div>
                 {/* Settings Grid */}
