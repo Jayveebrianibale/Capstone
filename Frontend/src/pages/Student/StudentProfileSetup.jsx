@@ -19,6 +19,7 @@ function StudentProfileSetup() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [role, setRole] = useState(null);
 
   const yearLevelOptions = [
     { value: "1st Year", label: "1st Year" },
@@ -27,7 +28,7 @@ function StudentProfileSetup() {
     { value: "4th Year", label: "4th Year" },
   ];
 
-  const totalSteps = (educationLevel === "Higher Education" ? 3 : 2) + 1; // +1 for welcome step
+  const totalSteps = (educationLevel === "Higher Education" ? 3 : 2) + 1;
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -41,6 +42,7 @@ function StudentProfileSetup() {
     const storedUser = sessionStorage.getItem("user");
     if (storedUser) {
       const user = JSON.parse(storedUser);
+      setRole(user.role);
       if (user.profile_completed && !didRedirect.current) {
         didRedirect.current = true;
         navigate("/SDashboard");
@@ -55,6 +57,7 @@ function StudentProfileSetup() {
       })
       .then((response) => {
         sessionStorage.setItem("user", JSON.stringify(response.data));
+        setRole(response.data.role);
         if (response.data.profile_completed && !didRedirect.current) {
           didRedirect.current = true;
           navigate("/SDashboard");
@@ -90,19 +93,19 @@ function StudentProfileSetup() {
       toast.error("Authentication failed. Please log in again.");
       return;
     }
-
+  
     setLoading(true);
     setErrorMessage("");
-
+  
     if (educationLevel === "Higher Education" && !selectedYearLevel) {
       toast.error("Year Level is required for Higher Education.");
       setLoading(false);
       return;
     }
-
+  
     try {
       const chosenProgramForStep2 = programs.find(p => String(p.id) === selectedProgramId);
-
+  
       const payload = {
         educationLevel: educationLevel,
         selectedOption: educationLevel === "Higher Education"
@@ -111,7 +114,7 @@ function StudentProfileSetup() {
         yearLevel: educationLevel === "Higher Education" ? selectedYearLevel : null,
         programName: chosenProgramForStep2?.name || "",
       };
-
+  
       const response = await api.post(
         "/student/setup-profile",
         payload,
@@ -119,14 +122,16 @@ function StudentProfileSetup() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
+  
       if (response.data.profile_completed) {
         const updatedUser = response.data.user || response.data;
         sessionStorage.setItem("user", JSON.stringify(updatedUser));
         localStorage.setItem("profileCompleted", "true");
+        localStorage.setItem("showPrivacyNoticeOnDashboard", "true");
         toast.success("Profile setup completed!");
         setTimeout(() => {
-          navigate("/SDashboard");
+          // Add state to indicate we're coming from profile setup
+          navigate("/SDashboard", { state: { fromProfileSetup: true } });
         }, 800);
       } else {
         throw new Error("Profile setup was not completed correctly.");

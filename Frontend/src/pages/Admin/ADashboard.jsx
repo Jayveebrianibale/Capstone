@@ -207,13 +207,13 @@ function ADashboard() {
                     <button 
                       onClick={() => setCardShowFilter(prev => !prev)}
                       className={`flex items-center p-1 rounded-md ${
-                        isMobile ? 'text-xs bg-gray-100 dark:bg-gray-700' : 'text-sm'
-                      } hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors`}
+                        isMobile ? 'text-xs bg-gray-100 dark:bg-gray-700' : 'text-sm bg-gray-100 dark:bg-gray-700'
+                      } hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100`}
                     >
                       <FiFilter size={isMobile ? 12 : 14} className="mr-1" />
                       {filterValue === 'All' ? 'All' : educationLevels.find(l => l.value === filterValue)?.label}
                     </button>
-                    
+
                     {cardShowFilter && (
                       <div className={`absolute right-0 mt-1 z-50 ${
                         isMobile ? 'w-28' : 'w-36'
@@ -221,11 +221,15 @@ function ADashboard() {
                         <select
                           value={filterValue}
                           onChange={onFilterChange}
-                          className="block w-full px-2 py-1 text-xs sm:text-sm border-0 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                          className="block w-full px-2 py-1 text-xs sm:text-sm border-0 rounded-md dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
                           size={isMobile ? 3 : undefined}
                         >
                           {educationLevels.map((level) => (
-                            <option key={level.value} value={level.value}>
+                            <option 
+                              key={level.value} 
+                              value={level.value}
+                              className="dark:bg-gray-700 dark:text-white"
+                            >
                               {level.label}
                             </option>
                           ))}

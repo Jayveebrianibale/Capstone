@@ -74,7 +74,7 @@ const PhaseSwitcher = () => {
       <button
         ref={buttonRef}
         onClick={toggleDropdown}
-        className="flex items-center gap-2 px-4 py-2 bg-[#1F3463] text-white rounded-lg hover:bg-[#19294f] transition"
+        className="flex items-center gap-2 px-4 py-2 bg-[#1F3463] text-white rounded-xl hover:bg-[#19294f] transition"
       >
         <Shuffle className="w-4 h-4" />
         <span>{currentPhase}</span>

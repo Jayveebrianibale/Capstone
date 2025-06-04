@@ -1,16 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
 
 export default function QuestionModal({ isOpen, onClose, onSave, isEditing, questionToEdit }) {
   const [formData, setFormData] = useState({
     question: "",
-    type: "",
+    type: "Likert Scale", // Set Likert Scale as default
     category: ""
   });
 
-  const [questions, setQuestions] = useState([{ question: "", type: "", category: "" }]);
+  const [questions, setQuestions] = useState([{ question: "", type: "Likert Scale", category: "" }]);
   const [loading, setLoading] = useState(false);
+  const [missingFields, setMissingFields] = useState([]);
+  const questionRefs = useRef([]);
 
   const categories = [
     "Learning Environments", "Student Development", "Content Knowledge",
@@ -18,22 +20,22 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
     "Ethical Practice", "Leadership and Collaboration", "Overall Rating",
   ];
 
-  const questionTypes = [
-    "Likert Scale", "Multiple Choice", "Short Answer", "Rating Scale", "Open Ended"
-  ];
+  // Only keep Likert Scale as the response type
+  const questionTypes = ["Likert Scale"];
 
   useEffect(() => {
     if (isEditing && questionToEdit) {
       setFormData({
         question: questionToEdit.question || "",
-        type: questionToEdit.type || "",
+        type: questionToEdit.type || "Likert Scale", // Ensure Likert Scale is set if empty
         category: questionToEdit.category || ""
       });
-      setQuestions([{ ...questionToEdit }]);
+      setQuestions([{ ...questionToEdit, type: questionToEdit.type || "Likert Scale" }]);
     } else {
-      setFormData({ question: "", type: "", category: "" });
-      setQuestions([{ question: "", type: "", category: "" }]);
+      setFormData({ question: "", type: "Likert Scale", category: "" });
+      setQuestions([{ question: "", type: "Likert Scale", category: "" }]);
     }
+    setMissingFields([]);
   }, [isEditing, questionToEdit, isOpen]);
 
   // For single question (edit mode)
@@ -43,6 +45,10 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
       [field]: value
     }));
     setQuestions([{ ...formData, [field]: value }]);
+    // Remove field from missing fields if it's now filled
+    if (value.trim() !== "") {
+      setMissingFields(prev => prev.filter(f => f !== field));
+    }
   };
 
   // For multiple questions (add mode)
@@ -50,28 +56,71 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
     const updatedQuestions = [...questions];
     updatedQuestions[index][field] = value;
     setQuestions(updatedQuestions);
+    // Remove field from missing fields if it's now filled
+    if (value.trim() !== "") {
+      setMissingFields(prev => prev.filter(f => f !== `${index}-${field}`));
+    }
   };
 
   const validateQuestions = () => {
+    const newMissingFields = [];
+    
     if (isEditing) {
-      return (
-        formData.question.trim() !== "" &&
-        formData.type.trim() !== "" &&
-        formData.category.trim() !== ""
-      );
+      if (formData.question.trim() === "") newMissingFields.push("question");
+      // Don't validate type since it's always Likert Scale
+      if (formData.category.trim() === "") newMissingFields.push("category");
+    } else {
+      questions.forEach((q, index) => {
+        if (q.question.trim() === "") newMissingFields.push(`${index}-question`);
+        // Don't validate type since it's always Likert Scale
+        if (q.category.trim() === "") newMissingFields.push(`${index}-category`);
+      });
     }
-    return questions.every(
-      (q) =>
-        q.question.trim() !== "" &&
-        q.type.trim() !== "" &&
-        q.category.trim() !== ""
-    );
+    
+    setMissingFields(newMissingFields);
+    return newMissingFields.length === 0;
   };
+
+  const scrollToFirstMissingField = () => {
+    if (missingFields.length === 0) return;
+    
+    // For edit mode
+    if (isEditing) {
+      const firstMissing = missingFields[0];
+      const element = document.querySelector(`[data-field="${firstMissing}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.focus();
+      }
+      return;
+    }
+    
+    // For multiple questions mode
+    const firstMissing = missingFields[0];
+    const [index, field] = firstMissing.split('-');
+    const questionElement = questionRefs.current[index];
+    
+    if (questionElement) {
+      questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Focus the specific input field
+      const inputElement = questionElement.querySelector(`[data-field="${firstMissing}"]`);
+      if (inputElement) {
+        inputElement.focus();
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (missingFields.length > 0) {
+      scrollToFirstMissingField();
+    }
+  }, [missingFields]);
 
   const handleSave = async () => {
     if (loading) return;
     if (!validateQuestions()) {
-      toast.error("Please fill in all question fields");
+      toast.error("Please fill in all required fields");
       return;
     }
     setLoading(true);
@@ -106,32 +155,28 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
               {/* Question Input */}
               <div className="space-y-2">
                 <textarea
+                  data-field="question"
                   rows="3"
                   placeholder="Enter your question..."
                   value={formData.question}
                   onChange={(e) => handleFormChange("question", e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${missingFields.includes("question") ? "border-red-500" : "border-gray-300 dark:border-gray-600"} rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
                 />
+                {missingFields.includes("question") && (
+                  <p className="text-red-500 text-sm">Question is required</p>
+                )}
               </div>
               {/* Settings Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Question Type */}
+                {/* Question Type - Now fixed to Likert Scale */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Response Type
                   </label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) => handleFormChange("type", e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  >
-                    <option value="" disabled>Select Type</option>
-                    {questionTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                    Likert Scale
+                  </div>
+                  <input type="hidden" value="Likert Scale" />
                 </div>
                 {/* Category */}
                 <div className="space-y-2">
@@ -139,9 +184,10 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
                     Category
                   </label>
                   <select
+                    data-field="category"
                     value={formData.category}
                     onChange={(e) => handleFormChange("category", e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${missingFields.includes("category") ? "border-red-500" : "border-gray-300 dark:border-gray-600"} rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
                   >
                     <option value="" disabled>Select Category</option>
                     {categories.map((category) => (
@@ -150,12 +196,19 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
                       </option>
                     ))}
                   </select>
+                  {missingFields.includes("category") && (
+                    <p className="text-red-500 text-sm">Category is required</p>
+                  )}
                 </div>
               </div>
             </div>
           ) : (
             questions.map((q, index) => (
-              <div key={index} className="space-y-4 mb-6 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+              <div 
+                key={index} 
+                ref={el => questionRefs.current[index] = el}
+                className="space-y-4 mb-6 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl"
+              >
                 {/* Question Header */}
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
@@ -164,7 +217,7 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
                   {questions.length > 1 && (
                     <button
                       onClick={() => setQuestions(questions.filter((_, i) => i !== index))}
-                      className="text-red-500 hover:text-red-600 transition-colors"
+                      className="text-gray-500 hover:text-red-600 transition-colors"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -173,32 +226,28 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
                 {/* Question Input */}
                 <div className="space-y-2">
                   <textarea
+                    data-field={`${index}-question`}
                     rows="3"
                     placeholder="Enter your question..."
                     value={q.question}
                     onChange={(e) => handleChange(index, "question", e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${missingFields.includes(`${index}-question`) ? "border-red-500" : "border-gray-300 dark:border-gray-600"} rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
                   />
+                  {missingFields.includes(`${index}-question`) && (
+                    <p className="text-red-500 text-sm">Question is required</p>
+                  )}
                 </div>
                 {/* Settings Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Question Type */}
+                  {/* Question Type - Now fixed to Likert Scale */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Response Type
                     </label>
-                    <select
-                      value={q.type}
-                      onChange={(e) => handleChange(index, "type", e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    >
-                      <option value="" disabled>Select Type</option>
-                      {questionTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                      Likert Scale
+                    </div>
+                    <input type="hidden" value="Likert Scale" />
                   </div>
                   {/* Category */}
                   <div className="space-y-2">
@@ -206,9 +255,10 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
                       Category
                     </label>
                     <select
+                      data-field={`${index}-category`}
                       value={q.category}
                       onChange={(e) => handleChange(index, "category", e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${missingFields.includes(`${index}-category`) ? "border-red-500" : "border-gray-300 dark:border-gray-600"} rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
                     >
                       <option value="" disabled>Select Category</option>
                       {categories.map((category) => (
@@ -217,6 +267,9 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
                         </option>
                       ))}
                     </select>
+                    {missingFields.includes(`${index}-category`) && (
+                      <p className="text-red-500 text-sm">Category is required</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -231,7 +284,7 @@ export default function QuestionModal({ isOpen, onClose, onSave, isEditing, ques
               onClick={() =>
                 setQuestions([
                   ...questions,
-                  { question: "", type: "", category: "" }
+                  { question: "", type: "Likert Scale", category: "" }
                 ])
               }
               className="px-4 py-2.5 border border-[#1F3463] text-[#1F3463] dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
