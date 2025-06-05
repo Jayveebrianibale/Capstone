@@ -6,6 +6,7 @@ import ProgramService from "../../../services/ProgramService";
 import EvaluationService from "../../../services/EvaluationService";
 import InstructorService from "../../../services/InstructorService"; // Added InstructorService
 import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
 import { Users, UserX, Loader2 } from "lucide-react"; // Added Loader2
@@ -183,6 +184,7 @@ function Act() {
 
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
+      <ToastContainer position="top-right" autoClose={3000} />
       {loading ? (
         <FullScreenLoader />
       ) : noInstructors || !hasInstructorsAssigned() ? (

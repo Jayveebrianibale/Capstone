@@ -53,18 +53,18 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
 function App() {
 
-  useEffect(() => {
-    const channel = window.Echo.channel("test-channel");
+  // useEffect(() => {
+  //   const channel = window.Echo.channel("test-channel");
   
-    channel.listen(".test-event", (e) => {
-      console.log("Received WebSocket Event:", e);
-      alert("WebSocket event received: " + e.message);
-    });
+  //   channel.listen(".test-event", (e) => {
+  //     console.log("Received WebSocket Event:", e);
+  //     alert("WebSocket event received: " + e.message);
+  //   });
   
-    return () => {
-      window.Echo.leave("test-channel");
-    };
-  }, []);
+  //   return () => {
+  //     window.Echo.leave("test-channel");
+  //   };
+  // }, []);
   
   return (
     <Router>
