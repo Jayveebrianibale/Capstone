@@ -25,7 +25,6 @@ function Programs() {
   const primaryColor = "#1F3463";
   const hoverColor = "#172a4d";
 
-
   useEffect(() => {
     fetchPrograms();
     fetchGradeLevels();
@@ -123,7 +122,6 @@ function Programs() {
     document.body.removeChild(link);
   };
 
-
   const handleSaveProgram = async (programData, isEditing, programId) => {
     try {
       let programResponse;
@@ -207,12 +205,12 @@ function Programs() {
   };
 
   return (
-    <main className="p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-4 lg:p-6">
       <ToastContainer position="top-right" autoClose={3000} />
       {loading && <FullScreenLoader />}
 
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+   {/* Header Section */}
+   <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Academic Programs Management
@@ -241,46 +239,52 @@ function Programs() {
           </button>
         </div>
       </div>
-
-      {/* Tabs Navigation */}
-      <div className="flex overflow-x-auto pb-2 mb-6">
-        {["Higher Education", "Senior High", "Junior High", "Intermediate"].map(
-          (category) => (
-            <button
-              key={category}
-              onClick={() => setActiveTab(category)}
-              className={`flex-shrink-0 px-6 py-3 text-sm font-medium transition-colors ${
-                activeTab === category
-                  ? `bg-[${primaryColor}] text-white rounded-lg shadow-sm`
-                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-              }`}
-            >
-              {category}
-            </button>
-          )
-        )}
+      {/* Tabs Navigation - Horizontal Scroll for Mobile */}
+      <div className="mb-4 sm:mb-6">
+        <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {["Higher Education", "Senior High", "Junior High", "Intermediate"].map(
+            (category) => (
+              <button
+                key={category}
+                onClick={() => setActiveTab(category)}
+                className={`flex-shrink-0 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-colors rounded-lg whitespace-nowrap ${
+                  activeTab === category
+                    ? "bg-[#1F3463] text-white shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
+              >
+                <span className="sm:hidden">
+                  {category === "Higher Education" ? "Higher Ed" : 
+                   category === "Senior High" ? "Senior" :
+                   category === "Junior High" ? "Junior" : "Intermediate"}
+                </span>
+                <span className="hidden sm:inline">{category}</span>
+              </button>
+            )
+          )}
+        </div>
       </div>
 
       {/* Content Section */}
       {getFilteredItems().length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-[70vh] bg-white border dark:bg-gray-800 rounded-2xl shadow-sm p-8">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
-              <FaRegFolderOpen className="w-8 h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
+        <div className="flex flex-col items-center justify-center min-h-[50vh] bg-white border dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
+              <FaRegFolderOpen className="w-6 h-6 sm:w-8 sm:h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
             </div>
           </div>
 
           {/* Text Content */}
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2 text-center">
             No Programs Found
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-8 text-center max-w-md">
+          <p className="text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 text-center text-sm sm:text-base max-w-md px-2">
             Start by adding new programs to {activeTab} or upload a CSV file.
           </p>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md">
-            <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all flex-1 cursor-pointer">
+          <div className="flex flex-col w-full max-w-xs gap-3">
+            <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer text-sm sm:text-base">
               <FiUpload className="w-4 h-4" /> Upload CSV
               <input
                 type="file"
@@ -292,8 +296,8 @@ function Programs() {
           </div>
 
           {/* CSV Helper Text */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="mt-6 sm:mt-8 text-center px-4">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               Need a template?{' '}
               <button
                 type="button"
@@ -305,9 +309,8 @@ function Programs() {
             </p>
           </div>
         </div>
-
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm overflow-hidden">
           {/* Desktop Table View */}
           <div className="overflow-x-auto hidden lg:block">
             <table className="w-full">
@@ -336,9 +339,9 @@ function Programs() {
                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-600/30 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
-                          <div className={`w-2 h-10 bg-[${primaryColor}] rounded-full`}></div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-gray-200">
+                          <div className="w-2 h-10 bg-[#1F3463] rounded-full"></div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900 dark:text-gray-200 truncate">
                               {item.name.split(' - ')[0]}
                             </p>
                           </div>
@@ -386,62 +389,81 @@ function Programs() {
             </table>
           </div>
 
-          {/* Mobile Grid View */}
-          <div className="grid gap-4 p-4 lg:hidden grid-cols-1 sm:grid-cols-2">
-            {getFilteredItems().map((item) => {
-              const isProgram = activeTab === "Higher Education";
-              const program = isProgram ? item : programs.find(p => p.id === item.program_id);
+          {/* Mobile Card View - Fully Responsive */}
+          <div className="lg:hidden">
+            <div className="grid gap-3 sm:gap-4 p-3 sm:p-4 grid-cols-1">
+              {getFilteredItems().map((item) => {
+                const isProgram = activeTab === "Higher Education";
+                const program = isProgram ? item : programs.find(p => p.id === item.program_id);
 
-              return (
-                <div
-                  key={item.id}
-                  className="p-4 border rounded-lg shadow-md bg-white dark:bg-gray-900 break-words min-w-0"
-                >
-                  <h3 className="font-bold text-lg text-[#1F3463] dark:text-white mb-2 break-words"> {/* Added break-words */}
-                    {item.name.split(' - ')[0]}
-                  </h3>
+                return (
+                  <div
+                    key={item.id}
+                    className="p-3 sm:p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-900 min-w-0"
+                  >
+                    {/* Program Name - Responsive Typography */}
+                    <h3 className="font-bold text-base sm:text-lg text-[#1F3463] dark:text-white mb-2 break-words leading-tight">
+                      {item.name.split(' - ')[0]}
+                    </h3>
 
-                  <div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                    <span className="font-semibold">Code:</span> <span className="break-words">{item.code || "N/A"}</span> {/* Added span with break-words */}
+                    {/* Program Details - Responsive Layout */}
+                    <div className="space-y-2 text-sm">
+                      <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2">
+                        <span className="font-semibold text-gray-700 dark:text-gray-300 flex-shrink-0">
+                          Code:
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-400 break-all min-w-0">
+                          {item.code || "N/A"}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col xs:flex-row xs:items-start gap-1 xs:gap-2">
+                        <span className="font-semibold text-gray-700 dark:text-gray-300 flex-shrink-0">
+                          Details:
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          {isProgram ? (
+                            <span className="inline-block px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs sm:text-sm break-words">
+                               {item.yearLevel || "N/A"}
+                            </span>
+                          ) : (
+                            <span className="inline-block px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs sm:text-sm break-words">
+                              {item.name.includes(' - ') ? item.name.split(' - ')[1] : "N/A"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons - Mobile Optimized */}
+                    <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                      <button
+                        onClick={() => openEditProgramModal(item)}
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors touch-target"
+                        title="Edit Program"
+                      >
+                        <FaEdit className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteProgramId(item.id);
+                          setIsConfirmModalOpen(true);
+                        }}
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 transition-colors touch-target"
+                        title="Delete Program"
+                      >
+                        <FaTrash className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+                    </div>
                   </div>
-
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    <span className="font-semibold">Details:</span>{' '}
-                    {isProgram ? (
-                      <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm break-words"> {/* Added break-words */}
-                         {item.yearLevel || "N/A"}
-                      </span>
-                    ) : (
-                      <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm break-words"> {/* Added break-words */}
-                        {item.name.includes(' - ') ? item.name.split(' - ')[1] : "N/A"}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex justify-end items-center gap-3">
-                    <button
-                      onClick={() => openEditProgramModal(item)}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors"
-                    >
-                      <FaEdit className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setDeleteProgramId(item.id);
-                        setIsConfirmModalOpen(true);
-                      }}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 transition-colors"
-                    >
-                      <FaTrash className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
 
+      {/* Modals */}
       {activeModal && (
         <>
           {activeTab === "Higher Education" && (
@@ -490,6 +512,34 @@ function Programs() {
         title="Confirm Deletion"
         message="Are you sure you want to delete this program?"
       />
+
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .touch-target {
+          min-height: 44px;
+          min-width: 44px;
+        }
+        @media (max-width: 390px) {
+          .xs\\:flex-row {
+            flex-direction: row;
+          }
+          .xs\\:inline {
+            display: inline;
+          }
+          .xs\\:items-center {
+            align-items: center;
+          }
+          .xs\\:gap-2 {
+            gap: 0.5rem;
+          }
+        }
+      `}</style>
     </main>
   );
 }

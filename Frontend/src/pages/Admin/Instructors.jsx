@@ -25,13 +25,9 @@ function Instructors() {
   const { loading, setLoading } = useLoading();
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
-
-  // State for assigned programs modal
   const [assignedProgramsModalOpen, setAssignedProgramsModalOpen] = useState(false);
   const [assignedPrograms, setAssignedPrograms] = useState([]);
   const [assignedProgramsInstructor, setAssignedProgramsInstructor] = useState(null);
-
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const instructorsPerPage = 10;
   const totalPages = Math.ceil(filteredInstructors.length / instructorsPerPage);
@@ -70,7 +66,7 @@ function Instructors() {
         inst.name.toLowerCase().includes(query.toLowerCase())
       )
     );
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1);
   };
 
   const handleDelete = async () => {
@@ -99,7 +95,6 @@ function Instructors() {
     setShowModal(true);
   };
 
-  // Handle CSV bulk upload
   const handleCSVUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -112,17 +107,14 @@ function Instructors() {
       toast.error(error.message || "Upload failed. Please check your CSV file.");
     } finally {
       setLoading(false);
-      // Reset file input so user can re-upload if needed
       e.target.value = null;
     }
   };
 
-  // Download sample CSV for instructors
   const handleDownloadTemplate = () => {
     const csvContent = `name,email,programs
     John Doe,johndoe@email.com,"[{""code"":""BSIS"",""yearLevel"":1},{""code"":""BSA"",""yearLevel"":2}]"
-    Jane Smith,janesmith@email.com,"[{""code"":""BAB"",""yearLevel"":1}]"
-    `;
+    Jane Smith,janesmith@email.com,"[{""code"":""BAB"",""yearLevel"":1}]"`;
   
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -133,15 +125,12 @@ function Instructors() {
     link.click();
     document.body.removeChild(link);
   };
-  
 
-  // Handler to fetch and show assigned programs
   const handleCheckDetails = async (instructor) => {
     setLoading(true);
     try {
       const response = await InstructorService.fetchAssignedPrograms(instructor.id);
       let programs = [];
-      // If response is not an object (e.g., HTML), treat as error
       if (typeof response !== 'object' || response === null) {
         throw new Error('Invalid response from server.');
       }
@@ -169,7 +158,6 @@ function Instructors() {
     }
   };
 
-  // Helper to display year level as '1st year', '2nd year', etc.
   function getYearLevelLabel(year) {
     const n = parseInt(year, 10);
     if (isNaN(n)) return "";
@@ -180,7 +168,7 @@ function Instructors() {
   }
 
   return (
-    <main className="p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 lg:p-6">
       <ToastContainer position="top-right" autoClose={3000} />
       {loading && <FullScreenLoader />}
 
@@ -218,24 +206,23 @@ function Instructors() {
         </div>
       </div>
 
-        {instructors.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[70vh] bg-white border dark:bg-gray-800 rounded-2xl shadow-sm p-8">
-            <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
-                <UserX className="w-7 h-7 text-[#1F3463] dark:text-[#5d7cbf]" />
-              </div>
+
+      {instructors.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-[50vh] bg-white border dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
+              <UserX className="w-6 h-6 sm:w-8 sm:h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
             </div>
-          {/* Text Content */}
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+          </div>
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2 text-center">
             No instructors yet
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-8 text-center max-w-md">
+          <p className="text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 text-center text-sm sm:text-base max-w-md px-2">
             Get started by adding new instructors individually or upload a CSV file
           </p>
           
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md"> 
-            <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all flex-1 cursor-pointer">
+          <div className="flex flex-col w-full max-w-xs gap-3">
+            <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer text-sm sm:text-base">
               <FiUpload className="w-4 h-4" /> Upload CSV
               <input
                 type="file"
@@ -246,9 +233,8 @@ function Instructors() {
             </label>
           </div>
           
-          {/* CSV Helper Text */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="mt-6 sm:mt-8 text-center px-4">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               Need a template?{' '}
               <button
                 type="button"
@@ -260,194 +246,208 @@ function Instructors() {
             </p>
           </div>
         </div>
-        ) : (
-          <>
-        
-        <div className="hidden md:block bg-white border dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-4">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-100 dark:bg-gray-700">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium  dark:text-gray-400 uppercase tracking-wider">
-                    Instructor
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium  dark:text-gray-400 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium  dark:text-gray-400 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium dark:text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {paginatedInstructors.map((inst) => (
-                  <tr
-                    key={inst.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700/10 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1F3463] flex items-center justify-center">
-                        <span className="text-white font-medium">
-                          {inst.name?.trim() ? inst.name.trim().charAt(0).toUpperCase() : "?"}
-                        </span>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {inst.name}
+      ) : (
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden lg:block bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm overflow-hidden mb-4">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Instructor
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Email
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {paginatedInstructors.map((inst) => (
+                    <tr key={inst.id} className="hover:bg-gray-50 dark:hover:bg-gray-600/30 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-[#1F3463] flex items-center justify-center text-white font-medium">
+                            {inst.name?.trim() ? inst.name.trim().charAt(0).toUpperCase() : "?"}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900 text-sm dark:text-gray-200 truncate">
+                              {inst.name}
+                            </p>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 dark:text-gray-200">
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-200">
                         {inst.email}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                        <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#22c55e' }}></span>
-                        {inst.status || 'Active'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end items-center gap-2">
-                        <button
-                          onClick={() => handleEdit(inst)}
-                          className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-colors"
-                          title="Edit"
-                        >
-                          <FaEdit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setDeleteInstructorId(inst.id);
-                            setConfirmModalOpen(true);
-                          }}
-                          className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors"
-                          title="Delete"
-                        >
-                          <FaTrash className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedInstructor(inst);
-                            setAssignModalOpen(true);
-                          }}
-                          className="px-3 py-2 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-lg flex items-center gap-2 transition-colors text-sm"
-                        >
-                          <MdOutlineAssignmentTurnedIn className="w-3.5 h-3.5" />
-                          <span>Assign</span>
-                        </button>
-                        <button
-                          onClick={() => handleCheckDetails(inst)}
-                          className="px-3 py-2 border border-green-600 text-green-600 dark:text-green-400 bg-white dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium shadow-sm"
-                          title="Check Details"
-                        >
-                          <FaBookOpen className="w-3.5 h-3.5" />
-                          <span>Details</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#22c55e' }}></span>
+                          {inst.status || 'Active'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end items-center gap-2">
+                          <button
+                            onClick={() => handleEdit(inst)}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors"
+                          >
+                            <FaEdit className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDeleteInstructorId(inst.id);
+                              setConfirmModalOpen(true);
+                            }}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 transition-colors"
+                          >
+                            <FaTrash className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedInstructor(inst);
+                              setAssignModalOpen(true);
+                            }}
+                            className="px-3 py-2 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-lg flex items-center gap-2 transition-colors text-sm"
+                          >
+                            <MdOutlineAssignmentTurnedIn className="w-4 h-4" />
+                            <span>Assign</span>
+                          </button>
+                          <button
+                            onClick={() => handleCheckDetails(inst)}
+                            className="px-3 py-2 border border-green-600 text-green-600 dark:text-green-400 bg-white dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium shadow-sm"
+                          >
+                            <FaBookOpen className="w-4 h-4" />
+                            <span>Details</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-        {/* Pagination UI */}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-1 py-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className={`w-8 h-8 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed`}
-              aria-label="Previous page"
-            >
-              <FaChevronLeft className="w-4 h-4" />
-            </button>
-            {[...Array(totalPages)].map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => handlePageChange(idx + 1)}
-                className={`w-8 h-8 flex items-center justify-center rounded-md font-semibold border border-[#1F3463] mx-0.5 text-sm ${
-                  currentPage === idx + 1
-                    ? 'bg-[#1F3463] text-white'
-                    : 'bg-white text-[#1F3463] dark:bg-gray-900'
-                } hover:bg-[#1F3463] hover:text-white transition`}
-                aria-label={`Page ${idx + 1}`}
-              >
-                {idx + 1}
-              </button>
-            ))}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className={`w-8 h-8 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed`}
-              aria-label="Next page"
-            >
-              <FaChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-      
-        {/* Mobile Grid - below md */}
-        <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {filteredInstructors.map((inst) => (
-            <div key={inst.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
-              <div className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 h-9 w-9 rounded-full bg-[#1F3463] flex items-center justify-center">
-                    <span className="text-white font-medium">
-                      {inst.name.charAt(0).toUpperCase()}
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden">
+            <div className="grid gap-3 sm:gap-4 p-3 sm:p-4 grid-cols-1">
+              {paginatedInstructors.map((inst) => (
+                <div key={inst.id} className="p-3 sm:p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-900 min-w-0">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-full bg-[#1F3463] flex items-center justify-center text-white font-medium">
+                      {inst.name?.trim() ? inst.name.trim().charAt(0).toUpperCase() : "?"}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg text-[#1F3463] dark:text-white">
+                        {inst.name}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        {inst.email}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#22c55e' }}></span>
+                      {inst.status || 'Active'}
                     </span>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">{inst.name}</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{inst.email}</p>
+                  <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                    <button
+                      onClick={() => handleEdit(inst)}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors"
+                    
+                    >
+                      <FaEdit className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDeleteInstructorId(inst.id);
+                        setConfirmModalOpen(true);
+                      }}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 transition-colors"
+                      title="Delete"
+                    >
+                      <FaTrash className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedInstructor(inst);
+                        setAssignModalOpen(true);
+                      }}
+                      className="px-2 py-1.5 sm:px-3 sm:py-2 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-lg flex items-center gap-1 sm:gap-2 transition-colors text-xs sm:text-sm"
+                    >
+                      <MdOutlineAssignmentTurnedIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span>Assign</span>
+                    </button>
+                    <button
+                      onClick={() => handleCheckDetails(inst)}
+                      className="px-2 py-1.5 sm:px-3 sm:py-2 border border-green-600 text-green-600 dark:text-green-400 bg-white dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg flex items-center gap-1 sm:gap-2 transition-colors text-xs sm:text-sm font-medium shadow-sm"
+                      title="Details"
+                    >
+                      <FaBookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span>Details</span>
+                    </button>
                   </div>
                 </div>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-700/30 px-4 py-3 flex justify-end space-x-2">
-                <button 
-                  onClick={() => handleEdit(inst)} 
-                  className="p-1.5 rounded-md text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-colors"
-                  title="Edit"
-                >
-                  <FaEdit className="w-4 h-4" />
-                </button>
-                <button 
-                  onClick={() => { setDeleteInstructorId(inst.id); setConfirmModalOpen(true); }} 
-                  className="p-1.5 rounded-md text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors"
-                  title="Delete"
-                >
-                  <FaTrash className="w-4 h-4" />
-                </button>
-                <button 
-                  onClick={() => { setSelectedInstructor(inst); setAssignModalOpen(true); }} 
-                  className="px-2.5 py-1 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-md flex items-center gap-1 text-xs"
-                >
-                  <FaBookOpen className="w-3 h-3" />
-                  <span>Assign</span>
-                </button>
-                <button 
-                  onClick={() => handleCheckDetails(inst)} 
-                  className="px-2.5 py-1 border border-green-600 text-green-600 dark:text-green-400 bg-white dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md flex items-center gap-1 text-xs font-medium shadow-sm"
-                  title="Check Details"
-                >
-                  <FaBookOpen className="w-3 h-3" />
-                  <span>Details</span>
-                </button>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </>)}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 py-4">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`w-8 h-8 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                aria-label="Previous page"
+              >
+                <FaChevronLeft className="w-4 h-4" />
+              </button>
+              {[...Array(totalPages)].map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handlePageChange(idx + 1)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-md font-semibold border border-[#1F3463] text-sm ${
+                    currentPage === idx + 1
+                      ? 'bg-[#1F3463] text-white'
+                      : 'bg-white text-[#1F3463] dark:bg-gray-900'
+                  } hover:bg-[#1F3463] hover:text-white transition`}
+                  aria-label={`Page ${idx + 1}`}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`w-8 h-8 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                aria-label="Next page"
+              >
+                <FaChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
       {/* Modals */}
-      <InstructorModal isOpen={showModal} onClose={() => setShowModal(false)} onSave={fetchInstructors} isEditing={isEditing} instructor={currentInstructor} />
+      <InstructorModal 
+        isOpen={showModal} 
+        onClose={() => setShowModal(false)} 
+        onSave={fetchInstructors} 
+        isEditing={isEditing} 
+        instructor={currentInstructor} 
+      />
+      
       <ConfirmModal 
         isOpen={confirmModalOpen} 
         onClose={() => setConfirmModalOpen(false)} 
@@ -456,97 +456,93 @@ function Instructors() {
         message="Are you sure you want to delete this instructor?" 
         loading={loading && confirmModalOpen}
       />
-      <AssignProgramModal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} instructor={selectedInstructor} onSave={fetchInstructors} />
-        {assignedProgramsModalOpen && (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
-        {/* Modal Header */}
-        <div className="flex justify-between items-start p-6 pb-4 border-b dark:border-gray-700">
-          <div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-              Assigned Programs
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Instructor: <span className="text-[#1F3463] dark:text-blue-400 font-medium">{assignedProgramsInstructor?.name}</span>
-            </p>
-          </div>
-          <button
-            onClick={() => setAssignedProgramsModalOpen(false)}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1"
-            aria-label="Close modal"
-          >
-          </button>
-        </div>
+      
+      <AssignProgramModal 
+        isOpen={assignModalOpen} 
+        onClose={() => setAssignModalOpen(false)} 
+        instructor={selectedInstructor} 
+        onSave={fetchInstructors} 
+      />
+      
+      {/* Assigned Programs Modal */}
+      {assignedProgramsModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-start p-6 pb-4 border-b dark:border-gray-700">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                  Assigned Programs
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Instructor: <span className="text-[#1F3463] dark:text-blue-400 font-medium">{assignedProgramsInstructor?.name}</span>
+                </p>
+              </div>
+              <button
+                onClick={() => setAssignedProgramsModalOpen(false)}
+                className="text-gray-600 text-3xl hover:text-gray-800 dark:text-gray-200 dark:hover:text-white transition-colors p-2 rounded-md"
+                aria-label="Close modal"
+              >
+                &times;
+              </button>
 
-        {/* Modal Content */}
-        <div className="flex-1 overflow-y-auto p-6 pt-4">
-          {assignedPrograms.length > 0 ? (
-            <div className="space-y-3">
-              {assignedPrograms.map((prog) => (
-                <div 
-                  key={`${prog.id}-${prog.year_level}-${prog.section}`}
-                  className="p-4 bg-white dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600 shadow-sm"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold text-gray-800 dark:text-white">
-                        {prog.name}
-                      </h3>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-                        {prog.year_level && (
-                          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                            <span className="inline-block w-2 h-2 rounded-full bg-[#1F3463] mr-2"></span>
-                            {getYearLevelLabel(prog.year_level)}
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 pt-4">
+              {assignedPrograms.length > 0 ? (
+                <div className="space-y-3">
+                  {assignedPrograms.map((prog) => (
+                    <div 
+                      key={`${prog.id}-${prog.year_level}-${prog.section}`}
+                      className="p-4 bg-white dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600 shadow-sm"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-gray-800 dark:text-white">
+                            {prog.name}
+                          </h3>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                            {prog.year_level && (
+                              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                                <span className="inline-block w-2 h-2 rounded-full bg-[#1F3463] mr-2"></span>
+                                {getYearLevelLabel(prog.year_level)}
+                              </div>
+                            )}
+                            {prog.section && (
+                              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                                <span className="inline-block w-2 h-2 rounded-full bg-blue-400 mr-2"></span>
+                                Section: {prog.section}
+                              </div>
+                            )}
                           </div>
-                        )}
-                        {prog.section && (
-                          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                            <span className="inline-block w-2 h-2 rounded-full bg-blue-400 mr-2"></span>
-                            Section: {prog.section}
-                          </div>
-                        )}
+                        </div>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          Active
+                        </span>
                       </div>
                     </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      Active
-                    </span>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                <div className="text-center py-8">
+                  <div className="mx-auto w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    No programs assigned
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">
+                    This instructor doesn't have any assigned programs yet.
+                  </p>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="mx-auto w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">
-                No programs assigned
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
-                This instructor doesn't have any assigned programs yet.
-              </p>
-            </div>
-          )}
+          </div>
         </div>
-
-        {/* Modal Footer */}
-        <div className="p-4 border-t dark:border-gray-700 flex justify-end">
-          <button
-            onClick={() => setAssignedProgramsModalOpen(false)}
-            className="px-4 py-2 rounded-lg bg-[#1F3463] hover:bg-[#172a4d] text-white transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  )}
+      )}
     </main>
   );
 }
 
-export default function InstructorsWrapper() {
-  return <Instructors />;
-}
+export default Instructors;
