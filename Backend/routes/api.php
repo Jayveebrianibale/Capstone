@@ -44,6 +44,7 @@ Route::get('/evaluation-phase', [EvaluationController::class, 'getCurrentPhase']
 Route::post('/evaluation-phase', [EvaluationController::class, 'switchPhase']);
 //Bulk send email to instructors
 Route::post('/programs/{programCode}/send-bulk-results', [InstructorController::class, 'sendBulkResults']);
+Route::get('/programs/{code}/filter', [ProgramController::class, 'getFilteredInstructorResultsByProgram']);
 
 
 // Instructor Routes

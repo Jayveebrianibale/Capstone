@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
-import { Users, UserX } from "lucide-react";
+import { Users, UserX, Loader2 } from "lucide-react";
 import InstructorTable from "../../../contents/Admin/InstructorTable";
 import Tabs from "../../../components/Tabs";
 import ContentHeader from "../../../contents/Admin/ContentHeader";
 import ProgramService from "../../../services/ProgramService";
-import EvaluationService from "../../../services/EvaluationService"; // Added EvaluationService
-import InstructorService from "../../../services/InstructorService"; // Added InstructorService
+import EvaluationService from "../../../services/EvaluationService";
+import EvaluationFilterService from "../../../services/EvaluationFilterService"; // Added EvaluationFilterService
+import InstructorService from "../../../services/InstructorService";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
@@ -44,16 +45,31 @@ function Bsais() {
   const [noInstructors, setNoInstructors] = useState(false);
   const [fetchError, setFetchError] = useState(false);
   const [submittedCount, setSubmittedCount] = useState(0);
-  const [bulkSending, setBulkSending] = useState(false); // Added state for bulk sending
-  const [bulkSendStatus, setBulkSendStatus] = useState(null); // Added state for bulk send status
-  const [showConfirmModal, setShowConfirmModal] = useState(false); // Added state for confirmation modal
+  const [bulkSending, setBulkSending] = useState(false);
+  const [bulkSendStatus, setBulkSendStatus] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [filters, setFilters] = useState({ // Added filters state
+    schoolYear: '',
+    semester: '',
+    searchQuery: ''
+  });
   const { loading, setLoading } = useLoading();
 
   const tabLabels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
   const programCode = "BSAIS";
 
-  const handleSearch = (query) => {
-    console.log("Search:", query);
+  const schoolYearOptions = EvaluationFilterService.getSchoolYearOptions(); // Added schoolYearOptions
+  const semesterOptions = EvaluationFilterService.getSemesterOptions(); // Added semesterOptions
+
+  const handleFilterChange = (filterType, value) => { // Added handleFilterChange
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
+
+  const handleSearch = (query) => { // Modified handleSearch
+    handleFilterChange('searchQuery', query);
   };
 
   const handleExport = () => {
@@ -64,13 +80,20 @@ function Bsais() {
     console.log("Add Instructor");
   };
 
-  const handleBulkSend = async () => { // Added handleBulkSend function
+  const filterInstructors = (instructors, query) => { // Added filterInstructors
+    if (!query) return instructors;
+    return instructors.filter(instructor =>
+      instructor.name.toLowerCase().includes(query.toLowerCase()) ||
+      instructor.email.toLowerCase().includes(query.toLowerCase())
+    );
+  };
+
+  const handleBulkSend = async () => {
     setShowConfirmModal(false);
     setBulkSending(true);
     try {
       const response = await InstructorService.sendBulkResults(programCode);
 
-      // Success case - show success message
       setBulkSendStatus(response);
       toast.success(
         `Successfully sent results to ${response.sent_count} instructors`,
@@ -85,11 +108,9 @@ function Bsais() {
         console.log("Failed emails:", response.failed_emails);
       }
     } catch (err) {
-      // Improved error handling
       console.error("Bulk send error:", err);
 
       if (err.sent_count !== undefined) {
-        // This is actually a success case but was caught as error
         setBulkSendStatus(err);
         toast.success(
           `Sent to ${err.sent_count} instructors (${err.failed_count} failed)`,
@@ -109,24 +130,24 @@ function Bsais() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [instructorsData, resultsData, courseEvalCounts] = await Promise.all([
-        ProgramService.getInstructorsByProgramCode(programCode),
-        ProgramService.getInstructorResultsByProgram(programCode),
-        EvaluationService.getCourseEvaluationSubmissionCounts(), // Fetch course evaluation counts
+
+      // Fetch filtered results and evaluation counts
+      const [filteredResults, courseEvalCounts] = await Promise.all([ // Modified data fetching
+        EvaluationFilterService.getFilteredResults(programCode, {
+          schoolYear: filters.schoolYear,
+          semester: filters.semester
+        }),
+        EvaluationService.getCourseEvaluationSubmissionCounts(),
       ]);
 
-      if (!Array.isArray(instructorsData) || !Array.isArray(resultsData) || !Array.isArray(courseEvalCounts)) {
+      if (!Array.isArray(filteredResults) || !Array.isArray(courseEvalCounts)) {
         throw new Error("Invalid data format received from one or more endpoints");
       }
 
       // Find the submitted count for the current programCode
       const currentCourseStats = courseEvalCounts.find(course => course.course_code === programCode);
-      if (currentCourseStats) {
-        setSubmittedCount(currentCourseStats.submitted_count);
-      } else {
-        setSubmittedCount(0); // Default to 0 if not found
-      }
-      
+      setSubmittedCount(currentCourseStats ? currentCourseStats.submitted_count : 0);
+
       const groupByYear = (data) => {
         const grouped = [[], [], [], []];
         data.forEach((item) => {
@@ -137,8 +158,11 @@ function Bsais() {
         return grouped;
       };
 
+      const resultsGrouped = groupByYear(filteredResults);
+
+      // Fetch instructors to merge with filtered results
+      const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
       const instructorsGrouped = groupByYear(instructorsData);
-      const resultsGrouped = groupByYear(resultsData);
 
       const merged = instructorsGrouped.map((yearInstructors, yearIndex) => {
         const yearResults = resultsGrouped[yearIndex] || [];
@@ -148,7 +172,12 @@ function Bsais() {
         });
       });
 
-      setMergedInstructorsByYear(merged);
+      // Apply search filter
+      const filteredMerged = merged.map(yearGroup =>
+        filterInstructors(yearGroup, filters.searchQuery)
+      );
+
+      setMergedInstructorsByYear(filteredMerged);
       setNoInstructors(instructorsData.length === 0);
     } catch (error) {
       console.error("Data fetch failed:", error);
@@ -164,9 +193,18 @@ function Bsais() {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => { // Modified useEffect to include schoolYear and semester filters
     fetchData();
-  }, [programCode, setLoading]);
+  }, [programCode, filters.schoolYear, filters.semester]);
+
+  useEffect(() => { // Added useEffect for search query with debounce
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [filters.searchQuery]);
+
 
   const hasInstructorsForYear = (year) => {
     return mergedInstructorsByYear[year]?.length > 0;
@@ -209,10 +247,16 @@ function Bsais() {
           <ContentHeader
             title="Instructors"
             stats={[`Submitted: ${submittedCount}`]}
-            onSearch={handleSearch}
+            onSearch={handleSearch} // Added onSearch prop
             onExport={handleExport}
             onAdd={handleAddInstructor}
-            onBulkSend={() => setShowConfirmModal(true)} 
+            onBulkSend={() => setShowConfirmModal(true)}
+            onSchoolYearChange={(value) => handleFilterChange('schoolYear', value)} // Added filter props
+            onSemesterChange={(value) => handleFilterChange('semester', value)} // Added filter props
+            selectedSchoolYear={filters.schoolYear} // Added filter props
+            selectedSemester={filters.semester} // Added filter props
+            schoolYearOptions={schoolYearOptions} // Added filter props
+            semesterOptions={semesterOptions} // Added filter props
           />
 
           <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -235,7 +279,8 @@ function Bsais() {
           </div>
         </>
       )}
-          {showConfirmModal && (
+
+      {showConfirmModal && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
                   <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
@@ -274,8 +319,8 @@ function Bsais() {
                 </div>
               </div>
             )}
-      
-            {/* Loading Overlay for Bulk Send */} {/* Added Loading Overlay */}
+
+            {/* Loading Overlay for Bulk Send */}
             {bulkSending && (
               <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl flex flex-col items-center">
@@ -292,5 +337,5 @@ function Bsais() {
           </main>
         );
       }
-    
+
   export default Bsais;

@@ -69,14 +69,14 @@ const PerformingInstructor = () => {
                 return (
                   <tr
                     key={item.id}
-                    className="text-center even:bg-gray-50 dark:even:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="even:bg-gray-50 dark:even:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
-                    <td className="py-3 flex items-center justify-center gap-1">
+                    <td className="py-3 px-4 flex items-center gap-1 text-left"> {/* Adjusted alignment and padding */}
                       {medalEmoji[index] && <span className="text-xl">{medalEmoji[index]}</span>}
                       <span>{item.name}</span>
                     </td>
-                    <td className="px-4 py-3">{avgRating}</td>
-                    <td className={`px-4 py-3 ${getPercentageColor(percentage)}`}>
+                    <td className="px-4 py-3 text-center">{avgRating}</td> {/* Kept center for numbers */}
+                    <td className={`px-4 py-3 text-center ${getPercentageColor(percentage)}`}> {/* Kept center for numbers */}
                       {percentage.toFixed(2)}%
                     </td>
                   </tr>

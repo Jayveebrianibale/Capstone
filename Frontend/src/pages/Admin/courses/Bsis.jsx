@@ -4,6 +4,7 @@ import Tabs from "../../../components/Tabs";
 import ContentHeader from "../../../contents/Admin/ContentHeader";
 import ProgramService from "../../../services/ProgramService";
 import EvaluationService from "../../../services/EvaluationService";
+import EvaluationFilterService from "../../../services/EvaluationFilterService";
 import { toast } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
@@ -19,10 +20,18 @@ function Bsis() {
   const [bulkSending, setBulkSending] = useState(false);
   const [bulkSendStatus, setBulkSendStatus] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [filters, setFilters] = useState({
+    schoolYear: '',
+    semester: '',
+    searchQuery: ''
+  });
 
   const tabLabels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
   const programCode = "BSIS";
   const { loading, setLoading } = useLoading();
+
+  const schoolYearOptions = EvaluationFilterService.getSchoolYearOptions();
+  const semesterOptions = EvaluationFilterService.getSemesterOptions();
 
   const mapYearLevelToNumber = (yearLevel) => {
     if (typeof yearLevel === "number") return yearLevel;
@@ -50,6 +59,96 @@ function Bsis() {
     }
   };
 
+  const handleFilterChange = (filterType, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
+
+  const handleSearch = (query) => {
+    handleFilterChange('searchQuery', query);
+  };
+
+  const handleExport = () => {
+    console.log("Export to PDF");
+    // Implement export functionality here
+  };
+
+  const handleAddInstructor = () => {
+    console.log("Add Instructor");
+    // Implement add instructor functionality here
+  };
+
+  const filterInstructors = (instructors, query) => {
+    if (!query) return instructors;
+    return instructors.filter(instructor => 
+      instructor.name.toLowerCase().includes(query.toLowerCase()) ||
+      instructor.email.toLowerCase().includes(query.toLowerCase())
+    );
+  };
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch filtered results
+      const [filteredResults, courseEvalCounts] = await Promise.all([
+        EvaluationFilterService.getFilteredResults(programCode, {
+          schoolYear: filters.schoolYear,
+          semester: filters.semester
+        }),
+        EvaluationService.getCourseEvaluationSubmissionCounts(),
+      ]);
+
+      const currentCourseStats = courseEvalCounts.find((course) => course.course_code === programCode);
+      setSubmittedCount(currentCourseStats ? currentCourseStats.submitted_count : 0);
+
+      const groupByYear = (data) => {
+        const grouped = [[], [], [], []];
+        data.forEach((item) => {
+          const yearLevel = item?.pivot?.yearLevel;
+          const year = mapYearLevelToNumber(yearLevel);
+          if (year >= 1 && year <= 4) grouped[year - 1].push(item);
+        });
+        return grouped;
+      };
+
+      const resultsGrouped = groupByYear(filteredResults);
+
+      // Fetch instructors to merge with filtered results
+      const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
+      const instructorsGrouped = groupByYear(instructorsData);
+
+      const merged = instructorsGrouped.map((yearInstructors, yearIndex) => {
+        const yearResults = resultsGrouped[yearIndex] || [];
+        return yearInstructors.map((instructor) => {
+          const result = yearResults.find((r) => r.name === instructor.name) || {};
+          return { ...instructor, ...result };
+        });
+      });
+
+      // Apply search filter
+      const filteredMerged = merged.map(yearGroup => 
+        filterInstructors(yearGroup, filters.searchQuery)
+      );
+
+      setMergedInstructorsByYear(filteredMerged);
+      setNoInstructors(instructorsData.length === 0);
+    } catch (error) {
+      console.error("Data fetch failed:", error);
+      if (error?.response?.status === 404) {
+        setNoInstructors(true);
+        toast.info("No instructors found for this program.");
+      } else {
+        toast.error("Failed to load instructor data");
+        setFetchError(true);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleBulkSend = async () => {
     setShowConfirmModal(false);
     setBulkSending(true);
@@ -71,7 +170,6 @@ function Bsis() {
         console.log("Failed emails:", response.failed_emails);
       }
     } catch (err) {
-      // Improved error handling
       console.error("Bulk send error:", err);
       
       if (err.sent_count !== undefined) {
@@ -92,70 +190,18 @@ function Bsis() {
     }
   };
 
-  const handleSearch = (query) => {
-    console.log("Search:", query);
-  };
-
-  const handleExport = () => {
-    console.log("Export to PDF");
-  };
-
-  const handleAddInstructor = () => {
-    console.log("Add Instructor");
-  };
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [instructorsData, resultsData, courseEvalCounts] = await Promise.all([
-        ProgramService.getInstructorsByProgramCode(programCode),
-        ProgramService.getInstructorResultsByProgram(programCode),
-        EvaluationService.getCourseEvaluationSubmissionCounts(),
-      ]);
-
-      const currentCourseStats = courseEvalCounts.find((course) => course.course_code === programCode);
-      setSubmittedCount(currentCourseStats ? currentCourseStats.submitted_count : 0);
-
-      const groupByYear = (data) => {
-        const grouped = [[], [], [], []];
-        data.forEach((item) => {
-          const yearLevel = item?.pivot?.yearLevel;
-          const year = mapYearLevelToNumber(yearLevel);
-          if (year >= 1 && year <= 4) grouped[year - 1].push(item);
-        });
-        return grouped;
-      };
-
-      const instructorsGrouped = groupByYear(instructorsData);
-      const resultsGrouped = groupByYear(resultsData);
-
-      const merged = instructorsGrouped.map((yearInstructors, yearIndex) => {
-        const yearResults = resultsGrouped[yearIndex] || [];
-        return yearInstructors.map((instructor) => {
-          const result = yearResults.find((r) => r.name === instructor.name) || {};
-          return { ...instructor, ...result };
-        });
-      });
-
-      setMergedInstructorsByYear(merged);
-      setNoInstructors(instructorsData.length === 0);
-    } catch (error) {
-      console.error("Data fetch failed:", error);
-      if (error?.response?.status === 404) {
-        setNoInstructors(true);
-        toast.info("No instructors found for this program.");
-      } else {
-        toast.error("Failed to load instructor data");
-        setFetchError(true);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchData();
-  }, [programCode]);
+  }, [programCode, filters.schoolYear, filters.semester]);
+
+  useEffect(() => {
+    // Debounce search to prevent too many requests
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [filters.searchQuery]);
 
   const hasInstructorsForYear = (year) => mergedInstructorsByYear[year]?.length > 0;
   const hasInstructorsAssigned = () => mergedInstructorsByYear.some((yearGroup) => yearGroup.length > 0);
@@ -188,10 +234,15 @@ function Bsis() {
           <ContentHeader
             title="Instructors"
             stats={[`Submitted: ${submittedCount}`]}
-            onSearch={handleSearch}
             onExport={handleExport}
             onAdd={handleAddInstructor}
             onBulkSend={() => setShowConfirmModal(true)}
+            onSchoolYearChange={(value) => handleFilterChange('schoolYear', value)}
+            onSemesterChange={(value) => handleFilterChange('semester', value)}
+            selectedSchoolYear={filters.schoolYear}
+            selectedSemester={filters.semester}
+            schoolYearOptions={schoolYearOptions}
+            semesterOptions={semesterOptions}
           />
 
           <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />

@@ -63,7 +63,7 @@ function Programs() {
 
   const getFilteredItems = () => {
     const category = activeTab.toLowerCase();
-    
+
     // Map the tab name to the correct category codes
     const categoryMap = {
       "higher education": ["Higher Education"],
@@ -73,7 +73,7 @@ function Programs() {
     };
 
     // Filter programs based on category
-    return programs.filter(prog => 
+    return programs.filter(prog =>
       categoryMap[category].includes(prog.category) &&
       prog.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -112,7 +112,7 @@ function Programs() {
       Bachelor of Science in Social Work,BSSW,Higher Education,1st - 4th Year
       Grade 7,JHS,Junior High,"Grade 7"
       Grade 10,JHS,Junior High,"Grade 10"`;
-  
+
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -122,7 +122,7 @@ function Programs() {
     link.click();
     document.body.removeChild(link);
   };
-  
+
 
   const handleSaveProgram = async (programData, isEditing, programId) => {
     try {
@@ -144,7 +144,7 @@ function Programs() {
       if (programResponse.program) {
         setPrograms(prevPrograms => {
           if (isEditing) {
-            return prevPrograms.map(p => 
+            return prevPrograms.map(p =>
               p.id === programId ? programResponse.program : p
             );
           } else {
@@ -221,7 +221,7 @@ function Programs() {
             Manage all academic programs and grade levels
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2 w-full md:w-auto">
         <div className="flex-1 flex items-center">
           <input
@@ -269,7 +269,7 @@ function Programs() {
               <FaRegFolderOpen className="w-8 h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
             </div>
           </div>
-        
+
           {/* Text Content */}
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
             No Programs Found
@@ -277,7 +277,7 @@ function Programs() {
           <p className="text-gray-500 dark:text-gray-400 mb-8 text-center max-w-md">
             Start by adding new programs to {activeTab} or upload a CSV file.
           </p>
-        
+
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 max-w-md">
             <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all flex-1 cursor-pointer">
@@ -290,7 +290,7 @@ function Programs() {
               />
             </label>
           </div>
-        
+
           {/* CSV Helper Text */}
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -305,10 +305,11 @@ function Programs() {
             </p>
           </div>
         </div>
-        
+
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="overflow-x-auto hidden lg:block">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
@@ -383,6 +384,60 @@ function Programs() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Grid View */}
+          <div className="grid gap-4 p-4 lg:hidden grid-cols-1 sm:grid-cols-2">
+            {getFilteredItems().map((item) => {
+              const isProgram = activeTab === "Higher Education";
+              const program = isProgram ? item : programs.find(p => p.id === item.program_id);
+
+              return (
+                <div
+                  key={item.id}
+                  className="p-4 border rounded-lg shadow-md bg-white dark:bg-gray-900 break-words min-w-0"
+                >
+                  <h3 className="font-bold text-lg text-[#1F3463] dark:text-white mb-2 break-words"> {/* Added break-words */}
+                    {item.name.split(' - ')[0]}
+                  </h3>
+
+                  <div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    <span className="font-semibold">Code:</span> <span className="break-words">{item.code || "N/A"}</span> {/* Added span with break-words */}
+                  </div>
+
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    <span className="font-semibold">Details:</span>{' '}
+                    {isProgram ? (
+                      <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm break-words"> {/* Added break-words */}
+                         {item.yearLevel || "N/A"}
+                      </span>
+                    ) : (
+                      <span className="inline-block px-2 py-1 dark:bg-gray-700 rounded text-sm break-words"> {/* Added break-words */}
+                        {item.name.includes(' - ') ? item.name.split(' - ')[1] : "N/A"}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end items-center gap-3">
+                    <button
+                      onClick={() => openEditProgramModal(item)}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors"
+                    >
+                      <FaEdit className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDeleteProgramId(item.id);
+                        setIsConfirmModalOpen(true);
+                      }}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 transition-colors"
+                    >
+                      <FaTrash className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

@@ -418,37 +418,39 @@ class EvaluationController extends Controller {
     }
 
 
-// Add these new methods:
+    //Phase Management and Archives
     public function getCurrentPhase() {
         $phase = Setting::first()->evaluation_phase ?? 'Phase 1';
-        return response()->json(['phase' => $phase]); }
-
-        public function switchPhase(Request $request) {
-            $request->validate([
-                'phase' => 'required|in:Phase 1,Phase 2'
-            ]);
-
-            $currentPhase = Setting::first()->evaluation_phase ?? 'Phase 1';
-            $newPhase = $request->phase;
-
-            // Only archive when moving from Phase 1 to Phase 2
-            if ($currentPhase === 'Phase 1' && $newPhase === 'Phase 2') {
-                $this->archiveEvaluations();
-            }
-
-            Setting::first()->update(['evaluation_phase' => $newPhase]);
-
-            return response()->json([
-                'message' => "Switched to $newPhase successfully",
-                'previous_phase' => $currentPhase,
-                'new_phase' => $newPhase
-            ]);
+        return response()->json(['phase' => $phase]);
     }
-
-    protected function archiveEvaluations(){
+    
+    public function switchPhase(Request $request) {
+        $request->validate([
+            'phase' => 'required|in:Phase 1,Phase 2'
+        ]);
+    
+        $currentPhase = Setting::first()->evaluation_phase ?? 'Phase 1';
+        $newPhase = $request->phase;
+    
+        if ($currentPhase === 'Phase 1' && $newPhase === 'Phase 2') {
+            $this->archiveEvaluations();
+        } elseif ($currentPhase === 'Phase 2' && $newPhase === 'Phase 1') {
+            $this->restorePhaseOneData();
+        }
+    
+        Setting::first()->update(['evaluation_phase' => $newPhase]);
+    
+        return response()->json([
+            'message' => "Switched to $newPhase successfully",
+            'previous_phase' => $currentPhase,
+            'new_phase' => $newPhase
+        ]);
+    }
+    
+    protected function archiveEvaluations() {
         DB::transaction(function () {
             $evaluations = Evaluation::with('responses')->get();
-
+    
             foreach ($evaluations as $evaluation) {
                 $archivedEvaluation = EvaluationArchive::create([
                     'student_id' => $evaluation->student_id,
@@ -461,7 +463,7 @@ class EvaluationController extends Controller {
                     'created_at' => $evaluation->created_at,
                     'updated_at' => $evaluation->updated_at
                 ]);
-
+    
                 foreach ($evaluation->responses as $response) {
                     EvaluationResponseArchive::create([
                         'evaluation_id' => $archivedEvaluation->id,
@@ -472,12 +474,49 @@ class EvaluationController extends Controller {
                         'updated_at' => $response->updated_at
                     ]);
                 }
-
-                
+    
                 $evaluation->responses()->delete();
                 $evaluation->delete();
             }
         });
     }
+    
+    protected function restorePhaseOneData() {
+        DB::transaction(function () {
+            $archivedEvaluations = EvaluationArchive::with('responses')
+                ->where('phase', 'Phase 1')
+                ->get();
+    
+            foreach ($archivedEvaluations as $archivedEvaluation) {
+                $evaluation = Evaluation::create([
+                    'student_id' => $archivedEvaluation->student_id,
+                    'instructor_id' => $archivedEvaluation->instructor_id,
+                    'school_year' => $archivedEvaluation->school_year,
+                    'semester' => $archivedEvaluation->semester,
+                    'status' => $archivedEvaluation->status,
+                    'evaluated_at' => $archivedEvaluation->evaluated_at,
+                    'created_at' => $archivedEvaluation->created_at,
+                    'updated_at' => $archivedEvaluation->updated_at
+                ]);
+    
+                foreach ($archivedEvaluation->responses as $response) {
+                    EvaluationResponse::create([
+                        'evaluation_id' => $evaluation->id,
+                        'question_id' => $response->question_id,
+                        'rating' => $response->rating,
+                        'comment' => $response->comment,
+                        'created_at' => $response->created_at,
+                        'updated_at' => $response->updated_at
+                    ]);
+                }
+            }
+    
+            // Optional: clear the archives for Phase 1 if needed
+            // EvaluationResponseArchive::whereIn('evaluation_id', $archivedEvaluations->pluck('id'))->delete();
+            // EvaluationArchive::where('phase', 'Phase 1')->delete();
+        });
+    }
+
+    
 
 }

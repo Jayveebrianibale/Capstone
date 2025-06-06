@@ -16,4 +16,5 @@ class EvaluationArchive extends Model
     {
         return $this->hasMany(EvaluationResponseArchive::class, 'evaluation_id');
     }
+
 }

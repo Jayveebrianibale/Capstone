@@ -197,6 +197,7 @@ public function bulkUpload(Request $request) {
         }
 
         $instructors = $program->instructors;
+        \Log::info('Instructors for program ' . $programCode, $instructors->toArray());
 
         if ($instructors->isEmpty()) {
             return response()->json(['message' => 'No instructors assigned'], 200);
@@ -223,6 +224,83 @@ public function bulkUpload(Request $request) {
 
         $instructors = $program->instructors()->with(['evaluations.responses.question'])->get();
 
+        $results = $instructors->map(function ($instructor) {
+            $responses = $instructor->evaluations->flatMap->responses;
+
+            $grouped = $responses->groupBy('question_id');
+
+            $questionAverages = [];
+            $totalSum = 0;
+            $totalCount = 0;
+
+            foreach ($grouped as $questionId => $responseGroup) {
+                $ratingCounts = $responseGroup->groupBy('rating')->map->count();
+
+                $sum = 0;
+                $count = 0;
+                foreach (range(1, 5) as $rating) {
+                    $num = $ratingCounts->get($rating, 0);
+                    $sum += $rating * $num;
+                    $count += $num;
+                }
+
+                $average = $count > 0 ? $sum / $count : 0;
+                $questionAverages[$questionId] = round($average, 2);
+
+                $totalSum += $sum;
+                $totalCount += $count;
+            }
+
+            $percentage = $totalCount > 0 ? ($totalSum / ($totalCount * 5)) * 100 : 0;
+
+            $comments = $responses->pluck('comment')->filter()->unique()->values();
+
+            return [
+                'instructorId' => $instructor->id,
+                'email' => $instructor->email,
+                'name' => $instructor->name,
+                'pivot' => [
+                    'yearLevel' => $instructor->pivot->yearLevel,
+                ],
+                'ratings' => [
+                    'q1' => $questionAverages[1] ?? null,
+                    'q2' => $questionAverages[2] ?? null,
+                    'q3' => $questionAverages[3] ?? null,
+                    'q4' => $questionAverages[4] ?? null,
+                    'q5' => $questionAverages[5] ?? null,
+                    'q6' => $questionAverages[6] ?? null,
+                    'q7' => $questionAverages[7] ?? null,
+                    'q8' => $questionAverages[8] ?? null,
+                    'q9' => $questionAverages[9] ?? null,
+                ],
+                'comments' => $comments->isEmpty() ? 'No comments' : $comments->join(', '),
+                'overallRating' => round($percentage, 2),
+            ];
+        });
+
+        return response()->json($results);
+    }
+
+    public function getFilteredInstructorResultsByProgram($code, Request $request) {
+        $program = Program::where('code', $code)->firstOrFail();
+
+        $instructors = $program->instructors()
+            ->with(['evaluations' => function($query) use ($request) {
+                // Apply school year filter if provided
+                if ($request->has('school_year') && $request->school_year) {
+                    $query->where('school_year', $request->school_year);
+                }
+                
+                // Apply semester filter if provided
+                if ($request->has('semester') && $request->semester) {
+                    $query->where('semester', $request->semester);
+                }
+                
+                $query->with('responses.question');
+            }])
+            ->get();
+
+        // Reuse the exact same mapping logic from your original method
         $results = $instructors->map(function ($instructor) {
             $responses = $instructor->evaluations->flatMap->responses;
 
