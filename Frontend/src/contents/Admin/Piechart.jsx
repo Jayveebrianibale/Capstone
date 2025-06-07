@@ -280,22 +280,17 @@ export default function CustomPieChart() {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
         </div>
       ) : distribution.length === 0 || distribution.every(item => item.value === 0) ? (
-        <div className="flex flex-col items-center justify-center h-64 w-full">
-          <svg
-            className="w-16 h-16 text-gray-300 mb-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            viewBox="0 0 48 48"
-          >
-            <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3" fill="none" />
-            <path d="M24 8v16l12 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-          </svg>
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-1">
-            No Evaluation Data
+        <div className="flex flex-col items-center justify-center h-64 w-full bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 sm:p-6">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600 mb-3 sm:mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 sm:w-8 sm:h-8 text-[#1F3463] dark:text-[#5d7cbf]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1 sm:mb-2 text-center">
+            No Evaluation Data Available
           </h3>
-          <p className="text-gray-500 dark:text-gray-400 text-center max-w-xs">
-            {educationLevel === 'All' ? 'No data for any education level' : `No data for ${educationLevel} Students`}
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center max-w-[200px] sm:max-w-xs">
+            {educationLevel === 'All' ? 'No evaluation data available for any education level.' : `No evaluation data available for ${educationLevel} students.`}
           </p>
         </div>
       ) : (

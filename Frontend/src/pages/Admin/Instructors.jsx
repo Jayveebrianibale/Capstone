@@ -168,40 +168,40 @@ function Instructors() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 lg:p-6">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 p-1.5 sm:p-2 md:p-4 lg:p-6">
       <ToastContainer position="top-right" autoClose={3000} />
       {loading && <FullScreenLoader />}
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-3 sm:mb-4 gap-2 sm:gap-4">
+        <div className="space-y-0.5 sm:space-y-1">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
             Instructor Management
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
+          <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
             School Year {schoolYear}
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full md:w-auto">
           <div className="flex-1">
             <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-[#1F3463] focus-within:border-transparent transition-all">
-              <div className="pl-4 pr-2 text-gray-400">
-                <FaSearch className="w-4 h-4" />
+              <div className="pl-2 sm:pl-3 pr-1 sm:pr-2 text-gray-400">
+                <FaSearch className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <input
                 type="text"
                 placeholder="Search instructors..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full py-2.5 pr-4 bg-transparent outline-none text-sm sm:text-base"
+                className="w-full py-1.5 sm:py-2 pr-3 sm:pr-4 bg-transparent outline-none text-sm"
               />
             </div>
           </div>
           <button
             onClick={handleAddInstructor}
-            className="bg-[#1F3463] hover:bg-[#19294f] text-white px-4 sm:px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg text-sm sm:text-base"
+            className="bg-[#1F3463] hover:bg-[#19294f] text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center justify-center gap-1.5 sm:gap-2 transition-all shadow-md hover:shadow-lg text-sm"
           >
-            <FaPlus className="w-4 h-4" /> Add Instructor
+            <FaPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Add Instructor
           </button>
         </div>
       </div>
@@ -336,62 +336,62 @@ function Instructors() {
 
           {/* Mobile Card View */}
           <div className="lg:hidden">
-            <div className="grid gap-3 sm:gap-4 p-3 sm:p-4 grid-cols-1">
+            <div className="grid gap-2 sm:gap-3 p-2 sm:p-3 grid-cols-1">
               {paginatedInstructors.map((inst) => (
-                <div key={inst.id} className="p-3 sm:p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-900 min-w-0">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-9 h-9 rounded-full bg-[#1F3463] flex items-center justify-center text-white font-medium">
+                <div key={inst.id} className="p-2 sm:p-3 border rounded-lg shadow-sm bg-white dark:bg-gray-900 min-w-0 overflow-hidden">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#1F3463] flex items-center justify-center text-white font-medium flex-shrink-0">
                       {inst.name?.trim() ? inst.name.trim().charAt(0).toUpperCase() : "?"}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-base sm:text-lg text-[#1F3463] dark:text-white truncate">
+                      <h3 className="font-bold text-sm text-[#1F3463] dark:text-white truncate">
                         {inst.name}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm truncate">
+                      <p className="text-gray-600 dark:text-gray-400 text-xs truncate">
                         {inst.email}
                       </p>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#22c55e' }}></span>
+                  <div className="flex justify-between items-center mb-2 sm:mb-3">
+                    <span className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: '#22c55e' }}></span>
                       {inst.status || 'Active'}
                     </span>
                   </div>
-                  <div className="flex flex-wrap justify-end items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <div className="flex flex-wrap justify-end items-center gap-1.5 sm:gap-2 mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
                     <button
                       onClick={() => handleEdit(inst)}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors touch-target"
+                      className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors touch-target"
                       title="Edit"
                     >
-                      <FaEdit className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <FaEdit className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => {
                         setDeleteInstructorId(inst.id);
                         setConfirmModalOpen(true);
                       }}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 transition-colors touch-target"
+                      className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 transition-colors touch-target"
                       title="Delete"
                     >
-                      <FaTrash className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <FaTrash className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => {
                         setSelectedInstructor(inst);
                         setAssignModalOpen(true);
                       }}
-                      className="px-2 py-1.5 sm:px-3 sm:py-2 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-lg flex items-center gap-1 sm:gap-2 transition-colors text-xs sm:text-sm touch-target"
+                      className="px-2 py-1 sm:px-2.5 sm:py-1.5 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-lg flex items-center gap-1 transition-colors text-xs touch-target"
                     >
-                      <MdOutlineAssignmentTurnedIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <MdOutlineAssignmentTurnedIn className="w-3.5 h-3.5" />
                       <span>Assign</span>
                     </button>
                     <button
                       onClick={() => handleCheckDetails(inst)}
-                      className="px-2 py-1.5 sm:px-3 sm:py-2 border border-green-600 text-green-600 dark:text-green-400 bg-white dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg flex items-center gap-1 sm:gap-2 transition-colors text-xs sm:text-sm font-medium shadow-sm touch-target"
+                      className="px-2 py-1 sm:px-2.5 sm:py-1.5 border border-green-600 text-green-600 dark:text-green-400 bg-white dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg flex items-center gap-1 transition-colors text-xs font-medium shadow-sm touch-target"
                       title="Details"
                     >
-                      <FaBookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <FaBookOpen className="w-3.5 h-3.5" />
                       <span>Details</span>
                     </button>
                   </div>
@@ -400,22 +400,22 @@ function Instructors() {
             </div>
           </div>
 
-          {/* Pagination */}
+          {/* Pagination - Updated for better mobile responsiveness */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 py-4">
+            <div className="flex justify-center items-center gap-1 py-3">
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className={`w-8 h-8 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed touch-target`}
+                className={`w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed touch-target`}
                 aria-label="Previous page"
               >
-                <FaChevronLeft className="w-4 h-4" />
+                <FaChevronLeft className="w-3 h-3" />
               </button>
               {[...Array(totalPages)].map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => handlePageChange(idx + 1)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-md font-semibold border border-[#1F3463] text-sm touch-target ${
+                  className={`w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-md font-semibold border border-[#1F3463] text-xs touch-target ${
                     currentPage === idx + 1
                       ? 'bg-[#1F3463] text-white'
                       : 'bg-white text-[#1F3463] dark:bg-gray-900'
@@ -428,10 +428,10 @@ function Instructors() {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`w-8 h-8 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed touch-target`}
+                className={`w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed touch-target`}
                 aria-label="Next page"
               >
-                <FaChevronRight className="w-4 h-4" />
+                <FaChevronRight className="w-3 h-3" />
               </button>
             </div>
           )}
@@ -544,10 +544,10 @@ function Instructors() {
       {/* Add custom styles for better mobile support */}
       <style jsx>{`
         .touch-target {
-          min-height: 44px;
-          min-width: 44px;
+          min-height: 28px;
+          min-width: 28px;
         }
-        @media (max-width: 390px) {
+        @media (max-width: 450px) {
           .xs\\:flex-row {
             flex-direction: row;
           }
@@ -559,6 +559,10 @@ function Instructors() {
           }
           .xs\\:gap-2 {
             gap: 0.5rem;
+          }
+          .touch-target {
+            min-height: 24px;
+            min-width: 24px;
           }
         }
       `}</style>
