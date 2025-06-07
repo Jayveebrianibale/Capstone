@@ -45,7 +45,8 @@ Route::post('/evaluation-phase', [EvaluationController::class, 'switchPhase']);
 //Bulk send email to instructors
 Route::post('/programs/{programCode}/send-bulk-results', [InstructorController::class, 'sendBulkResults']);
 Route::get('/programs/{code}/filter', [ProgramController::class, 'getFilteredInstructorResultsByProgram']);
-
+Route::get('/instructors/export/pdf', [EvaluationController::class, 'exportInstructorResultsPdf']);
+Route::get('/instructors/export/csv', [EvaluationController::class, 'exportInstructorResultsCsv']);
 
 // Instructor Routes
 Route::post('/instructors/{id}/assign-programs', [InstructorController::class, 'assignProgram']);
@@ -55,6 +56,7 @@ Route::get('/instructors', [InstructorController::class, 'index']);
 Route::post('/instructors', [InstructorController::class, 'store']);
 Route::put('/instructors/{id}', [InstructorController::class, 'update']);
 Route::delete('/instructors/{id}', [InstructorController::class, 'destroy']);
+
 //PDF Routes
 Route::get('/instructors/{id}/pdf', [PDFController::class, 'generatePDF']);
 Route::post('instructors/{id}/send-result', [InstructorController::class, 'sendResult']);

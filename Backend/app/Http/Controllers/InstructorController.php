@@ -17,6 +17,12 @@ use Illuminate\Support\Str;
 use App\Models\Question;
 use App\Models\Evaluation;
 use Illuminate\Validation\Rule;
+use App\Models\EvaluationResponse;
+use Illuminate\Support\Facades\Storage;
+use App\Exports\InstructorResultsExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 
 

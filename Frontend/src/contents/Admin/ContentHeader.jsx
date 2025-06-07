@@ -1,18 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import { 
-  Search, 
   FileDown, 
   Mail, 
   ChevronDown, 
   Calendar,
   BookOpen,
-
+  FileText,
+  FileSpreadsheet,
+  Loader2
 } from "lucide-react";
+import EvaluationService from "../../services/EvaluationService";
 
 const ContentHeader = ({ 
   title, 
   stats = [], 
-  onExport, 
   onBulkSend,
   onSchoolYearChange,
   onSemesterChange,
@@ -21,6 +22,35 @@ const ContentHeader = ({
   schoolYearOptions = [],
   semesterOptions = []
 }) => {
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [selectedExportType, setSelectedExportType] = useState(null);
+
+  const handleExport = async () => {
+    if (!selectedExportType) return;
+    
+    setIsExporting(true);
+    
+    try {
+      let response;
+      const filename = `instructor-evaluation-results.${selectedExportType}`;
+      
+      if (selectedExportType === 'pdf') {
+        response = await EvaluationService.exportInstructorResultsPdf();
+      } else {
+        response = await EvaluationService.exportInstructorResultsCsv();
+      }
+      
+      EvaluationService.downloadFile(response.data, filename);
+    } catch (error) {
+      console.error('Export failed:', error);
+      // Add error handling (e.g., toast notification)
+    } finally {
+      setIsExporting(false);
+      setIsExportModalOpen(false);
+    }
+  };
+
   return (
     <div className="grid gap-4 lg:grid-cols-2 items-start mb-4">
       {/* Title and stats */}
@@ -84,14 +114,73 @@ const ContentHeader = ({
         {/* Export Button */}
         <button
           className="p-2 bg-[#1F3463] hover:bg-blue-600 text-white rounded-lg transition duration-200 flex items-center justify-center"
-          title="Export to PDF"
-          onClick={onExport}
+          title="Export"
+          onClick={() => setIsExportModalOpen(true)}
         >
           <FileDown size={20} />
         </button>
       </div>
-    </div>
 
+      {/* Export Modal */}
+      {isExportModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white">Export Options</h2>
+              <button 
+                onClick={() => setIsExportModalOpen(false)}
+                className="text-gray-500 text-3xl hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {/* PDF Card */}
+              <div 
+                className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedExportType === 'pdf' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'}`}
+                onClick={() => setSelectedExportType('pdf')}
+              >
+                <div className="flex flex-col items-center text-center">
+                  <FileText className="h-8 w-8 text-[#1F3463] mb-2" />
+                  <span className="font-medium text-gray-800 dark:text-white">PDF</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Portable Document</span>
+                </div>
+              </div>
+              
+              {/* CSV Card */}
+              <div 
+                className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedExportType === 'csv' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'}`}
+                onClick={() => setSelectedExportType('csv')}
+              >
+                <div className="flex flex-col items-center text-center">
+                  <FileSpreadsheet className="h-8 w-8 text-[#1F3463] mb-2" />
+                  <span className="font-medium text-gray-800 dark:text-white">CSV</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Spreadsheet Format</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Export Button */}
+            {selectedExportType && !isExporting && (
+              <button
+                className="w-full py-2 bg-[#1F3463] hover:bg-blue-700 text-white rounded-lg transition duration-200 flex items-center justify-center"
+                onClick={handleExport}
+              >
+                Export as {selectedExportType.toUpperCase()}
+              </button>
+            )}
+            
+            {/* Loading state */}
+            {isExporting && (
+              <div className="w-full py-2 bg-[#1F3463] text-white rounded-lg flex items-center justify-center">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                Exporting {selectedExportType.toUpperCase()}...
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

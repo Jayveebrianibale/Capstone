@@ -14,6 +14,9 @@ use App\Models\User;
 use App\Models\Setting;
 use App\Models\EvaluationArchive;
 use App\Models\EvaluationResponseArchive;
+use PDF;// Add this at the top of your controller
+use Illuminate\Support\Str;
+
 
 
 
@@ -517,6 +520,125 @@ class EvaluationController extends Controller {
         });
     }
 
-    
 
+public function getInstructorEvaluationResults()
+{
+    $instructors = Instructor::with(['programs', 'evaluations'])
+        ->withCount('evaluations')
+        ->get()
+        ->map(function ($instructor) {
+            logger()->info("Processing instructor: " . $instructor->id);
+            $ratings = [];
+            for ($i = 1; $i <= 9; $i++) {
+                $average = EvaluationResponse::whereHas('evaluation', function ($q) use ($instructor) {
+                        $q->where('instructor_id', $instructor->id);
+                    })
+                    ->where('question_id', $i)
+                    ->avg('rating');
+
+                $ratings['Qn' . $i] = $average ? round($average, 2) : null;
+            }
+
+            $validRatings = array_filter($ratings);
+            $overallRating = !empty($validRatings)
+                ? round(array_sum($validRatings) / count($validRatings) * 20, 2)
+                : 0;
+
+            $comments = EvaluationResponse::whereHas('evaluation', function ($q) use ($instructor) {
+                    $q->where('instructor_id', $instructor->id);
+                })
+                ->whereNotNull('comment')
+                ->where('comment', '<>', '')
+                ->pluck('comment')
+                ->implode(' | ');
+
+            return [
+                'ID' => $instructor->id,
+                'Name' => $instructor->name,
+                'Email' => $instructor->email,
+                'Education Level' => $instructor->educationLevel,
+                'Programs' => $instructor->programs->pluck('name')->implode(', '),
+                'Qn1' => $ratings['Qn1'] ?? '-',
+                'Qn2' => $ratings['Qn2'] ?? '-',
+                'Qn3' => $ratings['Qn3'] ?? '-',
+                'Qn4' => $ratings['Qn4'] ?? '-',
+                'Qn5' => $ratings['Qn5'] ?? '-',
+                'Qn6' => $ratings['Qn6'] ?? '-',
+                'Qn7' => $ratings['Qn7'] ?? '-',
+                'Qn8' => $ratings['Qn8'] ?? '-',
+                'Qn9' => $ratings['Qn9'] ?? '-',
+                'Comments' => Str::limit($comments, 100, '...') ?: 'No comments',
+                'Percentage' => $overallRating,
+                'Evaluation Count' => $instructor->evaluations_count,
+            ];
+        });
+
+    return response()->json($instructors);
+}
+
+public function exportInstructorResultsPdf()
+{
+    $instructors = $this->getInstructorEvaluationResults()->getData();
+    
+    // Convert stdClass objects to arrays if needed
+    $data = array_map(function($item) {
+        return (array)$item;
+    }, (array)$instructors);
+
+    $pdf = PDF::loadView('evaluations.instructors_pdf', ['data' => $data]);
+    return $pdf->download('instructor-evaluation-results.pdf');
+}
+
+public function exportInstructorResultsCsv() {
+    $instructors = $this->getInstructorEvaluationResults()->getData();
+    
+    // Convert stdClass objects to arrays if needed
+    $data = array_map(function($item) {
+        return (array)$item;
+    }, (array)$instructors);
+
+    $headers = [
+        'Content-Type' => 'text/csv',
+        'Content-Disposition' => 'attachment; filename="instructor-evaluation-results.csv"',
+    ];
+
+    // Define columns (without Education Level and Programs)
+    $columns = [
+        'ID', 'Name', 'Email',
+        'Qn1', 'Qn2', 'Qn3', 'Qn4', 'Qn5', 'Qn6', 'Qn7', 'Qn8', 'Qn9',
+        'Percentage', 'Evaluation Count'
+    ];
+
+    $callback = function () use ($data, $columns) {
+        $file = fopen('php://output', 'w');
+        
+        // Add BOM to fix UTF-8 encoding in Excel
+        fwrite($file, "\xEF\xBB\xBF");
+        
+        fputcsv($file, $columns);
+
+        foreach ($data as $instructor) {
+            fputcsv($file, [
+                $instructor['ID'] ?? '',
+                $instructor['Name'] ?? '',
+                $instructor['Email'] ?? '',
+                $instructor['Qn1'] ?? '-',
+                $instructor['Qn2'] ?? '-',
+                $instructor['Qn3'] ?? '-',
+                $instructor['Qn4'] ?? '-',
+                $instructor['Qn5'] ?? '-',
+                $instructor['Qn6'] ?? '-',
+                $instructor['Qn7'] ?? '-',
+                $instructor['Qn8'] ?? '-',
+                $instructor['Qn9'] ?? '-',
+                $instructor['Percentage'] ?? '0',
+                $instructor['Evaluation Count'] ?? '0',
+            ]);
+        }
+
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
 }

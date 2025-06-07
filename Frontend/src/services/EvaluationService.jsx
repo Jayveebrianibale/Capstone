@@ -54,6 +54,63 @@ const EvaluationService = {
     const res = await api.get("/course-evaluation-submission-counts");
     return res.data.data;
   },
+
+   /**
+   * Export instructor evaluation results as PDF
+   * @returns {Promise} Axios response with PDF blob
+   */
+   exportInstructorResultsPdf: async () => {
+    try {
+      const response = await api.get("/instructors/export/pdf", {
+        responseType: 'blob',
+        headers: {
+          'Accept': 'application/pdf'
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Export instructor evaluation results as CSV
+   * @returns {Promise} Axios response with CSV blob
+   */
+  exportInstructorResultsCsv: async () => {
+    try {
+      const response = await api.get("/instructors/export/csv", {
+        responseType: 'blob',
+        headers: {
+          'Accept': 'text/csv'
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Helper function to download the exported file
+   * @param {Blob} blob - File blob from response
+   * @param {string} filename - Default filename for download
+   */
+  downloadFile: (blob, filename) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    
+    setTimeout(() => {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 100);
+  }
 };
 
 export default EvaluationService;
