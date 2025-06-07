@@ -183,7 +183,7 @@ function Instructors() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-        <div className="flex-1">
+          <div className="flex-1">
             <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-[#1F3463] focus-within:border-transparent transition-all">
               <div className="pl-4 pr-2 text-gray-400">
                 <FaSearch className="w-4 h-4" />
@@ -193,19 +193,18 @@ function Instructors() {
                 placeholder="Search instructors..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full py-2.5 pr-4 bg-transparent outline-none"
+                className="w-full py-2.5 pr-4 bg-transparent outline-none text-sm sm:text-base"
               />
             </div>
           </div>
           <button
             onClick={handleAddInstructor}
-             className="bg-[#1F3463] hover:bg-[#19294f] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
+            className="bg-[#1F3463] hover:bg-[#19294f] text-white px-4 sm:px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg text-sm sm:text-base"
           >
-            <FaPlus className="w-4 h-4 text-sm font-semibold" /> Add Instructor
+            <FaPlus className="w-4 h-4" /> Add Instructor
           </button>
         </div>
       </div>
-
 
       {instructors.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[50vh] bg-white border dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
@@ -344,11 +343,11 @@ function Instructors() {
                     <div className="w-9 h-9 rounded-full bg-[#1F3463] flex items-center justify-center text-white font-medium">
                       {inst.name?.trim() ? inst.name.trim().charAt(0).toUpperCase() : "?"}
                     </div>
-                    <div>
-                      <h3 className="font-bold text-base sm:text-lg text-[#1F3463] dark:text-white">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-base sm:text-lg text-[#1F3463] dark:text-white truncate">
                         {inst.name}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      <p className="text-gray-600 dark:text-gray-400 text-sm truncate">
                         {inst.email}
                       </p>
                     </div>
@@ -359,11 +358,11 @@ function Instructors() {
                       {inst.status || 'Active'}
                     </span>
                   </div>
-                  <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <div className="flex flex-wrap justify-end items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
                     <button
                       onClick={() => handleEdit(inst)}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors"
-                    
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors touch-target"
+                      title="Edit"
                     >
                       <FaEdit className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
@@ -372,7 +371,7 @@ function Instructors() {
                         setDeleteInstructorId(inst.id);
                         setConfirmModalOpen(true);
                       }}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 transition-colors"
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 transition-colors touch-target"
                       title="Delete"
                     >
                       <FaTrash className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -382,14 +381,14 @@ function Instructors() {
                         setSelectedInstructor(inst);
                         setAssignModalOpen(true);
                       }}
-                      className="px-2 py-1.5 sm:px-3 sm:py-2 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-lg flex items-center gap-1 sm:gap-2 transition-colors text-xs sm:text-sm"
+                      className="px-2 py-1.5 sm:px-3 sm:py-2 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-lg flex items-center gap-1 sm:gap-2 transition-colors text-xs sm:text-sm touch-target"
                     >
                       <MdOutlineAssignmentTurnedIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       <span>Assign</span>
                     </button>
                     <button
                       onClick={() => handleCheckDetails(inst)}
-                      className="px-2 py-1.5 sm:px-3 sm:py-2 border border-green-600 text-green-600 dark:text-green-400 bg-white dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg flex items-center gap-1 sm:gap-2 transition-colors text-xs sm:text-sm font-medium shadow-sm"
+                      className="px-2 py-1.5 sm:px-3 sm:py-2 border border-green-600 text-green-600 dark:text-green-400 bg-white dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg flex items-center gap-1 sm:gap-2 transition-colors text-xs sm:text-sm font-medium shadow-sm touch-target"
                       title="Details"
                     >
                       <FaBookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -407,7 +406,7 @@ function Instructors() {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className={`w-8 h-8 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`w-8 h-8 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed touch-target`}
                 aria-label="Previous page"
               >
                 <FaChevronLeft className="w-4 h-4" />
@@ -416,7 +415,7 @@ function Instructors() {
                 <button
                   key={idx}
                   onClick={() => handlePageChange(idx + 1)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-md font-semibold border border-[#1F3463] text-sm ${
+                  className={`w-8 h-8 flex items-center justify-center rounded-md font-semibold border border-[#1F3463] text-sm touch-target ${
                     currentPage === idx + 1
                       ? 'bg-[#1F3463] text-white'
                       : 'bg-white text-[#1F3463] dark:bg-gray-900'
@@ -429,7 +428,7 @@ function Instructors() {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`w-8 h-8 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`w-8 h-8 flex items-center justify-center rounded-md border border-[#1F3463] text-[#1F3463] bg-white dark:bg-gray-900 hover:bg-[#1F3463] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed touch-target`}
                 aria-label="Next page"
               >
                 <FaChevronRight className="w-4 h-4" />
@@ -541,6 +540,28 @@ function Instructors() {
           </div>
         </div>
       )}
+
+      {/* Add custom styles for better mobile support */}
+      <style jsx>{`
+        .touch-target {
+          min-height: 44px;
+          min-width: 44px;
+        }
+        @media (max-width: 390px) {
+          .xs\\:flex-row {
+            flex-direction: row;
+          }
+          .xs\\:inline {
+            display: inline;
+          }
+          .xs\\:items-center {
+            align-items: center;
+          }
+          .xs\\:gap-2 {
+            gap: 0.5rem;
+          }
+        }
+      `}</style>
     </main>
   );
 }
