@@ -432,21 +432,44 @@ class EvaluationController extends Controller {
             'phase' => 'required|in:Phase 1,Phase 2'
         ]);
     
-        $currentPhase = Setting::first()->evaluation_phase ?? 'Phase 1';
+        // Get or create settings
+        $settings = Setting::first();
+        if (!$settings) {
+            $settings = Setting::create([
+                'evaluation_phase' => 'Phase 1'
+            ]);
+        }
+        
+        $currentPhase = $settings->evaluation_phase;
         $newPhase = $request->phase;
     
         if ($currentPhase === 'Phase 1' && $newPhase === 'Phase 2') {
             $this->archiveEvaluations();
+            $settings->update(['evaluation_phase' => $newPhase]);
+            
+            return response()->json([
+                'message' => "Switched to $newPhase successfully",
+                'previous_phase' => $currentPhase,
+                'new_phase' => $newPhase,
+                'clear_storage' => true
+            ]);
         } elseif ($currentPhase === 'Phase 2' && $newPhase === 'Phase 1') {
             $this->restorePhaseOneData();
+            $settings->update(['evaluation_phase' => $newPhase]);
+            
+            return response()->json([
+                'message' => "Switched to $newPhase successfully",
+                'previous_phase' => $currentPhase,
+                'new_phase' => $newPhase,
+                'clear_storage' => false
+            ]);
         }
-    
-        Setting::first()->update(['evaluation_phase' => $newPhase]);
     
         return response()->json([
             'message' => "Switched to $newPhase successfully",
             'previous_phase' => $currentPhase,
-            'new_phase' => $newPhase
+            'new_phase' => $newPhase,
+            'clear_storage' => false
         ]);
     }
     
@@ -546,6 +569,25 @@ class EvaluationController extends Controller {
         });
     }
 
+    public function checkStorageStatus(Request $request) {
+        $user = $request->user();
+        if ($user->role !== 'Student') {
+            return response()->json(['should_clear' => false]);
+        }
+
+        $settings = Setting::first();
+        $lastClearTimestamp = $settings->storage_clear_timestamp;
+        $userLastClear = $request->header('X-Last-Clear-Timestamp');
+
+        // If there's no last clear timestamp for the user, or if the server's timestamp is newer
+        $shouldClear = !$userLastClear || 
+                      ($lastClearTimestamp && strtotime($lastClearTimestamp) > strtotime($userLastClear));
+
+        return response()->json([
+            'should_clear' => $shouldClear,
+            'clear_timestamp' => $lastClearTimestamp
+        ]);
+    }
 
 public function getInstructorEvaluationResults()
 {

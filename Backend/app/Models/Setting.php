@@ -6,10 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
-    protected $fillable = ['evaluation_phase'];
-    
-    protected $attributes = [
-        'evaluation_phase' => 'Phase 1'
+    protected $fillable = [
+        'evaluation_phase',
+        'should_clear_storage',
+        'storage_clear_timestamp'
+    ];
+
+    protected $casts = [
+        'should_clear_storage' => 'boolean',
+        'storage_clear_timestamp' => 'datetime'
     ];
 
     /**

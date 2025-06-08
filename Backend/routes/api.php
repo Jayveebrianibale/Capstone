@@ -102,3 +102,7 @@ Route::post('/questions', [QuestionController::class, 'store']); // Create
 Route::get('/questions', [QuestionController::class, 'index']); // Fetch all questions
 Route::put('/questions/{id}', [QuestionController::class, 'update']); // Update a question
 Route::delete('/questions/{id}', [QuestionController::class, 'destroy']); // Delete a question
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/check-storage-status', [EvaluationController::class, 'checkStorageStatus']);
+});
