@@ -13,7 +13,6 @@ function ADashboard() {
   const [submittedCount, setSubmittedCount] = useState(0);
   const [notSubmittedCount, setNotSubmittedCount] = useState(0);
   const [educationLevel, setEducationLevel] = useState('All');
-  const [studentsEducationLevel, setStudentsEducationLevel] = useState('All');
   const [isLoading, setIsLoading] = useState({
     instructors: false,
     students: false,
@@ -21,7 +20,6 @@ function ADashboard() {
     notSubmitted: false
   });
   const [showFilter, setShowFilter] = useState(false);
-  const [showStudentsFilter, setShowStudentsFilter] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
 
   const educationLevels = [
@@ -85,31 +83,11 @@ function ADashboard() {
     }
   };
 
-  // Fetch student count with filter
-  const fetchStudentCount = async (level) => {
-    try {
-      setIsLoading(prev => ({...prev, students: true}));
-      const count = await StudentService.getCount(level === 'All' ? null : level);
-      setStudentsCount(count);
-    } catch (error) {
-      console.error("Error fetching student count:", error);
-    } finally {
-      setIsLoading(prev => ({...prev, students: false}));
-    }
-  };
-
   const handleEducationLevelChange = (e) => {
     const newLevel = e.target.value;
     setEducationLevel(newLevel);
     setShowFilter(false);
     fetchEvaluationStats(newLevel);
-  };
-
-  const handleStudentsEducationLevelChange = (e) => {
-    const newLevel = e.target.value;
-    setStudentsEducationLevel(newLevel);
-    setShowStudentsFilter(false);
-    fetchStudentCount(newLevel);
   };
 
   const stats = [
@@ -119,12 +97,7 @@ function ADashboard() {
       count: studentsCount, 
       color: 'text-[#2196f3]', 
       icon: <FiUsers size={isMobile ? 20 : 28} />,
-      loading: isLoading.students,
-      filterable: true,
-      filterValue: studentsEducationLevel,
-      onFilterChange: handleStudentsEducationLevelChange,
-      showFilter: showStudentsFilter,
-      setShowFilter: setShowStudentsFilter
+      loading: isLoading.students
     },
     { 
       id: 'instructors',

@@ -22,6 +22,7 @@ function Instructors() {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [deleteInstructorId, setDeleteInstructorId] = useState(null);
   const [schoolYear, setSchoolYear] = useState("");
+  const [semester, setSemester] = useState("1st Semester");
   const { loading, setLoading } = useLoading();
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
@@ -36,6 +37,48 @@ function Instructors() {
     currentPage * instructorsPerPage
   );
 
+  const semesters = ['1st Semester', '2nd Semester'];
+
+  const getDynamicSchoolYears = () => {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth(); // 0-11 (Jan-Dec)
+    
+    // Define your academic year start months (June=5, July=6, August=7, September=8)
+    const academicStartMonths = [6, 7, 8]; // July, August, September
+    const academicEndMonths = [5, 6]; // June, July
+    
+    // Determine if current month is in the start period
+    const isStartMonth = academicStartMonths.includes(currentMonth);
+    const isEndMonth = academicEndMonths.includes(currentMonth);
+    
+    let startYear = currentYear;
+    let endYear = currentYear + 1;
+    
+    if (isStartMonth) {
+      // If current month is a start month, academic year starts this year
+      startYear = currentYear;
+      endYear = currentYear + 1;
+    } else if (isEndMonth) {
+      // If current month is an end month, academic year ends this year
+      startYear = currentYear - 1;
+      endYear = currentYear;
+    } else if (currentMonth < Math.min(...academicStartMonths)) {
+      // Before academic year starts
+      startYear = currentYear - 1;
+      endYear = currentYear;
+    } else {
+      // After start months but before end months (in the middle of academic year)
+      startYear = currentYear;
+      endYear = currentYear + 1;
+    }
+
+    // Return current and next academic year
+    return [
+      `${startYear}-${endYear}`,
+      `${startYear + 1}-${endYear + 1}`
+    ];
+  };
+
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
@@ -43,7 +86,28 @@ function Instructors() {
   useEffect(() => {
     fetchInstructors();
     const currentYear = new Date().getFullYear();
-    setSchoolYear(`${currentYear}-${currentYear + 1}`);
+    const currentMonth = new Date().getMonth();
+    const academicStartMonths = [6, 7, 8];
+    const academicEndMonths = [5, 6];
+    
+    let startYear = currentYear;
+    let endYear = currentYear + 1;
+    
+    if (academicStartMonths.includes(currentMonth)) {
+      startYear = currentYear;
+      endYear = currentYear + 1;
+    } else if (academicEndMonths.includes(currentMonth)) {
+      startYear = currentYear - 1;
+      endYear = currentYear;
+    } else if (currentMonth < Math.min(...academicStartMonths)) {
+      startYear = currentYear - 1;
+      endYear = currentYear;
+    } else {
+      startYear = currentYear;
+      endYear = currentYear + 1;
+    }
+    
+    setSchoolYear(`${startYear}-${endYear}`);
   }, []);
 
   const fetchInstructors = async () => {
@@ -177,12 +241,33 @@ function Instructors() {
       {/* Header Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 items-center">
         <div>
-          <h1 className="text-2xl font-bold text-[#1F3463] dark:text-white mb-1">
+          <h1 className="text-2xl font-bold text-[#1F3463] dark:text-white mb-2">
             Instructor Management
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
-            School Year {schoolYear}
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+                School Year:
+              </span>
+              <span className="text-[#1F3463] dark:text-blue-400 text-sm font-semibold">
+                {schoolYear}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+                Semester:
+              </span>
+              <select
+                value={semester}
+                onChange={(e) => setSemester(e.target.value)}
+                className="text-[#1F3463] dark:text-blue-400 text-sm font-semibold bg-transparent border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#1F3463] dark:focus:ring-blue-400"
+              >
+                {semesters.map((sem) => (
+                  <option key={sem} value={sem}>{sem}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
         <div className="flex flex-wrap gap-3 justify-start md:justify-end">
           <div className="flex-1 md:flex-none">

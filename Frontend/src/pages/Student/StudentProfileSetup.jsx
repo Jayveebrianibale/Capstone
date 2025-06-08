@@ -359,9 +359,6 @@ function StudentProfileSetup() {
             {step === 1 && (
               <motion.div key="step1" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4 md:space-y-6">
                 <h3 className="text-xl md:text-2xl font-semibold text-gray-800">What is your Education Level?</h3>
-                {!educationLevel && (
-                  <p className="text-xs md:text-sm text-red-500 -mt-2 md:-mt-4">Please select your education level to continue</p>
-                )}
                 {renderEducationLevelOptions()}
               </motion.div>
             )}
@@ -371,9 +368,6 @@ function StudentProfileSetup() {
                 <h3 className="text-xl md:text-2xl font-semibold text-gray-800">
                   {educationLevel === "Higher Education" ? "Select your program" : "Select your grade level"}
                 </h3>
-                {!selectedProgramId && (
-                  <p className="text-xs md:text-sm text-red-500 -mt-2 md:-mt-4">Please make a selection to continue</p>
-                )}
                 {renderSelect(
                   selectedProgramId,
                   (e) => setSelectedProgramId(e.target.value),
@@ -387,9 +381,6 @@ function StudentProfileSetup() {
             {step === 3 && educationLevel === "Higher Education" && (
               <motion.div key="step3" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4 md:space-y-6">
                 <h3 className="text-xl md:text-2xl font-semibold text-gray-800">Select your year Level</h3>
-                {!selectedYearLevel && (
-                  <p className="text-xs md:text-sm text-red-500 -mt-2 md:-mt-4">Please select your year level</p>
-                )}
                 {renderSelect(
                   selectedYearLevel,
                   (e) => setSelectedYearLevel(e.target.value),
