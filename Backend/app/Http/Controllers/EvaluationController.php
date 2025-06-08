@@ -427,8 +427,26 @@ class EvaluationController extends Controller {
     //Phase Management and Archives
     public function getCurrentPhase() {
         try {
-            $settings = Setting::first();
-            if (!$settings) {
+            // Check if settings table exists and has the required columns
+            if (Schema::hasTable('settings')) {
+                $settings = Setting::first();
+                if (!$settings) {
+                    // Table exists but no record, create one
+                    $settings = Setting::create([
+                        'evaluation_phase' => 'Phase 1'
+                    ]);
+                }
+            } else {
+                // Table doesn't exist, create it
+                Schema::create('settings', function ($table) {
+                    $table->id();
+                    $table->string('evaluation_phase')->default('Phase 1');
+                    $table->boolean('should_clear_storage')->default(false);
+                    $table->timestamp('storage_clear_timestamp')->nullable();
+                    $table->timestamps();
+                });
+
+                // Create initial settings record
                 $settings = Setting::create([
                     'evaluation_phase' => 'Phase 1'
                 ]);
@@ -447,8 +465,26 @@ class EvaluationController extends Controller {
                 'phase' => 'required|in:Phase 1,Phase 2'
             ]);
 
-            $settings = Setting::first();
-            if (!$settings) {
+            // Check if settings table exists and has the required columns
+            if (Schema::hasTable('settings')) {
+                $settings = Setting::first();
+                if (!$settings) {
+                    // Table exists but no record, create one
+                    $settings = Setting::create([
+                        'evaluation_phase' => 'Phase 1'
+                    ]);
+                }
+            } else {
+                // Table doesn't exist, create it
+                Schema::create('settings', function ($table) {
+                    $table->id();
+                    $table->string('evaluation_phase')->default('Phase 1');
+                    $table->boolean('should_clear_storage')->default(false);
+                    $table->timestamp('storage_clear_timestamp')->nullable();
+                    $table->timestamps();
+                });
+
+                // Create initial settings record
                 $settings = Setting::create([
                     'evaluation_phase' => 'Phase 1'
                 ]);
