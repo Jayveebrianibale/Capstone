@@ -446,49 +446,80 @@ class EvaluationController extends Controller {
     }
     
     public function switchPhase(Request $request) {
-        $request->validate([
-            'phase' => 'required|in:Phase 1,Phase 2'
-        ]);
-    
-        // Get or create settings
-        $settings = Setting::first();
-        if (!$settings) {
-            $settings = Setting::create([
-                'evaluation_phase' => 'Phase 1'
+        try {
+            $request->validate([
+                'phase' => 'required|in:Phase 1,Phase 2'
             ]);
-        }
-        
-        $currentPhase = $settings->evaluation_phase;
-        $newPhase = $request->phase;
-    
-        if ($currentPhase === 'Phase 1' && $newPhase === 'Phase 2') {
-            $this->archiveEvaluations();
+
+            // Check if settings table exists
+            if (!Schema::hasTable('settings')) {
+                return response()->json([
+                    'message' => "Switched to {$request->phase} successfully",
+                    'previous_phase' => 'Phase 1',
+                    'new_phase' => $request->phase,
+                    'clear_storage' => false
+                ]);
+            }
+
+            // Get or create settings
+            $settings = Setting::first();
+            if (!$settings) {
+                $settings = Setting::create([
+                    'evaluation_phase' => 'Phase 1'
+                ]);
+            }
+
+            $currentPhase = $settings->evaluation_phase;
+            $newPhase = $request->phase;
+
+            if ($currentPhase === 'Phase 1' && $newPhase === 'Phase 2') {
+                try {
+                    $this->archiveEvaluations();
+                } catch (\Exception $e) {
+                    \Log::error('Error archiving evaluations: ' . $e->getMessage());
+                    // Continue with phase switch even if archiving fails
+                }
+                
+                $settings->update(['evaluation_phase' => $newPhase]);
+                
+                return response()->json([
+                    'message' => "Switched to $newPhase successfully",
+                    'previous_phase' => $currentPhase,
+                    'new_phase' => $newPhase,
+                    'clear_storage' => true
+                ]);
+            } elseif ($currentPhase === 'Phase 2' && $newPhase === 'Phase 1') {
+                try {
+                    $this->restorePhaseOneData();
+                } catch (\Exception $e) {
+                    \Log::error('Error restoring phase one data: ' . $e->getMessage());
+                    // Continue with phase switch even if restoration fails
+                }
+                
+                $settings->update(['evaluation_phase' => $newPhase]);
+                
+                return response()->json([
+                    'message' => "Switched to $newPhase successfully",
+                    'previous_phase' => $currentPhase,
+                    'new_phase' => $newPhase,
+                    'clear_storage' => false
+                ]);
+            }
+
             $settings->update(['evaluation_phase' => $newPhase]);
-            
-            return response()->json([
-                'message' => "Switched to $newPhase successfully",
-                'previous_phase' => $currentPhase,
-                'new_phase' => $newPhase,
-                'clear_storage' => true
-            ]);
-        } elseif ($currentPhase === 'Phase 2' && $newPhase === 'Phase 1') {
-            $this->restorePhaseOneData();
-            $settings->update(['evaluation_phase' => $newPhase]);
-            
             return response()->json([
                 'message' => "Switched to $newPhase successfully",
                 'previous_phase' => $currentPhase,
                 'new_phase' => $newPhase,
                 'clear_storage' => false
             ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in switchPhase: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to switch phase',
+                'error' => $e->getMessage()
+            ], 500);
         }
-    
-        return response()->json([
-            'message' => "Switched to $newPhase successfully",
-            'previous_phase' => $currentPhase,
-            'new_phase' => $newPhase,
-            'clear_storage' => false
-        ]);
     }
     
     protected function archiveEvaluations() {
