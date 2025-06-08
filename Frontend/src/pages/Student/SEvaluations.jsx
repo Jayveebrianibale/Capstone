@@ -258,7 +258,6 @@ const SEvaluations = () => {
 
   const fetchAssignedInstructors = async () => {
     try {
-      // Get user data from sessionStorage instead of localStorage
       const userData = sessionStorage.getItem('user');
       if (!userData) {
         setError('User data not found. Please log in again.');
@@ -268,9 +267,8 @@ const SEvaluations = () => {
       }
 
       const user = JSON.parse(userData);
-      console.log('User data:', user); // For debugging
+      console.log('User data:', user);
 
-      // Check if required fields exist
       if (!user.program_id) {
         setError('Program ID is missing from user data');
         toast.error('Program ID is missing from user data');
@@ -306,6 +304,18 @@ const SEvaluations = () => {
             evaluationHistory: history
           };
         });
+
+        // Remove saved evaluations for instructors that are no longer in the list
+        setSavedEvaluations((prev) => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(instructorId => {
+            if (!mergedInstructors.some(instructor => instructor.id === parseInt(instructorId))) {
+              delete updated[instructorId];
+            }
+          });
+          return updated;
+        });
+
         setInstructors(mergedInstructors);
         setCurrentInstructors(mergedInstructors);
         setNoInstructors(false);
@@ -313,6 +323,8 @@ const SEvaluations = () => {
         setInstructors([]);
         setCurrentInstructors([]);
         setNoInstructors(true);
+        // Clear saved evaluations when no instructors are found
+        setSavedEvaluations({});
       }
     } catch (err) {
       console.error('Error fetching instructors:', err);
@@ -321,6 +333,8 @@ const SEvaluations = () => {
       setInstructors([]);
       setCurrentInstructors([]);
       setNoInstructors(true);
+      // Clear saved evaluations on error
+      setSavedEvaluations({});
     } finally {
       setLoading(false);
     }
@@ -377,6 +391,27 @@ const SEvaluations = () => {
     });
     toast.success("Evaluation saved! Don't forget to submit All.");
     setExpandedInstructorId(null);
+  };
+
+  // Add this new function to handle instructor removal
+  const handleInstructorRemoval = (removedInstructorId) => {
+    // Remove the instructor's saved evaluation
+    setSavedEvaluations((prev) => {
+      const updated = { ...prev };
+      delete updated[removedInstructorId];
+      return updated;
+    });
+
+    // Remove the instructor's responses
+    setResponses((prev) => {
+      const updated = { ...prev };
+      delete updated[removedInstructorId];
+      return updated;
+    });
+
+    // Update the instructors list
+    setInstructors((prev) => prev.filter(instructor => instructor.id !== removedInstructorId));
+    setCurrentInstructors((prev) => prev.filter(instructor => instructor.id !== removedInstructorId));
   };
 
   const handleSubmitAll = async () => {
@@ -550,6 +585,7 @@ const SEvaluations = () => {
                 submissionInfo={submissionInfo}
                 viewOnlyInstructorId={viewOnlyInstructorId}
                 setViewOnlyInstructorId={setViewOnlyInstructorId}
+                onInstructorRemoval={handleInstructorRemoval}
               />
             )
           ) : (

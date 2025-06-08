@@ -168,7 +168,7 @@ const InstructorTable = ({
                         setViewOnlyInstructorId(instructor.id);
                         setExpandedInstructorId(instructor.id);
                       }}
-                      className="px-4 py-2 rounded-lg bg-[#1F3463] hover:bg-blue-700 text-white text-sm font-medium"
+                      className="px-2.5 py-1 rounded-lg bg-[#1F3463] hover:bg-blue-700 text-white text-xs"
                     >
                       View
                     </button>
@@ -178,7 +178,7 @@ const InstructorTable = ({
                         setViewOnlyInstructorId(null);
                         setExpandedInstructorId(isExpanded ? null : instructor.id);
                         }}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                        className={`px-2.5 py-1 rounded-lg text-xs ${
                         saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
                         } text-white`}
                       >
@@ -230,7 +230,7 @@ const InstructorTable = ({
                         setViewOnlyInstructorId(instructor.id);
                         setExpandedInstructorId(instructor.id);
                       }}
-                      className="px-4 py-2 rounded-lg bg-[#1F3463] hover:bg-blue-700 text-white text-sm font-medium"
+                      className="px-3 py-1.5 rounded-lg bg-[#1F3463] hover:bg-blue-700 text-white text-sm"
                     >
                       View
                     </button>
@@ -240,7 +240,7 @@ const InstructorTable = ({
                         setViewOnlyInstructorId(null);
                         setExpandedInstructorId(isExpanded ? null : instructor.id);
                       }}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                      className={`px-3 py-1.5 rounded-lg text-sm ${
                         saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
                       } text-white`}
                     >
