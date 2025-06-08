@@ -9,6 +9,16 @@ const StudentService = {
       console.error('Failed to fetch students:', error);
       throw error;
     }
+  },
+
+  getCount: async () => {
+    try {
+      const response = await api.get('/students');
+      return response.data.length;
+    } catch (error) {
+      console.error('Failed to fetch student count:', error);
+      throw error;
+    }
   }
 };
 

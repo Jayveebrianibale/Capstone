@@ -316,11 +316,18 @@ const SEvaluations = () => {
       }
     } catch (err) {
       console.error('Error fetching instructors:', err);
-      setError('An error occurred while fetching instructors');
-      toast.error('Error fetching instructors');
-      setInstructors([]);
-      setCurrentInstructors([]);
-      setNoInstructors(true);
+      if (err.response?.status === 404) {
+        setInstructors([]);
+        setCurrentInstructors([]);
+        setNoInstructors(true);
+        toast.info('No instructors found for your program and year level.');
+      } else {
+        setError('An error occurred while fetching instructors');
+        toast.error('Error fetching instructors');
+        setInstructors([]);
+        setCurrentInstructors([]);
+        setNoInstructors(true);
+      }
     } finally {
       setLoading(false);
     }

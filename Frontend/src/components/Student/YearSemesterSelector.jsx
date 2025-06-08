@@ -82,7 +82,7 @@ const YearSemesterSelector = ({
                 setFormReady(true);
               }
             }}
-            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:outline-none"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800"
             disabled={true}
           >
             <option value="">Select School Year</option>
@@ -105,7 +105,6 @@ const YearSemesterSelector = ({
               }
             }}
             className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:outline-none"
-            disabled={!!selectedYear && !!selectedSemester}
           >
             <option value="">Select Semester</option>
             {semesters.map((semester) => (
