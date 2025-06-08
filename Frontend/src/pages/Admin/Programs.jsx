@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaEdit, FaTrash, FaPlus, FaRegFolderOpen } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPlus, FaRegFolderOpen, FaSearch } from "react-icons/fa";
 import { FiUpload } from 'react-icons/fi';
 import ProgramService from "../../services/ProgramService";
 import GradeLevelService from "../../services/GradeLevelService";
@@ -62,6 +62,7 @@ function Programs() {
 
   const getFilteredItems = () => {
     const category = activeTab.toLowerCase();
+    const searchLower = searchQuery.toLowerCase();
 
     // Map the tab name to the correct category codes
     const categoryMap = {
@@ -71,10 +72,11 @@ function Programs() {
       "intermediate": ["Intermediate"]
     };
 
-    // Filter programs based on category
+    // Filter programs based on category and search query
     return programs.filter(prog =>
       categoryMap[category].includes(prog.category) &&
-      prog.name.toLowerCase().includes(searchQuery.toLowerCase())
+      (prog.name.toLowerCase().includes(searchLower) ||
+       (prog.code && prog.code.toLowerCase().includes(searchLower)))
     );
   };
 
@@ -210,32 +212,37 @@ function Programs() {
       {loading && <FullScreenLoader />}
 
    {/* Header Section */}
-   <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-[#1F3463] dark:text-white mb-1">
             Academic Programs Management
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
+          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
             Manage all academic programs and grade levels
           </p>
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto">
-        <div className="flex-1 flex items-center">
-          <input
-            type="text"
-            placeholder="Search programs..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-3 pr-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-[#1F3463] focus:border-transparent transition-all text-base"
-          />
-        </div>
+        <div className="flex flex-wrap gap-3 justify-start md:justify-end">
+          <div className="flex-1 md:flex-none">
+            <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-[#1F3463] focus-within:border-transparent transition-all">
+              <div className="pl-3 pr-2 text-gray-400">
+                <FaSearch className="w-4 h-4" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search programs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full py-2.5 pr-4 bg-transparent outline-none text-sm"
+              />
+            </div>
+          </div>
           <button
             onClick={openAddProgramModal}
-            className={`bg-[#1F3463] hover:bg-[#172a4d] text-white px-3 py-2.5 rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap text-base font-medium`}
-            placeholder='Add Program'
+            className="bg-[#1F3463] hover:bg-[#19294f] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
           >
-            <FaPlus className="w-5 h-5" />
+            <FaPlus className="w-4 h-4" />
+            <span className="text-sm font-semibold">Add Program</span>
           </button>
         </div>
       </div>
@@ -270,44 +277,63 @@ function Programs() {
         <div className="flex flex-col items-center justify-center min-h-[50vh] bg-white border dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
           <div className="flex justify-center mb-4 sm:mb-6">
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
-              <FaRegFolderOpen className="w-6 h-6 sm:w-8 sm:h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
+              {searchQuery ? (
+                <FaSearch className="w-6 h-6 sm:w-8 sm:h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
+              ) : (
+                <FaRegFolderOpen className="w-6 h-6 sm:w-8 sm:h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
+              )}
             </div>
           </div>
 
           {/* Text Content */}
           <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2 text-center">
-            No Programs Found
+            {searchQuery ? "No matching programs found" : "No Programs Found"}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 text-center text-sm sm:text-base max-w-md px-2">
-            Start by adding new programs to {activeTab} or upload a CSV file.
+            {searchQuery ? (
+              "Try adjusting your search query or browse all programs"
+            ) : (
+              `Start by adding new programs to ${activeTab} or upload a CSV file.`
+            )}
           </p>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col w-full max-w-xs gap-3">
-            <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer text-sm sm:text-base">
-              <FiUpload className="w-4 h-4" /> Upload CSV
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleCSVUpload}
-                className="hidden"
-              />
-            </label>
-          </div>
+          {searchQuery ? (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e] focus:outline-none underline"
+            >
+              Clear search
+            </button>
+          ) : (
+            <>
+              {/* Action Buttons */}
+              <div className="flex flex-col w-full max-w-xs gap-3">
+                <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer text-sm sm:text-base">
+                  <FiUpload className="w-4 h-4" /> Upload CSV
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleCSVUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
 
-          {/* CSV Helper Text */}
-          <div className="mt-6 sm:mt-8 text-center px-4">
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              Need a template?{' '}
-              <button
-                type="button"
-                onClick={handleDownloadTemplate}
-                className="underline text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e] focus:outline-none"
-              >
-                Download sample CSV
-              </button>
-            </p>
-          </div>
+              {/* CSV Helper Text */}
+              <div className="mt-6 sm:mt-8 text-center px-4">
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                  Need a template?{' '}
+                  <button
+                    type="button"
+                    onClick={handleDownloadTemplate}
+                    className="underline text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e] focus:outline-none"
+                  >
+                    Download sample CSV
+                  </button>
+                </p>
+              </div>
+            </>
+          )}
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm overflow-hidden">
@@ -452,7 +478,7 @@ function Programs() {
                         className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 transition-colors touch-target"
                         title="Delete Program"
                       >
-                        <FaTrash className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <FaTrash className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>

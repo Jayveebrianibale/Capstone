@@ -74,17 +74,17 @@ const PhaseSwitcher = () => {
       <button
         ref={buttonRef}
         onClick={toggleDropdown}
-        className="flex items-center gap-2 px-4 py-2 bg-[#1F3463] text-white rounded-xl hover:bg-[#19294f] transition"
+        className="bg-[#1F3463] hover:bg-[#19294f] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
       >
         <Shuffle className="w-4 h-4" />
-        <span>{currentPhase}</span>
+        <span className="text-sm font-semibold">{currentPhase}</span>
         <ChevronDown className="w-4 h-4" />
       </button>
 
       {open && (
         <div
           style={dropdownStyles}
-          className="w-40 bg-white border rounded-lg shadow-lg"
+          className="w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg"
         >
           {phases
             .filter((phase) => phase !== currentPhase)
@@ -92,7 +92,7 @@ const PhaseSwitcher = () => {
               <button
                 key={phase}
                 onClick={() => handleSelect(phase)}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 disabled:opacity-50"
+                className="block w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
                 disabled={switching}
               >
                 {switching ? "Switching..." : phase}

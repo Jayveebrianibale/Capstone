@@ -61,9 +61,11 @@ function Instructors() {
 
   const handleSearch = (query) => {
     setSearchQuery(query);
+    const searchLower = query.toLowerCase();
     setFilteredInstructors(
       instructors.filter((inst) =>
-        inst.name.toLowerCase().includes(query.toLowerCase())
+        inst.name.toLowerCase().includes(searchLower) ||
+        (inst.email && inst.email.toLowerCase().includes(searchLower))
       )
     );
     setCurrentPage(1);
@@ -168,40 +170,41 @@ function Instructors() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 p-1.5 sm:p-2 md:p-4 lg:p-6">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-4 lg:p-6">
       <ToastContainer position="top-right" autoClose={3000} />
       {loading && <FullScreenLoader />}
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-3 sm:mb-4 gap-2 sm:gap-4">
-        <div className="space-y-0.5 sm:space-y-1">
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-[#1F3463] dark:text-white mb-1">
             Instructor Management
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
+          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
             School Year {schoolYear}
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full md:w-auto">
-          <div className="flex-1">
+        <div className="flex flex-wrap gap-3 justify-start md:justify-end">
+          <div className="flex-1 md:flex-none">
             <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-[#1F3463] focus-within:border-transparent transition-all">
-              <div className="pl-2 sm:pl-3 pr-1 sm:pr-2 text-gray-400">
-                <FaSearch className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <div className="pl-3 pr-2 text-gray-400">
+                <FaSearch className="w-4 h-4" />
               </div>
               <input
                 type="text"
                 placeholder="Search instructors..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full py-1.5 sm:py-2 pr-3 sm:pr-4 bg-transparent outline-none text-sm"
+                className="w-full py-2.5 pr-4 bg-transparent outline-none text-sm"
               />
             </div>
           </div>
           <button
             onClick={handleAddInstructor}
-            className="bg-[#1F3463] hover:bg-[#19294f] text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center justify-center gap-1.5 sm:gap-2 transition-all shadow-md hover:shadow-lg text-sm"
+            className="bg-[#1F3463] hover:bg-[#19294f] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
           >
-            <FaPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Add Instructor
+            <FaPlus className="w-4 h-4" />
+            <span className="text-sm font-semibold">Add Instructor</span>
           </button>
         </div>
       </div>
@@ -244,6 +247,26 @@ function Instructors() {
               </button>
             </p>
           </div>
+        </div>
+      ) : filteredInstructors.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-[50vh] bg-white border dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
+              <FaSearch className="w-6 h-6 sm:w-8 sm:h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
+            </div>
+          </div>
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2 text-center">
+            No matching instructors found
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 text-center text-sm sm:text-base max-w-md px-2">
+            Try adjusting your search query or browse all instructors
+          </p>
+          <button
+            onClick={() => handleSearch("")}
+            className="text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e] focus:outline-none underline"
+          >
+            Clear search
+          </button>
         </div>
       ) : (
         <>
