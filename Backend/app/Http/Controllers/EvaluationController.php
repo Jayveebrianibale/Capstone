@@ -569,13 +569,21 @@ class EvaluationController extends Controller {
     }
     
     protected function restorePhaseOneData() {
-        DB::transaction(function () {
-            // Restore evaluations
+        try {
+            DB::beginTransaction();
+
+            // First, clear existing evaluations to avoid duplicates
+            Evaluation::truncate();
+            EvaluationResponse::truncate();
+            DB::table('instructor_program')->truncate();
+
+            // Restore evaluations from archive
             $archivedEvaluations = EvaluationArchive::with('responses')
                 ->where('phase', 'Phase 1')
                 ->get();
 
             foreach ($archivedEvaluations as $archivedEvaluation) {
+                // Create new evaluation
                 $evaluation = Evaluation::create([
                     'student_id' => $archivedEvaluation->student_id,
                     'instructor_id' => $archivedEvaluation->instructor_id,
@@ -587,6 +595,7 @@ class EvaluationController extends Controller {
                     'updated_at' => $archivedEvaluation->updated_at
                 ]);
 
+                // Restore responses
                 foreach ($archivedEvaluation->responses as $response) {
                     EvaluationResponse::create([
                         'evaluation_id' => $evaluation->id,
@@ -602,20 +611,23 @@ class EvaluationController extends Controller {
             // Restore program assignments
             $archivedAssignments = \App\Models\InstructorProgramArchive::where('phase', 'Phase 1')->get();
             foreach ($archivedAssignments as $archivedAssignment) {
-                DB::table('instructor_program')->updateOrInsert(
-                    [
-                        'instructor_id' => $archivedAssignment->instructor_id,
-                        'program_id' => $archivedAssignment->program_id,
-                        'yearLevel' => $archivedAssignment->yearLevel
-                    ],
-                    [
-                        'instructor_id' => $archivedAssignment->instructor_id,
-                        'program_id' => $archivedAssignment->program_id,
-                        'yearLevel' => $archivedAssignment->yearLevel
-                    ]
-                );
+                DB::table('instructor_program')->insert([
+                    'instructor_id' => $archivedAssignment->instructor_id,
+                    'program_id' => $archivedAssignment->program_id,
+                    'yearLevel' => $archivedAssignment->yearLevel,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
             }
-        });
+
+            DB::commit();
+            \Log::info('Successfully restored Phase 1 data');
+            return true;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error restoring Phase 1 data: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function checkStorageStatus(Request $request) {
