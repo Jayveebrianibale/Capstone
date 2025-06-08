@@ -11,7 +11,7 @@ class Setting extends Model
         'should_clear_storage',
         'storage_clear_timestamp'
     ];
-
+    
     protected $casts = [
         'should_clear_storage' => 'boolean',
         'storage_clear_timestamp' => 'datetime'

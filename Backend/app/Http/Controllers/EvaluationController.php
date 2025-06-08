@@ -17,6 +17,8 @@ use App\Models\EvaluationResponseArchive;
 use PDF;// Add this at the top of your controller
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 
 
 
@@ -425,14 +427,8 @@ class EvaluationController extends Controller {
     //Phase Management and Archives
     public function getCurrentPhase() {
         try {
-            // Check if settings table exists
-            if (!Schema::hasTable('settings')) {
-                return response()->json(['phase' => 'Phase 1']);
-            }
-
             $settings = Setting::first();
             if (!$settings) {
-                // Create default settings if none exist
                 $settings = Setting::create([
                     'evaluation_phase' => 'Phase 1'
                 ]);
@@ -451,17 +447,6 @@ class EvaluationController extends Controller {
                 'phase' => 'required|in:Phase 1,Phase 2'
             ]);
 
-            // Check if settings table exists
-            if (!Schema::hasTable('settings')) {
-                return response()->json([
-                    'message' => "Switched to {$request->phase} successfully",
-                    'previous_phase' => 'Phase 1',
-                    'new_phase' => $request->phase,
-                    'clear_storage' => false
-                ]);
-            }
-
-            // Get or create settings
             $settings = Setting::first();
             if (!$settings) {
                 $settings = Setting::create([
@@ -472,31 +457,60 @@ class EvaluationController extends Controller {
             $currentPhase = $settings->evaluation_phase;
             $newPhase = $request->phase;
 
-            if ($currentPhase === 'Phase 1' && $newPhase === 'Phase 2') {
-                try {
-                    $this->archiveEvaluations();
-                } catch (\Exception $e) {
-                    \Log::error('Error archiving evaluations: ' . $e->getMessage());
-                    // Continue with phase switch even if archiving fails
-                }
-                
-                $settings->update(['evaluation_phase' => $newPhase]);
-                
+            // Only proceed if the phase is actually changing
+            if ($currentPhase === $newPhase) {
                 return response()->json([
-                    'message' => "Switched to $newPhase successfully",
+                    'message' => "Already in $newPhase",
                     'previous_phase' => $currentPhase,
                     'new_phase' => $newPhase,
-                    'clear_storage' => true
+                    'clear_storage' => false
                 ]);
-            } elseif ($currentPhase === 'Phase 2' && $newPhase === 'Phase 1') {
-                try {
+            }
+
+            DB::beginTransaction();
+            try {
+                if ($currentPhase === 'Phase 1' && $newPhase === 'Phase 2') {
+                    // Archive current data
+                    $this->archiveEvaluations();
+                    
+                    // Update phase
+                    $settings->evaluation_phase = $newPhase;
+                    $settings->should_clear_storage = true;
+                    $settings->storage_clear_timestamp = now();
+                    $settings->save();
+                    
+                    DB::commit();
+                    
+                    return response()->json([
+                        'message' => "Switched to $newPhase successfully",
+                        'previous_phase' => $currentPhase,
+                        'new_phase' => $newPhase,
+                        'clear_storage' => true
+                    ]);
+                } elseif ($currentPhase === 'Phase 2' && $newPhase === 'Phase 1') {
+                    // Restore archived data
                     $this->restorePhaseOneData();
-                } catch (\Exception $e) {
-                    \Log::error('Error restoring phase one data: ' . $e->getMessage());
-                    // Continue with phase switch even if restoration fails
+                    
+                    // Update phase
+                    $settings->evaluation_phase = $newPhase;
+                    $settings->should_clear_storage = false;
+                    $settings->save();
+                    
+                    DB::commit();
+                    
+                    return response()->json([
+                        'message' => "Switched to $newPhase successfully",
+                        'previous_phase' => $currentPhase,
+                        'new_phase' => $newPhase,
+                        'clear_storage' => false
+                    ]);
                 }
+
+                // For any other case, just update the phase
+                $settings->evaluation_phase = $newPhase;
+                $settings->save();
                 
-                $settings->update(['evaluation_phase' => $newPhase]);
+                DB::commit();
                 
                 return response()->json([
                     'message' => "Switched to $newPhase successfully",
@@ -504,15 +518,11 @@ class EvaluationController extends Controller {
                     'new_phase' => $newPhase,
                     'clear_storage' => false
                 ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                \Log::error('Error in phase switch transaction: ' . $e->getMessage());
+                throw $e;
             }
-
-            $settings->update(['evaluation_phase' => $newPhase]);
-            return response()->json([
-                'message' => "Switched to $newPhase successfully",
-                'previous_phase' => $currentPhase,
-                'new_phase' => $newPhase,
-                'clear_storage' => false
-            ]);
         } catch (\Exception $e) {
             \Log::error('Error in switchPhase: ' . $e->getMessage());
             return response()->json([
@@ -523,7 +533,7 @@ class EvaluationController extends Controller {
     }
     
     protected function archiveEvaluations() {
-        DB::transaction(function () {
+        try {
             // Archive evaluations
             $evaluations = Evaluation::with('responses')->get();
 
@@ -565,7 +575,13 @@ class EvaluationController extends Controller {
                     'phase' => 'Phase 1'
                 ]);
             }
-        });
+
+            \Log::info('Successfully archived Phase 1 data');
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('Error archiving evaluations: ' . $e->getMessage());
+            throw $e;
+        }
     }
     
     protected function restorePhaseOneData() {
