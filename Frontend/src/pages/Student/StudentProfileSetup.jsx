@@ -28,51 +28,7 @@ function StudentProfileSetup() {
     { value: "4th Year", label: "4th Year" },
   ];
 
-  const getFilteredYearLevelOptions = () => {
-    const selectedProgram = programs.find(p => String(p.id) === selectedProgramId);
-    console.log("Selected Program:", selectedProgram);
-    
-    // Check if the program is ACT (either by name or code)
-    if (selectedProgram && (selectedProgram.name === "Assiociate in Computer Technology" || selectedProgram.code === "ACT")) {
-      console.log("Filtering to 2 years only for ACT program");
-      return [
-        { value: "1st Year", label: "1st Year" },
-        { value: "2nd Year", label: "2nd Year" }
-      ];
-    }
-    return yearLevelOptions;
-  };
-
-  const handleProgramChange = (e) => {
-    const newProgramId = e.target.value;
-    setSelectedProgramId(newProgramId);
-    
-    const selectedProgram = programs.find(p => String(p.id) === newProgramId);
-    if (selectedProgram && (selectedProgram.name === "Assiociate in Computer Technology" || selectedProgram.code === "ACT")) {
-      setSelectedYearLevel("");
-    }
-  };
-
-  // Add effect to monitor program changes
-  useEffect(() => {
-    const selectedProgram = programs.find(p => String(p.id) === selectedProgramId);
-    
-    if (selectedProgram && (selectedProgram.name === "Assiociate in Computer Technology" || selectedProgram.code === "ACT")) {
-      if (selectedYearLevel === "3rd Year" || selectedYearLevel === "4th Year") {
-        setSelectedYearLevel("");
-      }
-    }
-  }, [selectedProgramId, programs, selectedYearLevel]);
-
   const totalSteps = (educationLevel === "Higher Education" ? 3 : 2) + 1;
-
-  const calculateProgress = () => {
-    if (!educationLevel) return 0;
-    if (step === 1) return 33;
-    if (step === 2) return educationLevel === "Higher Education" ? 66 : 100;
-    if (step === 3) return 100;
-    return 0;
-  };
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -303,7 +259,9 @@ function StudentProfileSetup() {
               <div
                 className="bg-[#1F3463] h-2 rounded-full transition-all duration-300 ease-in-out" 
                 style={{ 
-                  width: `${calculateProgress()}%`
+                  width: step > 0 
+                    ? `${((step) / (totalSteps - 1)) * 100}%`
+                    : "0%" 
                 }}
               ></div>
             </div>
@@ -401,6 +359,9 @@ function StudentProfileSetup() {
             {step === 1 && (
               <motion.div key="step1" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4 md:space-y-6">
                 <h3 className="text-xl md:text-2xl font-semibold text-gray-800">What is your Education Level?</h3>
+                {!educationLevel && (
+                  <p className="text-xs md:text-sm text-red-500 -mt-2 md:-mt-4">Please select your education level to continue</p>
+                )}
                 {renderEducationLevelOptions()}
               </motion.div>
             )}
@@ -410,9 +371,12 @@ function StudentProfileSetup() {
                 <h3 className="text-xl md:text-2xl font-semibold text-gray-800">
                   {educationLevel === "Higher Education" ? "Select your program" : "Select your grade level"}
                 </h3>
+                {!selectedProgramId && (
+                  <p className="text-xs md:text-sm text-red-500 -mt-2 md:-mt-4">Please make a selection to continue</p>
+                )}
                 {renderSelect(
                   selectedProgramId,
-                  handleProgramChange,
+                  (e) => setSelectedProgramId(e.target.value),
                   programs.filter(p => p.category === educationLevel),
                   "Select an option",
                   "Select an option"
@@ -423,10 +387,13 @@ function StudentProfileSetup() {
             {step === 3 && educationLevel === "Higher Education" && (
               <motion.div key="step3" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4 md:space-y-6">
                 <h3 className="text-xl md:text-2xl font-semibold text-gray-800">Select your year Level</h3>
+                {!selectedYearLevel && (
+                  <p className="text-xs md:text-sm text-red-500 -mt-2 md:-mt-4">Please select your year level</p>
+                )}
                 {renderSelect(
                   selectedYearLevel,
                   (e) => setSelectedYearLevel(e.target.value),
-                  getFilteredYearLevelOptions(),
+                  yearLevelOptions,
                   "Select year level",
                   "Select year level"
                 )}

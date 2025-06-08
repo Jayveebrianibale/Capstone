@@ -73,6 +73,9 @@ const EvaluationForm = ({
                   </option>
                 ))}
               </select>
+              {showWarning && (
+                <div className="text-xs text-red-600 mt-1">Please select a rating before proceeding.</div>
+              )}
             </div>
           );
         })

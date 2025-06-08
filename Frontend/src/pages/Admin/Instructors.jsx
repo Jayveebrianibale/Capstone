@@ -36,49 +36,14 @@ function Instructors() {
     currentPage * instructorsPerPage
   );
 
-  const getDynamicSchoolYears = () => {
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth(); // 0-11 (Jan-Dec)
-    
-    // Define your academic year start months (June=5, July=6, August=7, September=8)
-    const academicStartMonths = [6, 7, 8]; // July, August, September
-    const academicEndMonths = [5, 6]; // June, July
-    
-    // Determine if current month is in the start period
-    const isStartMonth = academicStartMonths.includes(currentMonth);
-    const isEndMonth = academicEndMonths.includes(currentMonth);
-    
-    let startYear = currentYear;
-    let endYear = currentYear + 1;
-    
-    if (isStartMonth) {
-      // If current month is a start month, academic year starts this year
-      startYear = currentYear;
-      endYear = currentYear + 1;
-    } else if (isEndMonth) {
-      // If current month is an end month, academic year ends this year
-      startYear = currentYear - 1;
-      endYear = currentYear;
-    } else if (currentMonth < Math.min(...academicStartMonths)) {
-      // Before academic year starts
-      startYear = currentYear - 1;
-      endYear = currentYear;
-    } else {
-      // After start months but before end months (in the middle of academic year)
-      startYear = currentYear;
-      endYear = currentYear + 1;
-    }
-
-    return `${startYear}-${endYear}`;
-  };
-
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
   useEffect(() => {
     fetchInstructors();
-    setSchoolYear(getDynamicSchoolYears());
+    const currentYear = new Date().getFullYear();
+    setSchoolYear(`${currentYear}-${currentYear + 1}`);
   }, []);
 
   const fetchInstructors = async () => {
