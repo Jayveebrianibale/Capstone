@@ -21,14 +21,30 @@ function StudentProfileSetup() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [role, setRole] = useState(null);
 
-  const yearLevelOptions = [
-    { value: "1st Year", label: "1st Year" },
-    { value: "2nd Year", label: "2nd Year" },
-    { value: "3rd Year", label: "3rd Year" },
-    { value: "4th Year", label: "4th Year" },
-  ];
+  const getYearLevelOptions = () => {
+    const selectedProgram = programs.find(p => String(p.id) === selectedProgramId);
+    if (selectedProgram?.code === 'ACT') {
+      return [
+        { value: "1st Year", label: "1st Year" },
+        { value: "2nd Year", label: "2nd Year" },
+      ];
+    }
+    return [
+      { value: "1st Year", label: "1st Year" },
+      { value: "2nd Year", label: "2nd Year" },
+      { value: "3rd Year", label: "3rd Year" },
+      { value: "4th Year", label: "4th Year" },
+    ];
+  };
 
   const totalSteps = (educationLevel === "Higher Education" ? 3 : 2) + 1;
+
+  const handleEducationLevelSelect = (level) => {
+    setEducationLevel(level);
+    setSelectedProgramId("");
+    setSelectedYearLevel("");
+    setStep(1);
+  };
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -175,11 +191,7 @@ function StudentProfileSetup() {
         {levels.map((level) => (
           <div
             key={level}
-            onClick={() => {
-              setEducationLevel(level);
-              setSelectedProgramId("");
-              setSelectedYearLevel("");
-            }}
+            onClick={() => handleEducationLevelSelect(level)}
             className={`relative cursor-pointer border rounded-xl px-4 py-6 text-center text-sm font-medium transition-colors ${
               educationLevel === level 
                 ? "border-[#1F3463] bg-[#1F3463]/10 text-[#1F3463]" 
@@ -259,9 +271,7 @@ function StudentProfileSetup() {
               <div
                 className="bg-[#1F3463] h-2 rounded-full transition-all duration-300 ease-in-out" 
                 style={{ 
-                  width: step > 0 
-                    ? `${((step) / (totalSteps - 1)) * 100}%`
-                    : "0%" 
+                  width: !educationLevel ? "0%" : `${((step) / (totalSteps - 1)) * 100}%`
                 }}
               ></div>
             </div>
@@ -384,7 +394,7 @@ function StudentProfileSetup() {
                 {renderSelect(
                   selectedYearLevel,
                   (e) => setSelectedYearLevel(e.target.value),
-                  yearLevelOptions,
+                  getYearLevelOptions(),
                   "Select year level",
                   "Select year level"
                 )}

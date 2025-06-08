@@ -60,7 +60,20 @@ class InstructorController extends Controller
             return response()->json(['message' => 'Failed to open the file'], 400);
         }
     
-        $header   = fgetcsv($handle);
+        $header = fgetcsv($handle);
+        $header = array_map('trim', $header); // Trim header values
+    
+        // Validate required headers
+        $requiredHeaders = ['name', 'email', 'programs'];
+        $missingHeaders = array_diff($requiredHeaders, $header);
+        
+        if (!empty($missingHeaders)) {
+            fclose($handle);
+            return response()->json([
+                'message' => 'Missing required headers: ' . implode(', ', $missingHeaders)
+            ], 400);
+        }
+    
         $inserted = [];
         $skipped  = [];
     
@@ -74,15 +87,12 @@ class InstructorController extends Controller
             }
     
             $data = array_combine($header, $row);
-    
-            // Trim name and email to remove leading/trailing whitespace
-            $data['name'] = trim($data['name']);
-            $data['email'] = trim($data['email']);
+            $data = array_map('trim', $data); // Trim all values
     
             $validator = Validator::make($data, [
-                'name'     => 'required|string|max:255',
-                'email'    => 'required|email|unique:instructors,email|unique:users,email',
-                'programs' => 'nullable|string',
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:instructors,email|unique:users,email',
+                'programs' => 'required|string',
             ]);
     
             if ($validator->fails()) {
@@ -96,18 +106,23 @@ class InstructorController extends Controller
             DB::beginTransaction();
     
             try {
+                // Create instructor
                 $instructor = Instructor::create([
-                    'name'  => $data['name'],
-                    'email' => $data['email']
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'educationLevel' => 'Higher Education' // Default to Higher Education since all programs are HE
                 ]);
     
+                // Create user account
                 User::create([
-                    'name'     => $data['name'],
-                    'email'    => $data['email'],
-                    'role'     => 'Instructor',
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'role' => 'Instructor',
                     'password' => null,
+                    'educationLevel' => 'Higher Education'
                 ]);
     
+                // Handle program assignments
                 if (!empty($data['programs'])) {
                     $programs = json_decode($data['programs'], true);
     
@@ -371,10 +386,33 @@ class InstructorController extends Controller
     }
 
     public function sendBulkResults(Request $request, $programCode) {
-    // Get all instructors for the program
-        $instructors = Instructor::whereHas('programs', function($query) use ($programCode) {
-            $query->where('code', $programCode);
-        })->get();
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'instructorIds' => 'required|array',
+            'instructorIds.*' => 'required|integer|exists:instructors,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Get instructors for the program
+        $instructors = Instructor::whereIn('id', $request->instructorIds)
+            ->whereHas('programs', function($query) use ($programCode) {
+                $query->where('code', $programCode);
+            })->get();
+
+        if ($instructors->isEmpty()) {
+            return response()->json([
+                'message' => 'No instructors found for this program',
+                'sent_count' => 0,
+                'failed_count' => 0,
+                'failed_emails' => []
+            ]);
+        }
 
         $sentCount = 0;
         $failedCount = 0;
@@ -385,8 +423,8 @@ class InstructorController extends Controller
                 // Calculate overall rating (same as individual send)
                 $questions = \App\Models\Question::all();
                 $evaluations = \App\Models\Evaluation::where('instructor_id', $instructor->id)->get();
-                $ratings = [];
                 
+                $ratings = [];
                 foreach ($questions as $index => $question) {
                     $questionId = $question->id;
                     $total = 0;
@@ -418,7 +456,6 @@ class InstructorController extends Controller
                 // Send mail
                 Mail::to($instructor->email)->send(new InstructorResultMail($instructor, $pdfUrl));
                 $sentCount++;
-                
             } catch (\Exception $e) {
                 $failedCount++;
                 $failedEmails[] = $instructor->email;

@@ -7,7 +7,8 @@ import {
   BookOpen,
   FileText,
   FileSpreadsheet,
-  Loader2
+  Loader2,
+  X
 } from "lucide-react";
 import EvaluationService from "../../services/EvaluationService";
 
@@ -123,47 +124,72 @@ const ContentHeader = ({
 
       {/* Export Modal */}
       {isExportModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white">Export Options</h2>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-sm mx-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Export Results</h2>
               <button 
                 onClick={() => setIsExportModalOpen(false)}
-                className="text-gray-500 text-3xl hover:text-gray-700 dark:hover:text-gray-300"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
               >
-                &times;
+                <X size={20} />
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              {/* PDF Card */}
-              <div 
-                className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedExportType === 'pdf' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'}`}
+
+            <div className="space-y-4 mb-6">
+              {/* PDF Option */}
+              <button
                 onClick={() => setSelectedExportType('pdf')}
+                className={`w-full p-4 rounded-lg border transition-all ${
+                  selectedExportType === 'pdf'
+                    ? 'border-[#1F3463] bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-[#1F3463]'
+                }`}
               >
-                <div className="flex flex-col items-center text-center">
-                  <FileText className="h-8 w-8 text-[#1F3463] mb-2" />
-                  <span className="font-medium text-gray-800 dark:text-white">PDF</span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Portable Document</span>
+                <div className="flex items-center gap-4">
+                  <div className={`p-2 rounded-lg ${
+                    selectedExportType === 'pdf'
+                      ? 'bg-[#1F3463] text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-[#1F3463]'
+                  }`}>
+                    <FileText size={24} />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium text-gray-900 dark:text-white">PDF Format</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Portable Document Format</div>
+                  </div>
                 </div>
-              </div>
-              
-              {/* CSV Card */}
-              <div 
-                className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedExportType === 'csv' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'}`}
+              </button>
+
+              {/* CSV Option */}
+              <button
                 onClick={() => setSelectedExportType('csv')}
+                className={`w-full p-4 rounded-lg border transition-all ${
+                  selectedExportType === 'csv'
+                    ? 'border-[#1F3463] bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-[#1F3463]'
+                }`}
               >
-                <div className="flex flex-col items-center text-center">
-                  <FileSpreadsheet className="h-8 w-8 text-[#1F3463] mb-2" />
-                  <span className="font-medium text-gray-800 dark:text-white">CSV</span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Spreadsheet Format</span>
+                <div className="flex items-center gap-4">
+                  <div className={`p-2 rounded-lg ${
+                    selectedExportType === 'csv'
+                      ? 'bg-[#1F3463] text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-[#1F3463]'
+                  }`}>
+                    <FileSpreadsheet size={24} />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium text-gray-900 dark:text-white">CSV Format</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Spreadsheet Format</div>
+                  </div>
                 </div>
-              </div>
+              </button>
             </div>
             
             {/* Export Button */}
             {selectedExportType && !isExporting && (
               <button
-                className="w-full py-2 bg-[#1F3463] hover:bg-blue-700 text-white rounded-lg transition duration-200 flex items-center justify-center"
+                className="w-full py-2.5 bg-[#1F3463] hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
                 onClick={handleExport}
               >
                 Export as {selectedExportType.toUpperCase()}
@@ -172,7 +198,7 @@ const ContentHeader = ({
             
             {/* Loading state */}
             {isExporting && (
-              <div className="w-full py-2 bg-[#1F3463] text-white rounded-lg flex items-center justify-center">
+              <div className="w-full py-2.5 bg-[#1F3463] text-white rounded-lg flex items-center justify-center font-medium">
                 <Loader2 className="h-5 w-5 animate-spin mr-2" />
                 Exporting {selectedExportType.toUpperCase()}...
               </div>

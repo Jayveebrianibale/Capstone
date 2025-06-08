@@ -6,6 +6,7 @@ import ProgramService from "../../../services/ProgramService";
 import EvaluationService from "../../../services/EvaluationService"; // Added EvaluationService
 import EvaluationFilterService from "../../../services/EvaluationFilterService"; // Added EvaluationFilterService
 import InstructorService from "../../../services/InstructorService"; // Added InstructorService
+import BulkSendModal from "../../../components/BulkSendModal";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import FullScreenLoader from "../../../components/FullScreenLoader";
@@ -75,13 +76,22 @@ function Bab() {
     );
   };
 
-  const handleBulkSend = async () => { // Added handleBulkSend function
-    setShowConfirmModal(false);
+  const handleBulkSend = async () => {
     setBulkSending(true);
     try {
-      const response = await InstructorService.sendBulkResults(programCode);
+      const allInstructors = mergedInstructorsByYear.flat();
+      
+      if (allInstructors.length === 0) {
+        toast.warning("No instructors found for this program");
+        setBulkSending(false);
+        setShowConfirmModal(false);
+        return;
+      }
 
-      // Success case - show success message
+      const response = await InstructorService.sendBulkResults(programCode, {
+        instructorIds: allInstructors.map(instructor => instructor.id)
+      });
+
       setBulkSendStatus(response);
       toast.success(
         `Successfully sent results to ${response.sent_count} instructors`,
@@ -96,11 +106,9 @@ function Bab() {
         console.log("Failed emails:", response.failed_emails);
       }
     } catch (err) {
-      // Improved error handling
       console.error("Bulk send error:", err);
 
       if (err.sent_count !== undefined) {
-        // This is actually a success case but was caught as error
         setBulkSendStatus(err);
         toast.success(
           `Sent to ${err.sent_count} instructors (${err.failed_count} failed)`,
@@ -114,6 +122,7 @@ function Bab() {
       }
     } finally {
       setBulkSending(false);
+      setShowConfirmModal(false);
     }
   };
 
@@ -270,62 +279,18 @@ function Bab() {
         </>
       )}
 
-    {showConfirmModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
-                  <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
-                    Confirm Bulk Send
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6">
-                    Are you sure you want to send results to all instructors in this program?
-                  </p>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => setShowConfirmModal(false)}
-                      className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-100 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
-                      disabled={bulkSending}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleBulkSend}
-                      className={`px-4 py-2 flex items-center justify-center gap-2 ${
-                        bulkSending
-                          ? "bg-blue-600 cursor-not-allowed"
-                          : "bg-[#1F3463] hover:bg-blue-700"
-                      } text-white rounded transition-colors min-w-[80px]`}
-                      disabled={bulkSending}
-                    >
-                      {bulkSending ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Sending...
-                        </>
-                      ) : (
-                        "Send"
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+      {/* Bulk Send Modal */}
+      <BulkSendModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleBulkSend}
+        programCode={programCode}
+        instructors={mergedInstructorsByYear.flat()}
+        isSending={bulkSending}
+        showLoadingOverlay={bulkSending}
+      />
+    </main>
+  );
+}
 
-            {/* Loading Overlay for Bulk Send */} {/* Added Loading Overlay */}
-            {bulkSending && (
-              <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl flex flex-col items-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-[#1F3463] mb-4" />
-                  <p className="text-gray-700 dark:text-gray-300">
-                    Sending results to all instructors...
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    This may take a few moments
-                  </p>
-                </div>
-              </div>
-            )}
-          </main>
-        );
-      }
-
-  export default Bab;
+export default Bab;

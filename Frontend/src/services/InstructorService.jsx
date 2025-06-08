@@ -131,9 +131,11 @@ const InstructorService = {
     }
   },
 
-  sendBulkResults: async (programCode) => {
+  sendBulkResults: async (programCode, { instructorIds }) => {
       try {
-          const response = await api.post(`/programs/${programCode}/send-bulk-results`);
+          const response = await api.post(`/programs/${programCode}/send-bulk-results`, {
+              instructorIds
+          });
           return response.data;
       } catch (err) {
           console.error(err);

@@ -168,7 +168,7 @@ const InstructorTable = ({
                         setViewOnlyInstructorId(instructor.id);
                         setExpandedInstructorId(instructor.id);
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-gray-500 hover:bg-gray-600 text-white text-sm"
+                      className="px-4 py-2 rounded-lg bg-[#1F3463] hover:bg-blue-700 text-white text-sm font-medium"
                     >
                       View
                     </button>
@@ -178,7 +178,7 @@ const InstructorTable = ({
                         setViewOnlyInstructorId(null);
                         setExpandedInstructorId(isExpanded ? null : instructor.id);
                         }}
-                        className={`px-3 py-1.5 rounded-lg text-sm ${
+                        className={`px-4 py-2 rounded-lg text-sm font-medium ${
                         saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
                         } text-white`}
                       >
@@ -230,7 +230,7 @@ const InstructorTable = ({
                         setViewOnlyInstructorId(instructor.id);
                         setExpandedInstructorId(instructor.id);
                       }}
-                      className="px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-600 text-white"
+                      className="px-4 py-2 rounded-lg bg-[#1F3463] hover:bg-blue-700 text-white text-sm font-medium"
                     >
                       View
                     </button>
@@ -240,7 +240,7 @@ const InstructorTable = ({
                         setViewOnlyInstructorId(null);
                         setExpandedInstructorId(isExpanded ? null : instructor.id);
                       }}
-                      className={`px-4 py-2 rounded-lg transition ${
+                      className={`px-4 py-2 rounded-lg text-sm font-medium ${
                         saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
                       } text-white`}
                     >

@@ -26,6 +26,7 @@ public function bulkUpload(Request $request) {
 
         $inserted = [];
         $errors   = [];
+        $skipped  = [];
 
         foreach ($rows as $i => $row) {
             $data = array_combine($header, $row);
@@ -47,34 +48,42 @@ public function bulkUpload(Request $request) {
                 continue;
             }
 
-            // Duplicate check (same logic as store())
-            $existing = $data['category'] === 'SHS'
-                ? Program::where('name', $data['name'])->where('category','SHS')->first()
-                : Program::where('name',$data['name'])
-                        ->where('code',$data['code'])
-                        ->where('yearLevel',$data['yearLevel'])
-                        ->first();
-
-            if ($existing) {
-                $errors[] = [
+            // Check for existing program with same code and year level
+            $existingProgram = Program::where('code', $data['code'])
+                                   ->where('yearLevel', $data['yearLevel'])
+                                   ->where('category', ucwords(str_replace('_',' ',$data['category'])))
+                                   ->first();
+            
+            if ($existingProgram) {
+                $skipped[] = [
                     'row' => $i + 2,
-                    'errors' => ["Program already exists"],
+                    'code' => $data['code'],
+                    'yearLevel' => $data['yearLevel'],
+                    'message' => "Program with code '{$data['code']}' and year level '{$data['yearLevel']}' already exists"
                 ];
                 continue;
             }
 
-            // Create
-            $inserted[] = Program::create([
-                'name'      => $data['name'],
-                'code'      => $data['code'],
-                'yearLevel' => $data['yearLevel'],
-                'category'  => ucwords(str_replace('_',' ',$data['category'])),
-            ]);
+            try {
+                // Create
+                $inserted[] = Program::create([
+                    'name'      => $data['name'],
+                    'code'      => $data['code'],
+                    'yearLevel' => $data['yearLevel'],
+                    'category'  => ucwords(str_replace('_',' ',$data['category'])),
+                ]);
+            } catch (\Exception $e) {
+                $errors[] = [
+                    'row' => $i + 2,
+                    'errors' => [$e->getMessage()]
+                ];
+            }
         }
 
         return response()->json([
             'message'  => 'Programs upload complete',
             'inserted' => count($inserted),
+            'skipped'  => $skipped,
             'errors'   => $errors,
         ], 201);
     }

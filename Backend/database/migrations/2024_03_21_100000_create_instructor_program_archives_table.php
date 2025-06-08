@@ -10,11 +10,21 @@ return new class extends Migration
     {
         Schema::create('instructor_program_archives', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('instructor_id')->constrained('instructors');
-            $table->foreignId('program_id')->constrained('programs');
+            $table->unsignedBigInteger('instructor_id');
+            $table->unsignedBigInteger('program_id');
             $table->integer('yearLevel');
             $table->string('phase');
             $table->timestamps();
+
+            $table->foreign('instructor_id')
+                ->references('id')
+                ->on('instructors')
+                ->onDelete('cascade');
+
+            $table->foreign('program_id')
+                ->references('id')
+                ->on('programs')
+                ->onDelete('cascade');
         });
     }
 
