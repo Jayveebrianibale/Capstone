@@ -18,7 +18,7 @@ const EvaluationPhaseService = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error switching phase:', error);
+      console.error('Error switching phase:', error.response || error);
       throw error;
     }
   },
@@ -26,6 +26,7 @@ const EvaluationPhaseService = {
   checkEvaluationPeriod: async () => {
     try {
       const response = await api.get('/evaluation-phase');
+      console.log('Phase response:', response);
       const currentPhase = response.data.phase;
       if (currentPhase !== 'Phase 1') {
         throw new Error(`Evaluations are only accepted during Phase 1. Current phase: ${currentPhase}`);

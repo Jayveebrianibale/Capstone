@@ -16,6 +16,7 @@ use App\Models\EvaluationArchive;
 use App\Models\EvaluationResponseArchive;
 use PDF;// Add this at the top of your controller
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 
 
@@ -423,8 +424,25 @@ class EvaluationController extends Controller {
 
     //Phase Management and Archives
     public function getCurrentPhase() {
-        $phase = Setting::first()->evaluation_phase ?? 'Phase 1';
-        return response()->json(['phase' => $phase]);
+        try {
+            // Check if settings table exists
+            if (!Schema::hasTable('settings')) {
+                return response()->json(['phase' => 'Phase 1']);
+            }
+
+            $settings = Setting::first();
+            if (!$settings) {
+                // Create default settings if none exist
+                $settings = Setting::create([
+                    'evaluation_phase' => 'Phase 1'
+                ]);
+            }
+
+            return response()->json(['phase' => $settings->evaluation_phase]);
+        } catch (\Exception $e) {
+            \Log::error('Error in getCurrentPhase: ' . $e->getMessage());
+            return response()->json(['phase' => 'Phase 1']);
+        }
     }
     
     public function switchPhase(Request $request) {
