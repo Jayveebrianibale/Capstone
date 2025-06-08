@@ -22,7 +22,6 @@ function Instructors() {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [deleteInstructorId, setDeleteInstructorId] = useState(null);
   const [schoolYear, setSchoolYear] = useState("");
-  const [semester, setSemester] = useState("1st Semester");
   const { loading, setLoading } = useLoading();
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
@@ -30,14 +29,13 @@ function Instructors() {
   const [assignedPrograms, setAssignedPrograms] = useState([]);
   const [assignedProgramsInstructor, setAssignedProgramsInstructor] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [removingProgramId, setRemovingProgramId] = useState(null);
   const instructorsPerPage = 10;
   const totalPages = Math.ceil(filteredInstructors.length / instructorsPerPage);
   const paginatedInstructors = filteredInstructors.slice(
     (currentPage - 1) * instructorsPerPage,
     currentPage * instructorsPerPage
   );
-
-  const semesters = ['1st Semester', '2nd Semester'];
 
   const getDynamicSchoolYears = () => {
     const currentYear = new Date().getFullYear();
@@ -224,6 +222,19 @@ function Instructors() {
     }
   };
 
+  const handleRemoveProgram = async (instructorId, programId, yearLevel) => {
+    try {
+      setRemovingProgramId(`${programId}-${yearLevel}`);
+      await InstructorService.removeProgram(instructorId, programId, yearLevel);
+      toast.success("Program removed successfully");
+      handleCheckDetails(assignedProgramsInstructor);
+    } catch (error) {
+      toast.error("Failed to remove program");
+    } finally {
+      setRemovingProgramId(null);
+    }
+  };
+
   function getYearLevelLabel(year) {
     const n = parseInt(year, 10);
     if (isNaN(n)) return "";
@@ -241,33 +252,12 @@ function Instructors() {
       {/* Header Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 items-center">
         <div>
-          <h1 className="text-2xl font-bold text-[#1F3463] dark:text-white mb-2">
+          <h1 className="text-2xl font-bold text-[#1F3463] dark:text-white mb-1">
             Instructor Management
           </h1>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
-                School Year:
-              </span>
-              <span className="text-[#1F3463] dark:text-blue-400 text-sm font-semibold">
-                {schoolYear}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
-                Semester:
-              </span>
-              <select
-                value={semester}
-                onChange={(e) => setSemester(e.target.value)}
-                className="text-[#1F3463] dark:text-blue-400 text-sm font-semibold bg-transparent border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#1F3463] dark:focus:ring-blue-400"
-              >
-                {semesters.map((sem) => (
-                  <option key={sem} value={sem}>{sem}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+            School Year {schoolYear}
+          </p>
         </div>
         <div className="flex flex-wrap gap-3 justify-start md:justify-end">
           <div className="flex-1 md:flex-none">
@@ -622,9 +612,32 @@ function Instructors() {
                             )}
                           </div>
                         </div>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                          Active
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            Active
+                          </span>
+                          <button
+                            onClick={() => handleRemoveProgram(assignedProgramsInstructor.id, prog.id, prog.year_level)}
+                            disabled={removingProgramId === `${prog.id}-${prog.year_level}`}
+                            className="px-2.5 py-1.5 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-lg flex items-center gap-1.5 transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Remove Program"
+                          >
+                            {removingProgramId === `${prog.id}-${prog.year_level}` ? (
+                              <>
+                                <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Removing...</span>
+                              </>
+                            ) : (
+                              <>
+                                <FaTrash className="w-3.5 h-3.5" />
+                                <span>Remove</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

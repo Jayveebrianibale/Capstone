@@ -50,6 +50,7 @@ Route::get('/instructors/export/csv', [EvaluationController::class, 'exportInstr
 
 // Instructor Routes
 Route::post('/instructors/{id}/assign-programs', [InstructorController::class, 'assignProgram']);
+Route::delete('/instructors/{instructorId}/programs/{programId}', [InstructorController::class, 'removeProgram']);
 Route::get('/instructors/program/{programId}/year/{yearLevel}', [InstructorController::class, 'getInstructorsByProgramAndYear']);
 Route::get('/instructors/by-course', [InstructorController::class, 'getInstructorsByCourse']);
 Route::get('/instructors', [InstructorController::class, 'index']);

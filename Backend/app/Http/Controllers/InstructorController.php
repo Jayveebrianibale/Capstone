@@ -484,24 +484,50 @@ public function getInstructorCommentsWithStudentNames($instructorId)
     }
 
     public function getCommentsWithStudentNames($instructorId)
-{
-    $comments = DB::table('evaluation_responses')
-        ->join('evaluations', 'evaluation_responses.evaluation_id', '=', 'evaluations.id')
-        ->join('users', 'evaluations.student_id', '=', 'users.id')
-        ->join('programs', 'users.program_id', '=', 'programs.id') // join programs
-        ->select(
-            DB::raw('MIN(evaluation_responses.comment) as comment'),
-            'users.name as student_name',
-            'evaluations.student_id',
-            'programs.code as program_code' // add program code
-        )
-        ->where('evaluations.instructor_id', $instructorId)
-        ->whereNotNull('evaluation_responses.comment')
-        ->where('evaluation_responses.comment', '<>', '')
-        ->groupBy('evaluations.student_id', 'users.name', 'programs.code') // group by program code too
-        ->get();
+    {
+        $comments = DB::table('evaluation_responses')
+            ->join('evaluations', 'evaluation_responses.evaluation_id', '=', 'evaluations.id')
+            ->join('users', 'evaluations.student_id', '=', 'users.id')
+            ->join('programs', 'users.program_id', '=', 'programs.id')
+            ->select(
+                DB::raw('MIN(evaluation_responses.comment) as comment'),
+                'users.name as student_name',
+                'evaluations.student_id',
+                'programs.code as program_code'
+            )
+            ->where('evaluations.instructor_id', $instructorId)
+            ->whereNotNull('evaluation_responses.comment')
+            ->where('evaluation_responses.comment', '<>', '')
+            ->groupBy('evaluations.student_id', 'users.name', 'programs.code')
+            ->get();
 
-    return response()->json($comments);
-}
+        return response()->json($comments);
+    }
 
+    public function removeProgram($instructorId, $programId)
+    {
+        try {
+            $instructor = Instructor::findOrFail($instructorId);
+            $yearLevel = request()->query('yearLevel');
+            
+            if (!$yearLevel) {
+                return response()->json([
+                    'message' => 'Year level is required',
+                ], 400);
+            }
+
+            // Remove the specific program-year level combination
+            $instructor->programs()->wherePivot('yearLevel', $yearLevel)->detach($programId);
+            
+            return response()->json([
+                'message' => 'Program removed successfully',
+                'instructor' => $instructor->load('programs')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to remove program',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

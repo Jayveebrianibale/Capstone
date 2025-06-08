@@ -452,8 +452,9 @@ class EvaluationController extends Controller {
     
     protected function archiveEvaluations() {
         DB::transaction(function () {
+            // Archive evaluations
             $evaluations = Evaluation::with('responses')->get();
-    
+
             foreach ($evaluations as $evaluation) {
                 $archivedEvaluation = EvaluationArchive::create([
                     'student_id' => $evaluation->student_id,
@@ -466,7 +467,7 @@ class EvaluationController extends Controller {
                     'created_at' => $evaluation->created_at,
                     'updated_at' => $evaluation->updated_at
                 ]);
-    
+
                 foreach ($evaluation->responses as $response) {
                     EvaluationResponseArchive::create([
                         'evaluation_id' => $archivedEvaluation->id,
@@ -477,19 +478,31 @@ class EvaluationController extends Controller {
                         'updated_at' => $response->updated_at
                     ]);
                 }
-    
+
                 $evaluation->responses()->delete();
                 $evaluation->delete();
+            }
+
+            // Archive program assignments
+            $programAssignments = DB::table('instructor_program')->get();
+            foreach ($programAssignments as $assignment) {
+                \App\Models\InstructorProgramArchive::create([
+                    'instructor_id' => $assignment->instructor_id,
+                    'program_id' => $assignment->program_id,
+                    'yearLevel' => $assignment->yearLevel,
+                    'phase' => 'Phase 1'
+                ]);
             }
         });
     }
     
     protected function restorePhaseOneData() {
         DB::transaction(function () {
+            // Restore evaluations
             $archivedEvaluations = EvaluationArchive::with('responses')
                 ->where('phase', 'Phase 1')
                 ->get();
-    
+
             foreach ($archivedEvaluations as $archivedEvaluation) {
                 $evaluation = Evaluation::create([
                     'student_id' => $archivedEvaluation->student_id,
@@ -501,7 +514,7 @@ class EvaluationController extends Controller {
                     'created_at' => $archivedEvaluation->created_at,
                     'updated_at' => $archivedEvaluation->updated_at
                 ]);
-    
+
                 foreach ($archivedEvaluation->responses as $response) {
                     EvaluationResponse::create([
                         'evaluation_id' => $evaluation->id,
@@ -513,10 +526,23 @@ class EvaluationController extends Controller {
                     ]);
                 }
             }
-    
-            // Optional: clear the archives for Phase 1 if needed
-            // EvaluationResponseArchive::whereIn('evaluation_id', $archivedEvaluations->pluck('id'))->delete();
-            // EvaluationArchive::where('phase', 'Phase 1')->delete();
+
+            // Restore program assignments
+            $archivedAssignments = \App\Models\InstructorProgramArchive::where('phase', 'Phase 1')->get();
+            foreach ($archivedAssignments as $archivedAssignment) {
+                DB::table('instructor_program')->updateOrInsert(
+                    [
+                        'instructor_id' => $archivedAssignment->instructor_id,
+                        'program_id' => $archivedAssignment->program_id,
+                        'yearLevel' => $archivedAssignment->yearLevel
+                    ],
+                    [
+                        'instructor_id' => $archivedAssignment->instructor_id,
+                        'program_id' => $archivedAssignment->program_id,
+                        'yearLevel' => $archivedAssignment->yearLevel
+                    ]
+                );
+            }
         });
     }
 

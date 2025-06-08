@@ -216,6 +216,18 @@ const InstructorService = {
       throw error;
     }
   },
+
+  removeProgram: async (instructorId, programId, yearLevel) => {
+    try {
+      const response = await api.delete(`/instructors/${instructorId}/programs/${programId}`, {
+        params: { yearLevel }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error removing program:', error.response?.data || error.message);
+      throw error;
+    }
+  },
 };
 
 
