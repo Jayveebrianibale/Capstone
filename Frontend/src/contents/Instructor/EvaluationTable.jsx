@@ -44,7 +44,16 @@ export function EvaluationTable({ instructor }) {
     }
 
     fetchData();
-  }, [instructor?.id]);
+  }, [instructor?.instructor_id]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1F3463]"></div>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">Loading evaluation data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -59,13 +68,7 @@ export function EvaluationTable({ instructor }) {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={4} className="text-center py-6">
-                  Loading...
-                </td>
-              </tr>
-            ) : questions.length === 0 ? (
+            {questions.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center py-6">
                   No questions found.

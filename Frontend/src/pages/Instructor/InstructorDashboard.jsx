@@ -7,8 +7,8 @@ function InstructorDashboard() {
   const [instructor, setInstructor] = useState(null);
 
   useEffect(() => {
-    // Always get the latest user info from localStorage
-    const user = JSON.parse(localStorage.getItem('user'));
+    // Get instructor data from sessionStorage
+    const user = JSON.parse(sessionStorage.getItem('user'));
     if (user) {
       setInstructor(user);
     }
@@ -16,9 +16,9 @@ function InstructorDashboard() {
 
   const currentHour = new Date().getHours();
   const greeting = () => {
-    if (currentHour < 12) return 'Good Morning, Instructor!';
-    if (currentHour < 18) return 'Good Afternoon, Instructor!';
-    return 'Good Evening, Instructor!';
+    if (currentHour < 12) return 'Good Morning';
+    if (currentHour < 18) return 'Good Afternoon';
+    return 'Good Evening';
   };
 
   if (!instructor) {
@@ -27,6 +27,7 @@ function InstructorDashboard() {
 
   return (
     <main className="p-5 min-h-screen dark:bg-gray-900 space-y-6">
+      {/* Header Banner */}
       <div
         className="relative rounded-2xl overflow-hidden shadow-md bg-[#1F3463] p-6 sm:p-8 text-white"
         style={{
@@ -38,28 +39,31 @@ function InstructorDashboard() {
       >
         <div className="absolute inset-0 bg-black bg-opacity-40 z-0" />
         <div className="relative z-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight drop-shadow-md">
-            {greeting()}
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight drop-shadow-md">
+            {greeting()}, {instructor.name}!
           </h1>
           <p className="mt-1 text-sm sm:text-base text-gray-200">
-            Here’s your Evaluation Results Overview.
+            Here's your Evaluation Results Overview.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1">
-        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 gap-6">
+        {/* Analytics Section */}
+        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Overall Performance Analytics
           </h2>
           <AnalyticsChart instructorId={instructor.instructor_id} />
         </div>
 
-        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl p-6 shadow-sm mb-10">
+        {/* Evaluation Table Section */}
+        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
-            Evaluation Results
+            Detailed Evaluation Results
           </h2>
-          <EvaluationTable instructor={JSON.parse(sessionStorage.getItem("user"))} />
+          <EvaluationTable instructor={instructor} />
         </div>
       </div>
     </main>
