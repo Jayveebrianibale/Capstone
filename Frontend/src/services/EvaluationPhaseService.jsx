@@ -24,11 +24,17 @@ const EvaluationPhaseService = {
   },
 
   checkEvaluationPeriod: async () => {
-    const currentPhase = await EvaluationPhaseService.getCurrentPhase();
-    if (currentPhase !== 'Phase 1') {
-      throw new Error(`Evaluations are only accepted during Phase 1. Current phase: ${currentPhase}`);
+    try {
+      const response = await api.get('/evaluation-phase');
+      const currentPhase = response.data.phase;
+      if (currentPhase !== 'Phase 1') {
+        throw new Error(`Evaluations are only accepted during Phase 1. Current phase: ${currentPhase}`);
+      }
+      return true;
+    } catch (error) {
+      console.error('Error checking evaluation period:', error);
+      throw error;
     }
-    return true;
   }
 };
 
