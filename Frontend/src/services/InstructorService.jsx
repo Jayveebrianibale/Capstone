@@ -55,25 +55,19 @@ const InstructorService = {
 
       // Validate and format the programs data
       const validatedPrograms = programs.map(program => {
-        // Get year level from either program name or yearLevel field
-        let yearLevel;
-        
-        // Try to get grade from program name first
-        const gradeMatch = program.programName?.match(/Grade\s+(\d+)/i);
-        if (gradeMatch) {
-          yearLevel = parseInt(gradeMatch[1], 10);
-        } else {
-          // Fall back to yearLevel field
-          yearLevel = parseInt(program.yearLevel, 10);
-        }
+        // Ensure yearLevels is an array of integers
+        const yearLevels = Array.isArray(program.yearLevels) 
+          ? program.yearLevels.map(level => parseInt(level))
+          : [parseInt(program.yearLevel)];
 
-        if (isNaN(yearLevel)) {
+        // Validate year levels
+        if (yearLevels.some(isNaN)) {
           throw new Error(`Invalid year level for program ${program.id}`);
         }
 
         return {
           id: program.id,
-          yearLevel: yearLevel
+          yearLevels: yearLevels
         };
       });
 

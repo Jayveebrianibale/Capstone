@@ -40,7 +40,8 @@ class StudentProfileController extends Controller
             }
             $yearLevel = $validated['yearLevel'];
         } else {
-            $yearLevel = null; // Explicitly set to null for non-Higher Education
+            // For non-Higher Education, use the program name as year level
+            $yearLevel = $program->name;
         }
         
         $user->update([

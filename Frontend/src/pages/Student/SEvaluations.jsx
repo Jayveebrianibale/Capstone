@@ -233,27 +233,18 @@ const SEvaluations = () => {
     // Convert to string and lowercase for consistent comparison
     const level = String(yearLevel).toLowerCase().trim();
     
-    switch (level) {
-      case '1st year':
-      case 'first year':
-      case '1':
-        return 1;
-      case '2nd year':
-      case 'second year':
-      case '2':
-        return 2;
-      case '3rd year':
-      case 'third year':
-      case '3':
-        return 3;
-      case '4th year':
-      case 'fourth year':
-      case '4':
-        return 4;
-      default:
-        console.log('Invalid year level:', yearLevel); // For debugging
-        return null;
+    // Extract number from strings like "1st Year", "2nd Year", etc.
+    const match = level.match(/^(\d+)(?:st|nd|rd|th)?/);
+    if (match) {
+      const number = parseInt(match[1]);
+      if (number >= 1 && number <= 4) {
+        return number;
+      }
     }
+    
+    // If no match or invalid number, return null
+    console.log('Invalid year level:', yearLevel); // For debugging
+    return null;
   };
 
   const fetchAssignedInstructors = async () => {

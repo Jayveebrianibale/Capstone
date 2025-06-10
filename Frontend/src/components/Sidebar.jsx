@@ -20,11 +20,11 @@ function Sidebar({ sidebarOpen, setSidebarOpen, activePage, setActivePage, role,
     const savedActivePage = localStorage.getItem("activePage");
     if (savedActivePage) {
       setActivePage(savedActivePage);
-    } else if (role === "Instructor" && location.pathname === "/InstructorDashboard") {
+    } else if (role === "Instructor") {
       setActivePage("Evaluation Results");
       localStorage.setItem("activePage", "Evaluation Results");
     }
-  }, [setActivePage, role, location.pathname]);
+  }, [setActivePage, role]);
 
   const menus = {
     Student: [

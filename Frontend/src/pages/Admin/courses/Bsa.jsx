@@ -124,9 +124,10 @@ function Bsa() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setFetchError(false); // Reset error state at start of fetch
 
       // Fetch filtered results and evaluation counts
-      const [filteredResults, courseEvalCounts] = await Promise.all([ // Modified data fetching
+      const [filteredResults, courseEvalCounts] = await Promise.all([
         EvaluationFilterService.getFilteredResults(programCode, {
           schoolYear: filters.schoolYear,
           semester: filters.semester
@@ -134,16 +135,20 @@ function Bsa() {
         EvaluationService.getCourseEvaluationSubmissionCounts(),
       ]);
 
-      if (!Array.isArray(filteredResults) || !Array.isArray(courseEvalCounts)) {
-        throw new Error("Invalid data format received from one or more endpoints");
-      }
-
       // Find the submitted count for the current programCode
       const currentCourseStats = courseEvalCounts.find(course => course.course_code === programCode);
       setSubmittedCount(currentCourseStats ? currentCourseStats.submitted_count : 0);
 
       // Fetch instructors to merge with filtered results
       const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
+
+      // Handle no instructors case
+      if (!instructorsData || instructorsData.length === 0) {
+        setNoInstructors(true);
+        setMergedInstructorsByYear([[], [], [], []]);
+        setLoading(false);
+        return;
+      }
 
       // Group instructors by actual year level (1-4)
       const groupByYear = (data) => {
@@ -239,13 +244,8 @@ function Bsa() {
       setNoInstructors(instructorsData.length === 0);
     } catch (error) {
       console.error("Data fetch failed:", error);
-      if (error?.response?.status === 404) {
-        setNoInstructors(true);
-        toast.info("No instructors found for this program.");
-      } else {
-        toast.error("Failed to load instructor data");
-        setFetchError(true);
-      }
+      setFetchError(true);
+      setNoInstructors(false);
     } finally {
       setLoading(false);
     }
@@ -275,11 +275,12 @@ function Bsa() {
   if (fetchError) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh]">
+        <Users className="w-16 h-16 text-gray-400 mb-4" />
         <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-          Something went wrong
+          No Instructors Found
         </h2>
-        <p className="text-red-500 text-center">
-          We encountered an error while loading the data. Please try again later.
+        <p className="text-gray-500 dark:text-gray-400 text-center">
+          There are currently no instructors assigned to any year level for BSA.
         </p>
       </div>
     );
@@ -290,13 +291,23 @@ function Bsa() {
       <ToastContainer position="top-right" autoClose={3000} />
       {loading ? (
         <FullScreenLoader />
-      ) : noInstructors || !hasInstructorsAssigned() ? (
+      ) : fetchError ? (
         <div className="flex flex-col items-center justify-center h-[70vh]">
           <Users className="w-16 h-16 text-gray-400 mb-4" />
           <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
             No Instructors Found
           </h2>
-          <p className="text-red-500 text-center">
+          <p className="text-gray-500 dark:text-gray-400 text-center">
+            There are currently no instructors assigned to any year level for BSA.
+          </p>
+        </div>
+      ) : noInstructors ? (
+        <div className="flex flex-col items-center justify-center h-[70vh]">
+          <Users className="w-16 h-16 text-gray-400 mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+            No Instructors Found
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 text-center">
             There are currently no instructors assigned to any year level for BSA.
           </p>
         </div>

@@ -106,10 +106,10 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
             <div
               className={`text-3xl font-bold ${
                 percentage >= 90
-                  ? "text-green-600 dark:text-green-400"
+                  ? "text-green-500"
                   : percentage >= 75
-                  ? "text-[#1F3463] dark:text-blue-400"
-                  : "text-red-600 dark:text-red-400"
+                  ? "text-yellow-500"
+                  : "text-red-500"
               }`}
             >
               {percentage.toFixed(2)}%
@@ -146,7 +146,7 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
                           {question.question}
                         </p>
                       </div>
-                      <div className="text-lg font-semibold text-[#1F3463] dark:text-blue-400">
+                      <div className="text-lg font-semibold text-[#1F3463]">
                         {ratings[`q${index + 1}`]?.toFixed(2) || '-'}
                       </div>
                     </div>

@@ -53,6 +53,9 @@ const EvaluationForm = ({
     handleSaveEvaluation(instructorId);
   };
 
+  // Check if all questions have ratings
+  const allQuestionsAnswered = questions.every(q => instructorResponses?.[q.id]?.rating);
+
   // Clear validation error when a rating is selected
   const handleRatingChange = (questionId, value, label) => {
     if (validationErrors[questionId]) {
@@ -157,7 +160,12 @@ const EvaluationForm = ({
         <div className="flex justify-end">
           <button
             onClick={handleSave}
-            className="px-6 py-2 rounded-md text-sm font-medium transition-all bg-green-600 text-white hover:bg-green-700"
+            disabled={!allQuestionsAnswered}
+            className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+              allQuestionsAnswered
+                ? 'bg-green-600 hover:bg-green-700 text-white'
+                : 'bg-gray-400 cursor-not-allowed text-white'
+            }`}
           >
             {evaluationResponses?.[instructorId] ? 'Update Evaluation' : 'Save Evaluation'}
           </button>

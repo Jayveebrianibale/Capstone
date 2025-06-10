@@ -11,7 +11,7 @@ email<!DOCTYPE html>
             padding: 30px 40px;
         }
         .header {
-            border-bottom: 3px solid #2c3e50;
+            border-bottom: 3px solid #1F3463;
             padding-bottom: 15px;
             margin-bottom: 25px;
             text-align: center;
@@ -21,7 +21,7 @@ email<!DOCTYPE html>
             margin-bottom: 10px;
         }
         .report-title {
-            color: #2c3e50;
+            color: #1F3463;
             font-size: 24px;
             margin: 15px 0 5px 0;
             text-align: center;
@@ -46,13 +46,22 @@ email<!DOCTYPE html>
         .metric-value {
             font-size: 24px;
             font-weight: bold;
-            color: #3498db;
+            color: #1F3463;
             margin: 5px 0;
+        }
+        .metric-value.excellent {
+            color: #22c55e; /* green-500 */
+        }
+        .metric-value.good {
+            color: #eab308; /* yellow-500 */
+        }
+        .metric-value.needs-improvement {
+            color: #ef4444; /* red-500 */
         }
         .section-title {
             font-size: 18px;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
+            color: #1F3463;
+            border-bottom: 2px solid #1F3463;
             padding-bottom: 8px;
             margin: 25px 0 15px 0;
         }
@@ -63,7 +72,7 @@ email<!DOCTYPE html>
             background: white;
         }
         th {
-            background: #2c3e50;
+            background: #1F3463;
             color: white;
             padding: 12px;
             text-align: left;
@@ -77,7 +86,17 @@ email<!DOCTYPE html>
         }
         .rating-cell {
             font-weight: bold;
-            color: #27ae60;
+            text-align: center;
+            color: #1F3463;
+        }
+        .rating-cell.excellent {
+            color: #1F3463; /* green-500 */
+        }
+        .rating-cell.good {
+            color: #1F3463; /* yellow-500 */
+        }
+        .rating-cell.needs-improvement {
+            color: #1F3463; /* red-500 */
         }
         .footer {
             margin-top: 30px;
@@ -103,14 +122,14 @@ email<!DOCTYPE html>
         <div class="report-title">EVALUATION REPORT</div>
         <div class="report-info">
             <strong>Instructor:</strong> {{ $instructor->name }}<br>
-            Generated: {{ date('F j, Y') }}
+            Generated: {{ now()->setTimezone('Asia/Manila')->format('F j, Y') }}
         </div>
     </div>
 
     <div class="metadata">
         <div class="metric-card">
             <div class="metric-label">Overall Rating</div>
-            <div class="metric-value">
+            <div class="metric-value {{ $instructor->overallRating >= 90 ? 'excellent' : ($instructor->overallRating >= 75 ? 'good' : 'needs-improvement') }}">
                 @if(isset($instructor->overallRating))
                     {{ number_format($instructor->overallRating, 1) }}%
                 @else
@@ -160,8 +179,9 @@ email<!DOCTYPE html>
                     @php
                         $ratingKey = 'q' . ($index + 1);
                         $rating = $ratings[$ratingKey] ?? null;
+                        $ratingClass = $rating >= 90 ? 'excellent' : ($rating >= 75 ? 'good' : 'needs-improvement');
                     @endphp
-                    <td class="rating-cell" style="text-align: center;">
+                    <td class="rating-cell {{ $ratingClass }}" style="text-align: center;">
                         @if($rating !== null)
                             {{ number_format($rating, 1) }}
                         @else
@@ -174,7 +194,7 @@ email<!DOCTYPE html>
     </table>
 
     <div class="footer">
-        This report was generated automatically on {{ date('F j, Y \a\t H:i') }}. 
+        This report was generated automatically on {{ now()->setTimezone('Asia/Manila')->format('F j, Y \a\t h:i A') }}. 
         For any inquiries, please contact the administration office.
     </div>
 </body>

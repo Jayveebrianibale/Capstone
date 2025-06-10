@@ -34,17 +34,39 @@ const SDashboard = () => {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
 
-      if (parsedUser.program_id && parsedUser.yearLevel) {
-        InstructorService.getInstructorsByProgramAndYear(
-          parseInt(parsedUser.program_id),
-          parseInt(parsedUser.yearLevel)
-        )
-          .then((data) => setInstructors(data))
-          .catch((error) => {
-            console.error("Failed to fetch instructors", error);
+      if (parsedUser.program_id) {
+        // For Higher Education students
+        if (parsedUser.educationLevel === "Higher Education" && parsedUser.yearLevel) {
+          // Convert year level string to number (e.g., "1st Year" -> 1)
+          const yearLevelMatch = parsedUser.yearLevel.match(/^(\d+)(?:st|nd|rd|th)?/);
+          const yearLevelNumber = yearLevelMatch ? parseInt(yearLevelMatch[1]) : null;
+          
+          if (yearLevelNumber && yearLevelNumber >= 1 && yearLevelNumber <= 4) {
+            InstructorService.getInstructorsByProgramAndYear(
+              parseInt(parsedUser.program_id),
+              yearLevelNumber
+            )
+              .then((data) => setInstructors(data))
+              .catch((error) => {
+                console.error("Failed to fetch instructors", error);
+                setInstructors([]);
+              })
+              .finally(() => setLoading(false));
+          } else {
+            console.error("Invalid year level format");
             setInstructors([]);
-          })
-          .finally(() => setLoading(false));
+            setLoading(false);
+          }
+        } else {
+          // For non-Higher Education students
+          InstructorService.getInstructorsByProgramName(parsedUser.program_name)
+            .then((data) => setInstructors(data))
+            .catch((error) => {
+              console.error("Failed to fetch instructors", error);
+              setInstructors([]);
+            })
+            .finally(() => setLoading(false));
+        }
       }
     }
   }, []);
@@ -79,7 +101,13 @@ const SDashboard = () => {
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight drop-shadow-md">
             {greeting()} {user ? `${user.name.split(" ")[0]}${user.name.split(" ").length > 1 ? " " + user.name.split(" ")[1] : ""}!` : "Student"}
           </h1>
-          <span>{user ? `${user.program_name} - ${user.yearLevel}` : ""}</span>
+          <span>
+            {user ? (
+              user.educationLevel === "Higher Education" 
+                ? `${user.program_name} - ${user.yearLevel}`
+                : user.program_name
+            ) : ""}
+          </span>
         </div>
       </div>
 

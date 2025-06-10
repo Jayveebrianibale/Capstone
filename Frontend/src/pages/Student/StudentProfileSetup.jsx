@@ -113,12 +113,6 @@ function StudentProfileSetup() {
     setLoading(true);
     setErrorMessage("");
   
-    if (educationLevel === "Higher Education" && !selectedYearLevel) {
-      toast.error("Year Level is required for Higher Education.");
-      setLoading(false);
-      return;
-    }
-  
     try {
       const chosenProgramForStep2 = programs.find(p => String(p.id) === selectedProgramId);
   
@@ -127,9 +121,13 @@ function StudentProfileSetup() {
         selectedOption: educationLevel === "Higher Education"
                         ? selectedProgramId
                         : chosenProgramForStep2?.name || "",
-        yearLevel: educationLevel === "Higher Education" ? selectedYearLevel : null,
         programName: chosenProgramForStep2?.name || "",
       };
+
+      // Only add yearLevel for Higher Education
+      if (educationLevel === "Higher Education") {
+        payload.yearLevel = selectedYearLevel;
+      }
   
       const response = await api.post(
         "/student/setup-profile",

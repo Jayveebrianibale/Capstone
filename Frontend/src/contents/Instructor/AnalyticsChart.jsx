@@ -100,9 +100,11 @@ export default function AnalyticsChart({ instructorId }) {
         </h3>
         <div
           className={`text-3xl font-bold ${
-            overallRating >= 85
-              ? 'text-green-600 dark:text-green-400'
-              : 'text-red-600 dark:text-red-400'
+            overallRating >= 90
+              ? 'text-green-500'
+              : overallRating >= 75
+              ? 'text-yellow-500'
+              : 'text-red-500'
           }`}
         >
           {overallRating.toFixed(2)}%

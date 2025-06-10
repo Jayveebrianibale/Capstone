@@ -55,7 +55,7 @@
 <body>
     <div class="header">
         <h2>Instructor Evaluation Results</h2>
-        <small>Generated on: {{ now()->format('Y-m-d H:i:s') }}</small>
+        <small>Generated on: {{ now()->setTimezone('Asia/Manila')->format('F j, Y \a\t h:i A') }}</small>
     </div>
     
     @if(count($data) > 0)

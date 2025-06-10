@@ -18,6 +18,8 @@ const InstructorTable = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSubmitAllModal, setShowSubmitAllModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedInstructor, setSelectedInstructor] = useState(null);
   
   const ratingOptions = {
     "Learning Environments": [
@@ -120,6 +122,17 @@ const InstructorTable = ({
     }
   };
 
+  const handleViewEvaluation = (instructor) => {
+    setSelectedInstructor(instructor);
+    setShowViewModal(true);
+  };
+
+  const getPercentageColor = (value) => {
+    if (value >= 90) return 'text-green-500 font-semibold';
+    if (value >= 75) return 'text-yellow-500 font-semibold';
+    return 'text-red-500 font-semibold';
+  };
+
   return (
     <div className="mt-6 border rounded-lg shadow-sm bg-white dark:bg-gray-800">
       {/* Desktop Header */}
@@ -164,10 +177,7 @@ const InstructorTable = ({
                 <div>
                   {status === 'Evaluated' ? (
                     <button
-                      onClick={() => {
-                        setViewOnlyInstructorId(instructor.id);
-                        setExpandedInstructorId(instructor.id);
-                      }}
+                      onClick={() => handleViewEvaluation(instructor)}
                       className="px-2.5 py-1 rounded-lg bg-[#1F3463] hover:bg-blue-700 text-white text-xs"
                     >
                       View
@@ -177,70 +187,8 @@ const InstructorTable = ({
                       onClick={() => {
                         setViewOnlyInstructorId(null);
                         setExpandedInstructorId(isExpanded ? null : instructor.id);
-                        }}
-                        className={`px-2.5 py-1 rounded-lg text-xs ${
-                        saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
-                        } text-white`}
-                      >
-                        {saved ? 'Edit' : 'Evaluate'}
-                      </button>
-                      )}
-                    </div>
-                    </div>
-
-                    {status === 'Evaluated' && submittedAt && (
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Submitted: {formatDate(submittedAt)}
-                    </div>
-                    )}
-                  </div>
-              {/* Desktop Layout */}
-              <div className="hidden md:grid md:grid-cols-4 gap-4 p-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700">
-                {/* Avatar and Name */}
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1F3463] flex items-center justify-center">
-                    <span className="text-white font-medium">
-                      {instructor.name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white truncate break-words">
-                      {instructor.name}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Status */}
-                <div className={`font-semibold ${statusClass}`}>
-                  {status}
-                </div>
-
-                {/* Submitted At */}
-                <div>
-                  {status === 'Evaluated' && submittedAt
-                    ? formatDate(submittedAt)
-                    : '—'}
-                </div>
-
-                {/* Action Button */}
-                <div className="flex justify-center">
-                  {status === 'Evaluated' ? (
-                    <button
-                      onClick={() => {
-                        setViewOnlyInstructorId(instructor.id);
-                        setExpandedInstructorId(instructor.id);
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-[#1F3463] hover:bg-blue-700 text-white text-base"
-                    >
-                      View
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        setViewOnlyInstructorId(null);
-                        setExpandedInstructorId(isExpanded ? null : instructor.id);
-                      }}
-                      className={`px-3 py-1.5 rounded-lg text-base ${
+                      className={`px-2.5 py-1 rounded-lg text-xs ${
                         saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
                       } text-white`}
                     >
@@ -249,6 +197,65 @@ const InstructorTable = ({
                   )}
                 </div>
               </div>
+
+              {status === 'Evaluated' && submittedAt && (
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Submitted: {formatDate(submittedAt)}
+                </div>
+              )}
+            </div>
+            {/* Desktop Layout */}
+            <div className="hidden md:grid md:grid-cols-4 gap-4 p-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700">
+              {/* Avatar and Name */}
+              <div className="flex items-center">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1F3463] flex items-center justify-center">
+                  <span className="text-white font-medium">
+                    {instructor.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div className="ml-4">
+                  <div className="text-sm font-medium text-gray-900 dark:text-white truncate break-words">
+                    {instructor.name}
+                  </div>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className={`font-semibold ${statusClass}`}>
+                {status}
+              </div>
+
+              {/* Submitted At */}
+              <div>
+                {status === 'Evaluated' && submittedAt
+                  ? formatDate(submittedAt)
+                  : '—'}
+              </div>
+
+              {/* Action Button */}
+              <div className="flex justify-center">
+                {status === 'Evaluated' ? (
+                  <button
+                    onClick={() => handleViewEvaluation(instructor)}
+                    className="px-3 py-1.5 rounded-lg bg-[#1F3463] hover:bg-blue-700 text-white text-base"
+                  >
+                    View
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setViewOnlyInstructorId(null);
+                      setExpandedInstructorId(isExpanded ? null : instructor.id);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-base ${
+                      saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
+                    } text-white`}
+                  >
+                    {saved ? 'Edit' : 'Evaluate'}
+                  </button>
+                )}
+              </div>
+            </div>
             {/* Expanded Form Section */}
             {isExpanded && (
               <div className="col-span-full p-4 border-t dark:border-gray-700">
@@ -308,42 +315,123 @@ const InstructorTable = ({
 
       {/* Submit All Confirmation Modal */}
       {showSubmitAllModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-              Confirm Submission
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Are you sure you want to submit all evaluations? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-3">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 sm:p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 md:p-8 w-full max-w-[95%] sm:max-w-[85%] md:max-w-[75%] lg:max-w-[60%] xl:max-w-[50%]">
+            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="p-2 sm:p-3 bg-yellow-100 dark:bg-yellow-800 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600 dark:text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                Confirm Submission
+              </h3>
+            </div>
+            <div className="space-y-4 sm:space-y-6">
+              <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">
+                You are about to submit all your evaluations. This action cannot be undone.
+              </p>
+              <div className="bg-yellow-50 dark:bg-yellow-900/30 p-4 sm:p-6 rounded-lg">
+                <p className="text-sm sm:text-base text-yellow-800 dark:text-yellow-200">
+                  Please make sure you have reviewed all your evaluations before proceeding.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 mt-6 sm:mt-8">
               <button
                 onClick={() => setShowSubmitAllModal(false)}
-                className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-white"
+                className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white transition-colors text-sm sm:text-base font-medium order-2 sm:order-1"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmitAllWithConfirmation}
                 disabled={isSubmitting}
-                className={`px-4 py-2 rounded-lg text-white ${
+                className={`w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-white transition-colors text-sm sm:text-base font-medium order-1 sm:order-2 ${
                   isSubmitting
                     ? 'bg-blue-400 cursor-not-allowed'
                     : 'bg-[#1F3463] hover:bg-blue-700'
                 }`}
               >
                 {isSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5 text-white" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l5-5-5-5v4a12 12 0 00-12 12h4z" />
                     </svg>
                     Submitting...
                   </span>
                 ) : (
-                  'Submit'
+                  'Confirm & Submit'
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Evaluation Modal */}
+      {showViewModal && selectedInstructor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 sm:p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 md:p-8 w-full max-w-[95%] sm:max-w-[85%] md:max-w-[75%] lg:max-w-[60%] xl:max-w-[50%] max-h-[90vh]">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1F3463] flex items-center justify-center">
+                  <span className="text-white font-medium">
+                    {selectedInstructor.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                  {selectedInstructor.name}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+              {questions.map((q, idx) => {
+                const response = responses[selectedInstructor.id]?.[q.id];
+                return (
+                  <div
+                    key={q.id}
+                    className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900"
+                  >
+                    <h4 className="font-semibold text-base text-gray-800 dark:text-white mb-2">
+                      {idx + 1}. {q.category}
+                    </h4>
+                    <p className="text-base text-gray-600 dark:text-gray-300 mb-3">
+                      {q.question}
+                    </p>
+                    {response && (
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          Rating: {response.label || response.rating}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {responses[selectedInstructor.id]?.comment && (
+                <div className="mt-6">
+                  <h4 className="font-semibold text-base text-gray-800 dark:text-white mb-2">
+                    Comments
+                  </h4>
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      {responses[selectedInstructor.id].comment}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

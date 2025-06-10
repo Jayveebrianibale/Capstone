@@ -281,12 +281,13 @@ class InstructorController extends Controller
             $request->validate([
                 'programs' => 'required|array',
                 'programs.*.id' => 'required|exists:programs,id',
-                'programs.*.yearLevel' => 'required|integer|min:1'
+                'programs.*.yearLevels' => 'required|array',
+                'programs.*.yearLevels.*' => 'required|integer|min:1'
             ]);
 
             // Format the programs data and validate grade levels
             $programsData = collect($request->programs)->mapWithKeys(function ($program) {
-                $gradeLevel = (int)$program['yearLevel'];
+                $yearLevels = array_map('intval', $program['yearLevels']);
                 
                 // Get the program to validate grade level
                 $programModel = \App\Models\Program::find($program['id']);
@@ -294,33 +295,41 @@ class InstructorController extends Controller
                     throw new \Exception("Program not found");
                 }
 
-                // Validate grade level based on program category
-                switch ($programModel->category) {
-                    case 'Junior High':
-                        if ($gradeLevel < 7 || $gradeLevel > 10) {
-                            throw new \Exception("Invalid grade level for Junior High School. Must be between Grade 7 and Grade 10.");
-                        }
-                        break;
-                    case 'Intermediate':
-                        if ($gradeLevel < 4 || $gradeLevel > 6) {
-                            throw new \Exception("Invalid grade level for Intermediate. Must be between Grade 4 and Grade 6.");
-                        }
-                        break;
-                    case 'Senior High':
-                        if ($gradeLevel < 11 || $gradeLevel > 12) {
-                            throw new \Exception("Invalid grade level for Senior High School. Must be between Grade 11 and Grade 12.");
-                        }
-                        break;
-                    case 'Higher Education':
-                        if ($gradeLevel < 1 || $gradeLevel > 4) {
-                            throw new \Exception("Invalid year level for Higher Education. Must be between 1st Year and 4th Year.");
-                        }
-                        break;
-                    default:
-                        throw new \Exception("Invalid program category: " . $programModel->category);
+                // Validate each year level based on program category
+                foreach ($yearLevels as $yearLevel) {
+                    switch ($programModel->category) {
+                        case 'Junior High':
+                            if ($yearLevel < 7 || $yearLevel > 10) {
+                                throw new \Exception("Invalid grade level for Junior High School. Must be between Grade 7 and Grade 10.");
+                            }
+                            break;
+                        case 'Intermediate':
+                            if ($yearLevel < 4 || $yearLevel > 6) {
+                                throw new \Exception("Invalid grade level for Intermediate. Must be between Grade 4 and Grade 6.");
+                            }
+                            break;
+                        case 'Senior High':
+                            if ($yearLevel < 11 || $yearLevel > 12) {
+                                throw new \Exception("Invalid grade level for Senior High School. Must be between Grade 11 and Grade 12.");
+                            }
+                            break;
+                        case 'Higher Education':
+                            if ($yearLevel < 1 || $yearLevel > 4) {
+                                throw new \Exception("Invalid year level for Higher Education. Must be between 1st Year and 4th Year.");
+                            }
+                            break;
+                        default:
+                            throw new \Exception("Invalid program category: " . $programModel->category);
+                    }
                 }
 
-                return [$program['id'] => ['yearLevel' => $gradeLevel]];
+                // Create an array of year level assignments
+                $assignments = [];
+                foreach ($yearLevels as $yearLevel) {
+                    $assignments[] = ['yearLevel' => $yearLevel];
+                }
+
+                return [$program['id'] => $assignments];
             })->all();
 
             // Log the formatted data
@@ -329,23 +338,27 @@ class InstructorController extends Controller
             ]);
 
             // Check for existing assignments with the same grade level
-            foreach ($programsData as $programId => $data) {
-                $existingAssignment = DB::table('instructor_program')
-                    ->where('instructor_id', $id)
-                    ->where('program_id', $programId)
-                    ->where('instructor_program.yearLevel', $data['yearLevel'])
-                    ->first();
+            foreach ($programsData as $programId => $assignments) {
+                foreach ($assignments as $assignment) {
+                    $existingAssignment = DB::table('instructor_program')
+                        ->where('instructor_id', $id)
+                        ->where('program_id', $programId)
+                        ->where('instructor_program.yearLevel', $assignment['yearLevel'])
+                        ->first();
 
-                if ($existingAssignment) {
-                    $program = Program::find($programId);
-                    $gradeText = $this->formatGradeLevelText($data['yearLevel'], $program->category);
-                    throw new \Exception("Instructor is already assigned to this program with {$gradeText}");
+                    if ($existingAssignment) {
+                        $program = Program::find($programId);
+                        $gradeText = $this->formatGradeLevelText($assignment['yearLevel'], $program->category);
+                        throw new \Exception("Instructor is already assigned to this program with {$gradeText}");
+                    }
                 }
             }
 
             // Use attach to add new assignments without removing existing ones
-            foreach ($programsData as $programId => $data) {
-                $instructor->programs()->attach($programId, $data);
+            foreach ($programsData as $programId => $assignments) {
+                foreach ($assignments as $assignment) {
+                    $instructor->programs()->attach($programId, $assignment);
+                }
             }
 
             return response()->json([

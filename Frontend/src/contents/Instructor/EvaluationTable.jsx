@@ -80,7 +80,7 @@ export function EvaluationTable({ instructor }) {
                   <td className="px-6 py-4">{q.id}</td>
                   <td className="px-6 py-4">{q.category}</td>
                   <td className="px-6 py-4">{q.question}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-[#1F3463] font-semibold">
                     {ratings[q.id]?.toFixed(2) ?? "-"}
                   </td>
                 </tr>

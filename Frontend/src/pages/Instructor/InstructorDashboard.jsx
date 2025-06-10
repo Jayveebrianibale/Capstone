@@ -6,6 +6,12 @@ import { EvaluationTable } from '../../contents/Instructor/EvaluationTable';
 function InstructorDashboard() {
   const [instructor, setInstructor] = useState(null);
 
+  const getPercentageColor = (value) => {
+    if (value >= 90) return 'text-green-500 font-semibold';
+    if (value >= 75) return 'text-yellow-500 font-semibold';
+    return 'text-red-500 font-semibold';
+  };
+
   useEffect(() => {
     // Get instructor data from sessionStorage
     const user = JSON.parse(sessionStorage.getItem('user'));
@@ -55,7 +61,7 @@ function InstructorDashboard() {
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Overall Performance Analytics
           </h2>
-          <AnalyticsChart instructorId={instructor.instructor_id} />
+          <AnalyticsChart instructorId={instructor.instructor_id} getPercentageColor={getPercentageColor} />
         </div>
 
         {/* Evaluation Table Section */}
@@ -63,7 +69,7 @@ function InstructorDashboard() {
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Detailed Evaluation Results
           </h2>
-          <EvaluationTable instructor={instructor} />
+          <EvaluationTable instructor={instructor} getPercentageColor={getPercentageColor} />
         </div>
       </div>
     </main>

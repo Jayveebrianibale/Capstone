@@ -95,8 +95,9 @@ function Bsis() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
-      // Fetch filtered results
+      setFetchError(false); // Reset error state at start of fetch
+
+      // Fetch filtered results and evaluation counts
       const [filteredResults, courseEvalCounts] = await Promise.all([
         EvaluationFilterService.getFilteredResults(programCode, {
           schoolYear: filters.schoolYear,
@@ -105,8 +106,20 @@ function Bsis() {
         EvaluationService.getCourseEvaluationSubmissionCounts(),
       ]);
 
+      // Find the submitted count for the current programCode
       const currentCourseStats = courseEvalCounts.find((course) => course.course_code === programCode);
       setSubmittedCount(currentCourseStats ? currentCourseStats.submitted_count : 0);
+
+      // Fetch instructors to merge with filtered results
+      const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
+
+      // Handle no instructors case
+      if (!instructorsData || instructorsData.length === 0) {
+        setNoInstructors(true);
+        setMergedInstructorsByYear([[], [], [], []]);
+        setLoading(false);
+        return;
+      }
 
       const groupByYear = (data) => {
         const grouped = [[], [], [], []];
@@ -175,9 +188,6 @@ function Bsis() {
         return grouped;
       };
 
-      // Fetch instructors to merge with filtered results
-      const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
-
       // Merge instructors with filtered results
       const merged = instructorsData.map(instructor => {
           const result = filteredResults.find(r => r.id === instructor.id || r.name === instructor.name) || {};
@@ -204,13 +214,8 @@ function Bsis() {
       setNoInstructors(instructorsData.length === 0);
     } catch (error) {
       console.error("Data fetch failed:", error);
-      if (error?.response?.status === 404) {
-        setNoInstructors(true);
-        toast.info("No instructors found for this program.");
-      } else {
-        toast.error("Failed to load instructor data");
-        setFetchError(true);
-      }
+      setFetchError(true);
+      setNoInstructors(false);
     } finally {
       setLoading(false);
     }
@@ -310,13 +315,13 @@ function Bsis() {
             We encountered an error while loading the data. Please try again later.
           </p>
         </div>
-      ) : noInstructors || !hasInstructorsAssigned() ? (
+      ) : noInstructors ? (
         <div className="flex flex-col items-center justify-center h-[70vh]">
           <Users className="w-16 h-16 text-gray-400 mb-4" />
           <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
             No Instructors Found
           </h2>
-          <p className="text-red-500 text-center">
+          <p className="text-gray-500 dark:text-gray-400 text-center">
             There are currently no instructors assigned to any year level for BSIS.
           </p>
         </div>

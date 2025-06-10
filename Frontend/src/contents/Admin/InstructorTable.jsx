@@ -83,7 +83,7 @@ function InstructorTable({ instructors, questions }) {
                 {[...Array(9)].map((_, i) => (
                   <td
                     key={i}
-                    className="px-2 py-2 text-center whitespace-nowrap"
+                    className="px-2 py-2 text-center whitespace-nowrap text-[#1F3463]"
                     style={{ minWidth: "2.5rem" }}
                   >
                     {ratings[`q${i + 1}`]?.toFixed(2) || "-"}
@@ -97,9 +97,11 @@ function InstructorTable({ instructors, questions }) {
                 </td>
                 <td
                   className={`px-4 py-2 text-center font-bold whitespace-nowrap ${
-                    percentage >= 85
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
+                    percentage >= 90
+                      ? "text-green-500"
+                      : percentage >= 75
+                      ? "text-yellow-500"
+                      : "text-red-500"
                   }`}
                 >
                   {percentage.toFixed(2)}%
@@ -143,7 +145,7 @@ function InstructorTable({ instructors, questions }) {
               {[...Array(9)].map((_, i) => (
                 <div
                   key={i}
-                  className="flex justify-between text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap"
+                  className="flex justify-between text-[#1F3463] dark:text-[#1F3463] text-sm whitespace-nowrap"
                 >
                   <span>Q{i + 1}:</span>
                   <span>{ratings[`q${i + 1}`]?.toFixed(2) || "-"}</span>
@@ -153,9 +155,11 @@ function InstructorTable({ instructors, questions }) {
   
             <div
               className={`mt-4 font-bold text-center ${
-                percentage >= 85
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
+                percentage >= 90
+                  ? "text-green-500"
+                  : percentage >= 75
+                  ? "text-yellow-500"
+                  : "text-red-500"
               } whitespace-nowrap`}
             >
               {percentage.toFixed(2)}%
