@@ -3,64 +3,45 @@ import InstructorTable from "../../contents/Admin/InstructorTable";
 import Tabs from "../../components/Tabs";
 import ContentHeader from "../../contents/Admin/ContentHeader";
 import ProgramService from "../../services/ProgramService";
-import EvaluationService from "../../services/EvaluationService"; // Added EvaluationService
-import EvaluationFilterService from "../../services/EvaluationFilterService"; // Added EvaluationFilterService
-import InstructorService from "../../services/InstructorService"; // Added InstructorService
-import { toast, ToastContainer } from "react-toastify"; // Added ToastContainer
+import EvaluationService from "../../services/EvaluationService";
+import EvaluationFilterService from "../../services/EvaluationFilterService";
+import InstructorService from "../../services/InstructorService";
+import { toast, ToastContainer } from "react-toastify";
 import FullScreenLoader from "../../components/FullScreenLoader";
 import { useLoading } from "../../components/LoadingContext";
-import { Users, UserX, Loader2 } from "lucide-react"; // Added UserX, Loader2
-
-// Helper to map yearLevel to 1 or 2 for SHS
-const mapYearLevelToNumber = (yearLevel) => {
-  // Handle numerical values (including 11/12 as SHS grades)
-  if (typeof yearLevel === 'number') {
-    if (yearLevel === 11) return 1; // Map 11 to Grade 11 (index 0)
-    if (yearLevel === 12) return 2; // Map 12 to Grade 12 (index 1)
-    return yearLevel; // Assume valid if already 1 or 2
-  }
-
-  // Handle string values
-  const level = String(yearLevel).toLowerCase().trim();
-  if (level === 'grade 11' || level === '11' || level === '1') return 1;
-  if (level === 'grade 12' || level === '12' || level === '2') return 2;
-
-  return null; // Invalid format
-};
-
+import { Users, UserX, Loader2 } from "lucide-react";
+import { validateGradeLevel } from "../../utils/gradeLevelFormatter";
 
 function SeniorHigh() {
   const [activeTab, setActiveTab] = useState(0);
-  const [mergedInstructorsByGrade, setMergedInstructorsByGrade] = useState([[], []]); // Changed state name for clarity
+  const [mergedInstructorsByGrade, setMergedInstructorsByGrade] = useState([[], []]); // For grades 11-12
   const [noInstructors, setNoInstructors] = useState(false);
-  const [fetchError, setFetchError] = useState(false); // Added fetchError state
-  const [submittedCount, setSubmittedCount] = useState(0); // Added submittedCount state
-  const [bulkSending, setBulkSending] = useState(false); // Added bulkSending state
-  const [bulkSendStatus, setBulkSendStatus] = useState(null); // Added bulkSendStatus state
-  const [showConfirmModal, setShowConfirmModal] = useState(false); // Added showConfirmModal state
-  const [filters, setFilters] = useState({ // Added filters state
+  const [fetchError, setFetchError] = useState(false);
+  const [submittedCount, setSubmittedCount] = useState(0);
+  const [bulkSending, setBulkSending] = useState(false);
+  const [bulkSendStatus, setBulkSendStatus] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [filters, setFilters] = useState({
     schoolYear: '',
     semester: '',
     searchQuery: ''
   });
 
-
+  const tabLabels = ["Grade 11", "Grade 12"];
+  const programCode = "SHS";
   const { loading, setLoading } = useLoading();
-  const programCode = "SHS"; // Example code for Senior High School
 
-  const tabLabels = ["Grade 11", "Grade 12"]; // Simplified tab labels
+  const schoolYearOptions = EvaluationFilterService.getSchoolYearOptions();
+  const semesterOptions = EvaluationFilterService.getSemesterOptions();
 
-  const schoolYearOptions = EvaluationFilterService.getSchoolYearOptions(); // Added schoolYearOptions
-  const semesterOptions = EvaluationFilterService.getSemesterOptions(); // Added semesterOptions
-
-  const handleFilterChange = (filterType, value) => { // Added handleFilterChange
+  const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
       ...prev,
       [filterType]: value
     }));
   };
 
-  const handleSearch = (query) => { // Modified handleSearch
+  const handleSearch = (query) => {
     handleFilterChange('searchQuery', query);
   };
 
@@ -72,7 +53,7 @@ function SeniorHigh() {
     console.log("Add Instructor");
   };
 
-  const filterInstructors = (instructors, query) => { // Added filterInstructors
+  const filterInstructors = (instructors, query) => {
     if (!query) return instructors;
     return instructors.filter(instructor =>
       instructor.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -80,7 +61,7 @@ function SeniorHigh() {
     );
   };
 
-  const handleBulkSend = async () => { // Added handleBulkSend function
+  const handleBulkSend = async () => {
     setShowConfirmModal(false);
     setBulkSending(true);
     try {
@@ -119,13 +100,12 @@ function SeniorHigh() {
     }
   };
 
-
   const fetchData = async () => {
     setLoading(true);
-    setFetchError(false); // Reset error state
+    setFetchError(false);
     try {
       // Fetch filtered results and evaluation counts
-      const [filteredResults, courseEvalCounts] = await Promise.all([ // Modified data fetching
+      const [filteredResults, courseEvalCounts] = await Promise.all([
         EvaluationFilterService.getFilteredResults(programCode, {
           schoolYear: filters.schoolYear,
           semester: filters.semester
@@ -133,7 +113,7 @@ function SeniorHigh() {
         EvaluationService.getCourseEvaluationSubmissionCounts(),
       ]);
 
-      console.log("Filtered Results:", filteredResults); // Log filtered results
+      console.log("Filtered Results:", filteredResults);
 
       if (!Array.isArray(filteredResults) || !Array.isArray(courseEvalCounts)) {
         throw new Error("Invalid data format received from one or more endpoints");
@@ -143,63 +123,125 @@ function SeniorHigh() {
       const currentCourseStats = courseEvalCounts.find(course => course.course_code === programCode);
       setSubmittedCount(currentCourseStats ? currentCourseStats.submitted_count : 0);
 
-      // Group instructors by yearLevel (Grade 11, 12 mapped to 1, 2)
-      const groupByYear = (data) => {
-        const grouped = [[], []];
-        data.forEach((item) => {
-          const yearLevel = item?.pivot?.yearLevel;
-          const year = mapYearLevelToNumber(yearLevel);
-          const instructor = { // Reconstruct instructor object
-            id: item.id,
-            name: item.name,
-            email: item.email,
-            yearLevel: year,
-            // Include other properties from filteredResults if needed by InstructorTable
-            ...item, // Merge all properties from the filtered result item
-          };
-          if (year === 1) grouped[0].push(instructor);
-          else if (year === 2) grouped[1].push(instructor);
+      // Fetch instructors to merge with filtered results
+      const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
+      console.log("Raw Instructors Data from Backend:", JSON.stringify(instructorsData, null, 2));
+
+      if (!Array.isArray(instructorsData)) {
+        throw new Error("Invalid instructors data format received");
+      }
+
+      // Log each instructor's grade levels
+      instructorsData.forEach(instructor => {
+        console.log(`Instructor ${instructor.name} (ID: ${instructor.id}) grade levels:`, {
+          pivot: instructor.pivot,
+          gradeLevel: instructor.pivot?.yearLevel,
+          mappedGrade: validateGradeLevel(instructor.pivot?.yearLevel, 'Senior High')
         });
+      });
+
+      // Group instructors by actual grade level (11-12)
+      const groupByGrade = (data) => {
+        const grouped = [[], []]; // [Grade 11, Grade 12]
+        console.log('Starting groupByGrade with data:', JSON.stringify(data, null, 2));
+        
+        data.forEach((item) => {
+          if (!item || !item.pivot || !Array.isArray(item.pivot.assignments)) {
+            console.log('Invalid item data:', item);
+            return;
+          }
+
+          // Process each assignment for this instructor
+          item.pivot.assignments.forEach((assignment) => {
+            const yearLevel = parseInt(assignment.yearLevel, 10);
+            console.log(`Processing assignment for ${item.name}:`, {
+              yearLevel,
+              assignment: JSON.stringify(assignment, null, 2)
+            });
+            
+            if (isNaN(yearLevel) || yearLevel < 11 || yearLevel > 12) {
+              console.log(`Invalid grade level for instructor ${item.name}:`, yearLevel);
+              return;
+            }
+
+            // Create instructor object for this assignment
+            const instructor = {
+              id: item.id,
+              name: item.name,
+              email: item.email,
+              status: item.status,
+              educationLevel: item.educationLevel,
+              gradeLevel: yearLevel,
+              program: assignment.program_name || `Grade ${yearLevel}`,
+              pivot: {
+                yearLevel: yearLevel,
+                program_id: assignment.program_id,
+                program_name: assignment.program_name || `Grade ${yearLevel}`
+              },
+              ratings: item.ratings || {
+                q1: null,
+                q2: null,
+                q3: null,
+                q4: null,
+                q5: null,
+                q6: null,
+                q7: null,
+                q8: null,
+                q9: null
+              },
+              comments: item.comments || "No comments",
+              overallRating: item.overallRating || 0
+            };
+
+            console.log(`Created instructor object for ${item.name} in grade ${yearLevel}:`, JSON.stringify(instructor, null, 2));
+
+            // Place in correct group based on actual grade number
+            if (yearLevel === 11) {
+              console.log(`Adding ${item.name} to Grade 11 group`);
+              grouped[0].push(instructor);
+            }
+            else if (yearLevel === 12) {
+              console.log(`Adding ${item.name} to Grade 12 group`);
+              grouped[1].push(instructor);
+            }
+          });
+        });
+
+        // Log the grouped data for debugging
+        console.log('Final grouped instructors:', JSON.stringify(grouped, null, 2));
         return grouped;
       };
 
-      // Fetch instructors to merge with filtered results (needed to get all instructor details)
-      const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
-      console.log("Instructors Data:", instructorsData); // Log instructors data
-
-       if (!Array.isArray(instructorsData)) {
-          throw new Error("Invalid instructors data format received");
-        }
-
-      // Merge instructors with filtered results based on name or ID
+      // Merge instructors with filtered results
       const merged = instructorsData.map(instructor => {
           const result = filteredResults.find(r => r.id === instructor.id || r.name === instructor.name) || {};
-          return { ...instructor, ...result };
+          // Preserve the original pivot.assignments from the API
+          return { 
+              ...instructor,
+              ...result,
+              pivot: instructor.pivot // Keep the original pivot with assignments
+          };
       });
 
-      console.log("Merged Data before Grouping:", merged); // Log merged data
+      console.log("Merged Data before Grouping:", JSON.stringify(merged, null, 2));
 
+      const mergedGrouped = groupByGrade(merged);
 
-      const mergedGrouped = groupByYear(merged);
-
-      console.log("Merged Data after Grouping:", mergedGrouped); // Log grouped data
-
+      console.log("Merged Data after Grouping:", mergedGrouped);
 
       // Apply search filter
-      const filteredMergedGrouped = mergedGrouped.map(yearGroup =>
-        filterInstructors(yearGroup, filters.searchQuery)
+      const filteredMergedGrouped = mergedGrouped.map(gradeGroup =>
+        filterInstructors(gradeGroup, filters.searchQuery)
       );
 
-
       setMergedInstructorsByGrade(filteredMergedGrouped);
-      // Check if there are *any* instructors assigned to the program initially
       setNoInstructors(instructorsData.length === 0);
 
     } catch (error) {
       console.error("Error loading instructors:", error);
       toast.error(`Failed to load instructors for ${programCode}.`);
-      setFetchError(true); // Set fetchError state
-      setNoInstructors(true); // Assume no instructors if fetch fails
+      setFetchError(true);
+      setNoInstructors(true);
     } finally {
       setLoading(false);
     }
@@ -207,16 +249,15 @@ function SeniorHigh() {
 
   useEffect(() => {
     fetchData();
-  }, [programCode, filters.schoolYear, filters.semester]); // Added filter dependencies
+  }, [programCode, filters.schoolYear, filters.semester]);
 
-  useEffect(() => { // Added useEffect for search query with debounce
+  useEffect(() => {
     const timer = setTimeout(() => {
       fetchData();
     }, 500);
 
     return () => clearTimeout(timer);
   }, [filters.searchQuery]);
-
 
   const hasInstructorsForGrade = (index) => {
     return mergedInstructorsByGrade[index]?.length > 0;
@@ -226,7 +267,7 @@ function SeniorHigh() {
     return mergedInstructorsByGrade.some((gradeGroup) => gradeGroup.length > 0);
   };
 
-  if (fetchError) { // Render error message if fetchError is true
+  if (fetchError) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh]">
         <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
@@ -239,13 +280,12 @@ function SeniorHigh() {
     );
   }
 
-
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
-      <ToastContainer position="top-right" autoClose={3000} /> {/* Added ToastContainer */}
+      <ToastContainer position="top-right" autoClose={3000} />
       {loading ? (
         <FullScreenLoader />
-      ) : noInstructors || !hasInstructorsAssigned() ? ( // Adjusted condition
+      ) : noInstructors || !hasInstructorsAssigned() ? (
         <div className="flex flex-col items-center justify-center h-[70vh]">
           <Users className="w-16 h-16 text-gray-400 mb-4" />
           <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
@@ -254,7 +294,7 @@ function SeniorHigh() {
           <p className="text-red-500 text-center">
             {noInstructors ?
              "There are currently no instructors assigned for Senior High Grades 11–12." :
-             "No instructors match the selected filters." // More specific message if filters are applied
+             "No instructors match the selected filters."
             }
           </p>
         </div>
@@ -262,33 +302,33 @@ function SeniorHigh() {
         <>
           <ContentHeader
             title="Instructors"
-            stats={[`Submitted: ${submittedCount}`]} // Added submittedCount stat
-            onSearch={handleSearch} // Added onSearch prop
+            stats={[`Submitted: ${submittedCount}`]}
+            onSearch={handleSearch}
             onExport={handleExport}
             onAdd={handleAddInstructor}
-            onBulkSend={() => setShowConfirmModal(true)} // Added onBulkSend prop
-            onSchoolYearChange={(value) => handleFilterChange('schoolYear', value)} // Added filter props
-            onSemesterChange={(value) => handleFilterChange('semester', value)} // Added filter props
-            selectedSchoolYear={filters.schoolYear} // Added filter props
-            selectedSemester={filters.semester} // Added filter props
-            schoolYearOptions={schoolYearOptions} // Added filter props
-            semesterOptions={semesterOptions} // Added filter props
+            onBulkSend={() => setShowConfirmModal(true)}
+            onSchoolYearChange={(value) => handleFilterChange('schoolYear', value)}
+            onSemesterChange={(value) => handleFilterChange('semester', value)}
+            selectedSchoolYear={filters.schoolYear}
+            selectedSemester={filters.semester}
+            schoolYearOptions={schoolYearOptions}
+            semesterOptions={semesterOptions}
           />
 
           <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
 
           <div className="mt-4 text-center">
             {hasInstructorsForGrade(activeTab) ? (
-              <InstructorTable instructors={mergedInstructorsByGrade[activeTab]} /> // Changed state name
+              <InstructorTable instructors={mergedInstructorsByGrade[activeTab]} />
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg"> {/* Added styling */}
-                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-full mb-4"> {/* Added styling */}
-                  <UserX className="w-8 h-8 text-gray-500 dark:text-gray-400" /> {/* Added icon */}
+              <div className="flex flex-col items-center justify-center py-12 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-full mb-4">
+                  <UserX className="w-8 h-8 text-gray-500 dark:text-gray-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2"> {/* Added styling */}
+                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
                   No Instructors Assigned
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-center"> {/* Added styling */}
+                <p className="text-gray-500 dark:text-gray-400 text-center">
                   No instructors match the selected filters for {tabLabels[activeTab]}.\
                 </p>
               </div>
@@ -297,7 +337,6 @@ function SeniorHigh() {
         </>
       )}
 
-      {/* Confirmation Modal */} {/* Added Confirmation Modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
@@ -338,7 +377,6 @@ function SeniorHigh() {
         </div>
       )}
 
-      {/* Loading Overlay for Bulk Send */} {/* Added Loading Overlay */}
       {bulkSending && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl flex flex-col items-center">

@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import AssignProgramModal from "../../contents/Admin/Modals/AssignProgramModal";
 import { Users, UserX } from "lucide-react";
 import { MdOutlineAssignmentTurnedIn } from "react-icons/md";
+import { formatGradeLevelText } from "../../utils/gradeLevelFormatter";
 
 function Instructors() {
   const [instructors, setInstructors] = useState([]);
@@ -138,6 +139,8 @@ function Instructors() {
     try {
       await InstructorService.delete(deleteInstructorId);
       fetchInstructors();
+      // Dispatch event to notify other components
+      window.dispatchEvent(new Event('instructorDeleted'));
       toast.success("Instructor deleted successfully!");
     } catch (error) {
       toast.error("Failed to delete instructor.");
@@ -209,7 +212,8 @@ function Instructors() {
         id: prog.id,
         name: prog.name || prog.program_name || "Unnamed Program",
         year_level: (prog.pivot && prog.pivot.yearLevel) ? prog.pivot.yearLevel : (prog.year_level || prog.yearLevel),
-        section: prog.section
+        section: prog.section,
+        category: prog.category
       }));
       setAssignedPrograms(programs);
       setAssignedProgramsInstructor(instructor);
@@ -221,6 +225,20 @@ function Instructors() {
       setLoading(false);
     }
   };
+
+  function getYearLevelLabel(year, category) {
+    const n = parseInt(year, 10);
+    if (isNaN(n)) return "";
+    
+    if (category === "Higher Education") {
+      if (n === 1) return "1st Year";
+      if (n === 2) return "2nd Year";
+      if (n === 3) return "3rd Year";
+      return `${n}th Year`;
+    } else {
+      return `Grade ${n}`;
+    }
+  }
 
   const handleRemoveProgram = async (instructorId, programId, yearLevel) => {
     try {
@@ -235,14 +253,62 @@ function Instructors() {
     }
   };
 
-  function getYearLevelLabel(year) {
-    const n = parseInt(year, 10);
-    if (isNaN(n)) return "";
-    if (n === 1) return "1st year";
-    if (n === 2) return "2nd year";
-    if (n === 3) return "3rd year";
-    return `${n}th year`;
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const instructorData = {
+        name: formData.name,
+        email: formData.email,
+        status: formData.status,
+        educationLevel: formData.educationLevel
+      };
+
+      let response;
+      if (isEditing) {
+        response = await InstructorService.update(currentInstructor.id, instructorData);
+        toast.success("Instructor updated successfully");
+      } else {
+        response = await InstructorService.create(instructorData);
+        
+        // Check if the response indicates a duplicate email
+        if (response.message === 'An instructor with this email already exists') {
+          const shouldRestore = window.confirm(
+            'An instructor with this email already exists. Would you like to restore them instead?'
+          );
+          
+          if (shouldRestore) {
+            // Try to create again - the backend will restore the soft-deleted instructor
+            response = await InstructorService.create(instructorData);
+            toast.success("Instructor restored successfully");
+          } else {
+            toast.error("Please use a different email address");
+            setLoading(false);
+            return;
+          }
+        } else {
+          toast.success("Instructor created successfully");
+        }
+      }
+
+      setShowModal(false);
+      setFormData({
+        name: "",
+        email: "",
+        status: "Active",
+        educationLevel: ""
+      });
+      setIsEditing(false);
+      setCurrentInstructor(null);
+      fetchInstructors();
+    } catch (error) {
+      console.error("Error saving instructor:", error);
+      toast.error(error.response?.data?.message || "Failed to save instructor");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-4 lg:p-6">
@@ -581,7 +647,6 @@ function Instructors() {
               >
                 &times;
               </button>
-
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 pt-4">
@@ -601,7 +666,7 @@ function Instructors() {
                             {prog.year_level && (
                               <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                                 <span className="inline-block w-2 h-2 rounded-full bg-[#1F3463] mr-2"></span>
-                                {getYearLevelLabel(prog.year_level)}
+                                {getYearLevelLabel(prog.year_level, prog.category)}
                               </div>
                             )}
                             {prog.section && (

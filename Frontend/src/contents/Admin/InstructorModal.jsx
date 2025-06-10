@@ -10,16 +10,16 @@ export default function InstructorModal({
   isEditing,
   instructor,
 }) {
-  const [formDataList, setFormDataList] = useState([{ name: "", email: "" }]);
+  const [formDataList, setFormDataList] = useState([{ name: "", email: "", status: "Active" }]);
   const [isSaving, setIsSaving] = useState(false);
   const primaryColor = "#1F3463";
   const hoverColor = "#172a4d";
 
   useEffect(() => {
     if (isEditing && instructor) {
-      setFormDataList([{ name: instructor.name || "", email: instructor.email || "" }]);
+      setFormDataList([{ name: instructor.name || "", email: instructor.email || "", status: instructor.status || "Active" }]);
     } else {
-      setFormDataList([{ name: "", email: "" }]);
+      setFormDataList([{ name: "", email: "", status: "Active" }]);
     }
   }, [isEditing, instructor, isOpen]);
 
@@ -45,7 +45,7 @@ export default function InstructorModal({
   };
 
   const handleAddRow = () => {
-    setFormDataList(prev => [...prev, { name: "", email: "" }]);
+    setFormDataList(prev => [...prev, { name: "", email: "", status: "Active" }]);
   };
 
   const handleRemoveRow = (idx) => {

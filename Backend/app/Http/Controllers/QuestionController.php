@@ -78,12 +78,12 @@ class QuestionController extends Controller
 
     public function index()
     {
-        return response()->json(Question::all());
+        return response()->json(Question::whereNull('deleted_at')->get());
     }
 
     public function update(Request $request, $id)
     {
-        $question = Question::find($id);
+        $question = Question::whereNull('deleted_at')->find($id);
 
         if (!$question) {
             return response()->json(['message' => 'Question not found'], 404);
@@ -105,8 +105,8 @@ class QuestionController extends Controller
 
     public function destroy($id)
     {
-        $question = Question::findOrFail($id);
-        $question->delete();
+        $question = Question::whereNull('deleted_at')->findOrFail($id);
+        $question->delete(); // This will now soft delete the question
 
         return response()->json(['message' => 'Question deleted successfully']);
     }

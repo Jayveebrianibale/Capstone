@@ -1,4 +1,5 @@
 import api from "../services/api";
+import axios from "axios";
 
 const InstructorService = {
   getAll: async (educationLevel = null) => {
@@ -46,18 +47,49 @@ const InstructorService = {
 
   assignPrograms: async (instructorId, programs) => {
     try {
-      const validatedPrograms = programs.map(program => ({
-        ...program,
-        yearLevel: parseInt(program.yearLevel, 10)
-      }));
+      // Log the incoming data
+      console.log('Assigning programs:', {
+        instructorId,
+        programs
+      });
+
+      // Validate and format the programs data
+      const validatedPrograms = programs.map(program => {
+        // Get year level from either program name or yearLevel field
+        let yearLevel;
+        
+        // Try to get grade from program name first
+        const gradeMatch = program.programName?.match(/Grade\s+(\d+)/i);
+        if (gradeMatch) {
+          yearLevel = parseInt(gradeMatch[1], 10);
+        } else {
+          // Fall back to yearLevel field
+          yearLevel = parseInt(program.yearLevel, 10);
+        }
+
+        if (isNaN(yearLevel)) {
+          throw new Error(`Invalid year level for program ${program.id}`);
+        }
+
+        return {
+          id: program.id,
+          yearLevel: yearLevel
+        };
+      });
+
+      // Log the validated data
+      console.log('Validated programs data:', validatedPrograms);
 
       const response = await api.post(`/instructors/${instructorId}/assign-programs`, {
         programs: validatedPrograms
       });
 
+      // Log the response
+      console.log('API Response:', response.data);
+
       return response.data;
     } catch (error) {
-      console.error('Error assigning programs:', error.response?.data || error.message);
+      console.error('Error in assignPrograms:', error);
       throw error;
     }
   },
@@ -68,6 +100,16 @@ const InstructorService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching instructors:', error);
+      throw error;
+    }
+  },
+
+  getInstructorsByProgramName: async (programName) => {
+    try {
+      const response = await api.get(`/instructors/program-name/${encodeURIComponent(programName)}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching instructors by program name:', error);
       throw error;
     }
   },
@@ -201,7 +243,7 @@ const InstructorService = {
    */
   getInstructorCommentsWithStudentNames: async (instructorId) => {
     try {
-      const response = await api.get(`/instructor/${instructorId}/comments-with-student-names`);
+      const response = await api.get(`/instructors/${instructorId}/comments-with-students`);
       return response.data;
     } catch (error) {
       console.error('Error fetching instructor comments with student names:', error.response?.data || error.message);

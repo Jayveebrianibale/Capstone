@@ -6,6 +6,7 @@ use App\Models\Program;
 use Illuminate\Http\Request;
 use App\Models\Instructor;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 
 class ProgramController extends Controller
@@ -199,20 +200,84 @@ public function bulkUpload(Request $request) {
      // Retrieves instructors assigned to a program by its code.
     public function getInstructorsByProgramCode($programCode)
     {
-        $program = Program::where('code', $programCode)->first();
+        try {
+            // Get all programs with this code
+            $programs = Program::where('code', $programCode)->get();
+            
+            if ($programs->isEmpty()) {
+                \Log::error("No programs found for code: " . $programCode);
+                return response()->json(['error' => 'Program not found'], 404);
+            }
 
-        if (!$program) {
-            return response()->json(['error' => 'Program not found'], 404);
+            $programIds = $programs->pluck('id');
+
+            // Get all instructor assignments for these programs, excluding soft-deleted instructors
+            $instructorAssignments = DB::table('instructor_program')
+                ->join('instructors', function($join) {
+                    $join->on('instructor_program.instructor_id', '=', 'instructors.id')
+                         ->whereNull('instructors.deleted_at');
+                })
+                ->join('programs', 'instructor_program.program_id', '=', 'programs.id')
+                ->whereIn('instructor_program.program_id', $programIds)
+                ->select(
+                    'instructors.id',
+                    'instructors.name',
+                    'instructors.email',
+                    'instructors.status',
+                    'instructors.educationLevel',
+                    'instructor_program.yearLevel',
+                    'instructor_program.program_id',
+                    'programs.name as program_name'
+                )
+                ->get();
+
+            \Log::info("Raw instructor assignments:", $instructorAssignments->toArray());
+
+            // Group assignments by instructor
+            $instructorGroups = $instructorAssignments->groupBy('id');
+
+            // Transform the data to include all assignments
+            $instructors = $instructorGroups->map(function ($assignments) {
+                $firstAssignment = $assignments->first();
+                
+                // Create base instructor object
+                $instructor = [
+                    'id' => $firstAssignment->id,
+                    'name' => $firstAssignment->name,
+                    'email' => $firstAssignment->email,
+                    'status' => $firstAssignment->status,
+                    'educationLevel' => $firstAssignment->educationLevel,
+                    'pivot' => [
+                        'assignments' => $assignments->map(function ($assignment) {
+                            return [
+                                'yearLevel' => (int)$assignment->yearLevel,
+                                'program_id' => $assignment->program_id,
+                                'program_name' => $assignment->program_name
+                            ];
+                        })->values()->toArray()
+                    ]
+                ];
+                
+                \Log::info("Processing instructor assignments:", [
+                    'instructor_id' => $firstAssignment->id,
+                    'instructor_name' => $firstAssignment->name,
+                    'assignments' => $instructor['pivot']['assignments']
+                ]);
+                
+                return $instructor;
+            })->values();
+
+            \Log::info("Final instructors data:", $instructors->toArray());
+
+            if ($instructors->isEmpty()) {
+                return response()->json(['message' => 'No instructors assigned'], 200);
+            }
+
+            return response()->json($instructors);
+        } catch (\Exception $e) {
+            \Log::error("Error in getInstructorsByProgramCode: " . $e->getMessage());
+            return response()->json(['error' => 'Failed to fetch instructors'], 500);
         }
-
-        $instructors = $program->instructors;
-        \Log::info('Instructors for program ' . $programCode, $instructors->toArray());
-
-        if ($instructors->isEmpty()) {
-            return response()->json(['message' => 'No instructors assigned'], 200);
-        }
-
-        return response()->json($instructors);
     }
 
     // Retrieves programs based on category

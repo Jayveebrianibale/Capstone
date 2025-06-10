@@ -6,6 +6,7 @@ import ProgramService from "../../../services/ProgramService";
 import EvaluationService from "../../../services/EvaluationService"; // Added EvaluationService
 import EvaluationFilterService from "../../../services/EvaluationFilterService"; // Added EvaluationFilterService
 import InstructorService from "../../../services/InstructorService"; // Added InstructorService
+import QuestionsService from "../../../services/QuestionService"; // Add QuestionsService import
 import BulkSendModal from "../../../components/BulkSendModal";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
@@ -34,6 +35,7 @@ function Bab() {
   const [bulkSending, setBulkSending] = useState(false); // Added state for bulk sending
   const [bulkSendStatus, setBulkSendStatus] = useState(null); // Added state for bulk send status
   const [showConfirmModal, setShowConfirmModal] = useState(false); // Added state for confirmation modal
+  const [questions, setQuestions] = useState([]); // Add questions state
   const [filters, setFilters] = useState({ // Added filters state
     schoolYear: '',
     semester: '',
@@ -149,30 +151,93 @@ function Bab() {
 
       const groupByYear = (data) => {
         const grouped = [[], [], [], []];
+        console.log('Starting groupByYear with data:', JSON.stringify(data, null, 2));
+        
         data.forEach((item) => {
-          const yearLevel = item?.pivot?.yearLevel;
-          const year = mapYearLevelToNumber(yearLevel);
-          if (year >= 1 && year <= 4) grouped[year - 1].push(item);
+          if (!item || !item.pivot || !Array.isArray(item.pivot.assignments)) {
+            console.log('Invalid item data:', item);
+            return;
+          }
+
+          // Process each assignment for this instructor
+          item.pivot.assignments.forEach((assignment) => {
+            const yearLevel = parseInt(assignment.yearLevel, 10);
+            console.log(`Processing assignment for ${item.name}:`, {
+              yearLevel,
+              assignment: JSON.stringify(assignment, null, 2)
+            });
+            
+            if (isNaN(yearLevel) || yearLevel < 1 || yearLevel > 4) {
+              console.log(`Invalid year level for instructor ${item.name}:`, yearLevel);
+              return;
+            }
+
+            // Create instructor object for this assignment
+            const instructor = {
+              id: item.id,
+              name: item.name,
+              email: item.email,
+              status: item.status,
+              educationLevel: item.educationLevel,
+              yearLevel: yearLevel,
+              program: assignment.program_name || `Year ${yearLevel}`,
+              pivot: {
+                yearLevel: yearLevel,
+                program_id: assignment.program_id,
+                program_name: assignment.program_name || `Year ${yearLevel}`
+              },
+              ratings: item.ratings || {
+                q1: null,
+                q2: null,
+                q3: null,
+                q4: null,
+                q5: null,
+                q6: null,
+                q7: null,
+                q8: null,
+                q9: null
+              },
+              comments: item.comments || "No comments",
+              overallRating: item.overallRating || 0
+            };
+
+            console.log(`Created instructor object for ${item.name} in year ${yearLevel}:`, JSON.stringify(instructor, null, 2));
+
+            // Place in correct group based on actual year number
+            if (yearLevel >= 1 && yearLevel <= 4) {
+              console.log(`Adding ${item.name} to Year ${yearLevel} group`);
+              grouped[yearLevel - 1].push(instructor);
+            }
+          });
         });
+
+        // Log the grouped data for debugging
+        console.log('Final grouped instructors:', JSON.stringify(grouped, null, 2));
         return grouped;
       };
 
-      const resultsGrouped = groupByYear(filteredResults);
-
       // Fetch instructors to merge with filtered results
       const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
-      const instructorsGrouped = groupByYear(instructorsData);
 
-      const merged = instructorsGrouped.map((yearInstructors, yearIndex) => {
-        const yearResults = resultsGrouped[yearIndex] || [];
-        return yearInstructors.map(instructor => {
-          const result = yearResults.find(r => r.name === instructor.name) || {};
-          return { ...instructor, ...result };
-        });
+      // Merge instructors with filtered results
+      const merged = instructorsData.map(instructor => {
+          const result = filteredResults.find(r => r.id === instructor.id || r.name === instructor.name) || {};
+          // Preserve the original pivot.assignments from the API
+          return { 
+              ...instructor,
+              ...result,
+              pivot: instructor.pivot // Keep the original pivot with assignments
+          };
       });
 
+      console.log("Merged Data before Grouping:", JSON.stringify(merged, null, 2));
+
+      const mergedGrouped = groupByYear(merged);
+
+      console.log("Merged Data after Grouping:", mergedGrouped);
+
       // Apply search filter
-      const filteredMerged = merged.map(yearGroup =>
+      const filteredMerged = mergedGrouped.map(yearGroup =>
         filterInstructors(yearGroup, filters.searchQuery)
       );
 
@@ -204,6 +269,19 @@ function Bab() {
     return () => clearTimeout(timer);
   }, [filters.searchQuery]);
 
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const fetchedQuestions = await QuestionsService.getAll();
+        setQuestions(fetchedQuestions);
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+        toast.error("Failed to load questions");
+      }
+    };
+
+    fetchQuestions();
+  }, []);
 
   const hasInstructorsForYear = (year) => {
     return mergedInstructorsByYear[year]?.length > 0;
@@ -261,7 +339,10 @@ function Bab() {
           <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
           <div className="mt-4">
             {hasInstructorsForYear(activeTab) ? (
-              <InstructorTable instructors={mergedInstructorsByYear[activeTab]} />
+              <InstructorTable 
+                instructors={mergedInstructorsByYear[activeTab]} 
+                questions={questions} // Pass questions prop
+              />
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-full mb-4">

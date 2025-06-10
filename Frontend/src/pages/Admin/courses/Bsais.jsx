@@ -14,31 +14,14 @@ import FullScreenLoader from "../../../components/FullScreenLoader";
 import { useLoading } from "../../../components/LoadingContext";
 import BulkSendModal from "../../../components/BulkSendModal";
 
-function mapYearLevelToNumber(yearLevel) {
-  if (typeof yearLevel === 'number') return yearLevel;
-  const level = String(yearLevel).toLowerCase().trim();
-  switch (level) {
-    case '1st year':
-    case 'first year':
-    case '1':
-      return 1;
-    case '2nd year':
-    case 'second year':
-    case '2':
-      return 2;
-    case '3rd year':
-    case 'third year':
-    case '3':
-      return 3;
-    case '4th year':
-    case 'fourth year':
-    case '4':
-      return 4;
-    default:
-      console.log('Invalid year level:', yearLevel);
-      return null;
+// Helper to validate year level for Higher Education (1-4)
+const validateYearLevel = (yearLevel) => {
+  if (typeof yearLevel === 'number') {
+    return yearLevel >= 1 && yearLevel <= 4;  // Only accept years 1-4
   }
-}
+  const level = String(yearLevel).toLowerCase().trim();
+  return ['1st year', '1', '2nd year', '2', '3rd year', '3', '4th year', '4'].includes(level);
+};
 
 function Bsais() {
   const [activeTab, setActiveTab] = useState(0);
@@ -149,32 +132,96 @@ function Bsais() {
       const currentCourseStats = courseEvalCounts.find(course => course.course_code === programCode);
       setSubmittedCount(currentCourseStats ? currentCourseStats.submitted_count : 0);
 
+      // Fetch instructors to merge with filtered results
+      const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
+
+      // Group instructors by actual year level (1-4)
       const groupByYear = (data) => {
-        const grouped = [[], [], [], []];
+        const grouped = [[], [], [], []]; // [Year 1, Year 2, Year 3, Year 4]
+        console.log('Starting groupByYear with data:', JSON.stringify(data, null, 2));
+        
         data.forEach((item) => {
-          const yearLevel = item?.pivot?.yearLevel;
-          const year = mapYearLevelToNumber(yearLevel);
-          if (year >= 1 && year <= 4) grouped[year - 1].push(item);
+          if (!item || !item.pivot || !Array.isArray(item.pivot.assignments)) {
+            console.log('Invalid item data:', item);
+            return;
+          }
+
+          // Process each assignment for this instructor
+          item.pivot.assignments.forEach((assignment) => {
+            const yearLevel = parseInt(assignment.yearLevel, 10);
+            console.log(`Processing assignment for ${item.name}:`, {
+              yearLevel,
+              assignment: JSON.stringify(assignment, null, 2)
+            });
+            
+            if (isNaN(yearLevel) || yearLevel < 1 || yearLevel > 4) {
+              console.log(`Invalid year level for instructor ${item.name}:`, yearLevel);
+              return;
+            }
+
+            // Create instructor object for this assignment
+            const instructor = {
+              id: item.id,
+              name: item.name,
+              email: item.email,
+              status: item.status,
+              educationLevel: item.educationLevel,
+              yearLevel: yearLevel,
+              program: assignment.program_name || `Year ${yearLevel}`,
+              pivot: {
+                yearLevel: yearLevel,
+                program_id: assignment.program_id,
+                program_name: assignment.program_name || `Year ${yearLevel}`
+              },
+              ratings: item.ratings || {
+                q1: null,
+                q2: null,
+                q3: null,
+                q4: null,
+                q5: null,
+                q6: null,
+                q7: null,
+                q8: null,
+                q9: null
+              },
+              comments: item.comments || "No comments",
+              overallRating: item.overallRating || 0
+            };
+
+            console.log(`Created instructor object for ${item.name} in year ${yearLevel}:`, JSON.stringify(instructor, null, 2));
+
+            // Place in correct group based on actual year number
+            if (yearLevel >= 1 && yearLevel <= 4) {
+              console.log(`Adding ${item.name} to Year ${yearLevel} group`);
+              grouped[yearLevel - 1].push(instructor);
+            }
+          });
         });
+
+        // Log the grouped data for debugging
+        console.log('Final grouped instructors:', JSON.stringify(grouped, null, 2));
         return grouped;
       };
 
-      const resultsGrouped = groupByYear(filteredResults);
-
-      // Fetch instructors to merge with filtered results
-      const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
-      const instructorsGrouped = groupByYear(instructorsData);
-
-      const merged = instructorsGrouped.map((yearInstructors, yearIndex) => {
-        const yearResults = resultsGrouped[yearIndex] || [];
-        return yearInstructors.map(instructor => {
-          const result = yearResults.find(r => r.name === instructor.name) || {};
-          return { ...instructor, ...result };
-        });
+      // Merge instructors with filtered results
+      const merged = instructorsData.map(instructor => {
+          const result = filteredResults.find(r => r.id === instructor.id || r.name === instructor.name) || {};
+          // Preserve the original pivot.assignments from the API
+          return { 
+              ...instructor,
+              ...result,
+              pivot: instructor.pivot // Keep the original pivot with assignments
+          };
       });
 
+      console.log("Merged Data before Grouping:", JSON.stringify(merged, null, 2));
+
+      const mergedGrouped = groupByYear(merged);
+
+      console.log("Merged Data after Grouping:", mergedGrouped);
+
       // Apply search filter
-      const filteredMerged = merged.map(yearGroup =>
+      const filteredMerged = mergedGrouped.map(yearGroup =>
         filterInstructors(yearGroup, filters.searchQuery)
       );
 

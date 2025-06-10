@@ -3,6 +3,7 @@ import ProgramService from "../../../services/ProgramService";
 import InstructorService from "../../../services/InstructorService";
 import { toast } from "react-toastify";
 import { FaCheck, FaTimes, FaChevronDown, FaSearch } from "react-icons/fa";
+import { formatGradeLevelText, validateGradeLevel, getYearLevelOptions } from "../../../utils/gradeLevelFormatter";
 
 function AssignProgramModal({ isOpen, onClose, instructor }) {
   const [programs, setPrograms] = useState([]);
@@ -48,32 +49,50 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       if (exists) {
         return prev.filter((p) => p.id !== program.id);
       } else {
-        const isHigherEducation = program.category === "Higher Education";
-        const isSeniorHigh = program.category === "SHS";
-        let yearLevel = 1;
-        if (isSeniorHigh) {
-          // Try to extract the grade number from the program name (e.g., 'Grade 11 - ...')
-          const match = program.name.match(/Grade (\d+)/);
-          if (match && match[1]) {
-            yearLevel = parseInt(match[1], 10) - 10; // Grade 11 -> 1, Grade 12 -> 2
-          }
-        }
+        // Get the appropriate year level based on program category
+        let yearLevel = getDefaultYearLevel(program);
         return [
           ...prev,
           { 
             id: program.id, 
-            yearLevel: isHigherEducation ? null : yearLevel 
+            yearLevel: yearLevel 
           },
         ];
       }
     });
   };
 
+  const getDefaultYearLevel = (program) => {
+    switch (program.category) {
+      case 'Junior High':
+        return 7; // Default to Grade 7
+      case 'Intermediate':
+        return 4; // Default to Grade 4
+      case 'Senior High':
+        return 11; // Default to Grade 11
+      case 'Higher Education':
+        return 1; // Default to 1st Year
+      default:
+        return null;
+    }
+  };
+
   const handleYearLevelChange = (programId, newYearLevel) => {
-    // Convert to number and validate
+    // Convert to number
     const intYearLevel = parseInt(newYearLevel, 10);
-    if (isNaN(intYearLevel) || intYearLevel < 1 || intYearLevel > 4) {
-      toast.error("Year level must be a number between 1 and 4.");
+    if (isNaN(intYearLevel)) {
+      toast.error("Invalid year level");
+      return;
+    }
+
+    // Get the program to check its category
+    const program = programs.find(p => p.id === programId);
+    if (!program) return;
+
+    // Validate year level based on program category
+    const isValid = validateGradeLevel(intYearLevel, program.category);
+    if (!isValid) {
+      toast.error(`Invalid year level for ${program.category}. Please select a valid grade level.`);
       return;
     }
 
@@ -89,26 +108,53 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
   const handleSave = async () => {
     try {
       setIsAssigning(true);
-      // Only validate year level for Higher Education programs
+      
+      // Validate year levels for all programs
       const invalidPrograms = selectedPrograms.filter(p => {
         const program = programs.find(prog => prog.id === p.id);
-        const isHigherEducation = program?.category === "Higher Education";
-        return isHigherEducation && !p.yearLevel;
+        if (!program) return true;
+        
+        // Check if year level is required and valid for the program category
+        const isValidYearLevel = validateGradeLevel(p.yearLevel, program.category);
+        return !isValidYearLevel;
       });
 
       if (invalidPrograms.length > 0) {
-        toast.error("Please select a year level for all Higher Education programs");
+        const invalidProgramNames = invalidPrograms
+          .map(p => {
+            const program = programs.find(prog => prog.id === p.id);
+            const gradeText = formatGradeLevelText(p.yearLevel, program?.category);
+            return `${program?.name} (${gradeText})`;
+          })
+          .filter(Boolean)
+          .join(", ");
+          
+        toast.error(`Invalid grade levels for: ${invalidProgramNames}. Please check the grade level requirements for each program.`);
         setIsAssigning(false);
         return;
       }
 
       // Format the data for the API
       const formattedData = {
-        programs: selectedPrograms.map(p => ({
-          id: p.id,
-          yearLevel: parseInt(p.yearLevel, 10)
-        }))
+        programs: selectedPrograms.map(p => {
+          const program = programs.find(prog => prog.id === p.id);
+          // Extract grade number from program name if it exists
+          const gradeMatch = program?.name?.match(/Grade\s+(\d+)/i);
+          const gradeFromName = gradeMatch ? parseInt(gradeMatch[1], 10) : null;
+          
+          // Use grade from name if available, otherwise use the selected year level
+          const yearLevel = gradeFromName || parseInt(p.yearLevel, 10);
+          
+          return {
+            id: p.id,
+            yearLevel: yearLevel,
+            programName: program?.name // Include program name for reference
+          };
+        })
       };
+
+      // Log the data being sent
+      console.log('Sending program assignments:', formattedData);
 
       await InstructorService.assignPrograms(instructor.id, formattedData.programs);
       toast.success("Programs assigned successfully");
@@ -118,22 +164,6 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       toast.error(error.response?.data?.message || "Failed to assign programs");
     } finally {
       setIsAssigning(false);
-    }
-  };
-
-  const getYearLevelOptions = (programName) => {
-    if (programName.toLowerCase() === "associate in computer technology") {
-      return [
-        { value: 1, label: "1st Year" },
-        { value: 2, label: "2nd Year" },
-      ];
-    } else {
-      return [
-        { value: 1, label: "1st Year" },
-        { value: 2, label: "2nd Year" },
-        { value: 3, label: "3rd Year" },
-        { value: 4, label: "4th Year" },
-      ];
     }
   };
 
@@ -227,7 +257,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
                               <option value="" disabled>
                                 Select Year
                               </option>
-                              {getYearLevelOptions(program.name).map((option) => (
+                              {getYearLevelOptions(program.category, program.name).map((option) => (
                                 <option key={option.value} value={option.value}>
                                   {option.label}
                                 </option>

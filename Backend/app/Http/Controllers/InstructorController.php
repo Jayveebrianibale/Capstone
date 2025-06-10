@@ -173,30 +173,61 @@ class InstructorController extends Controller
     
 
     // Create a new instructor
-    public function store(Request $request) {
-        $data = $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => [
-                'required',
-                'email',
-                Rule::unique('instructors')->whereNull('deleted_at'),
-                Rule::unique('users')->whereNull('deleted_at'),
-            ],
-        ]);
+    public function create(Request $request)
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email',
+                'status' => 'required|string|in:Active,Inactive'
+            ]);
 
-        $instructor = Instructor::create($data);
+            // Check if instructor with this email exists (including soft-deleted)
+            $existingInstructor = Instructor::withTrashed()
+                ->where('email', $request->email)
+                ->first();
 
-        User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'role'     => 'Instructor',
-            'password' => null,
-        ]);
+            if ($existingInstructor) {
+                if ($existingInstructor->trashed()) {
+                    // Restore the soft-deleted instructor
+                    $existingInstructor->restore();
+                    $existingInstructor->update([
+                        'name' => $request->name,
+                        'status' => $request->status
+                    ]);
 
-        return response()->json([
-            'message'    => 'Instructor created successfully',
-            'instructor' => $instructor,
-        ], 201);
+                    return response()->json([
+                        'message' => 'Instructor restored successfully',
+                        'instructor' => $existingInstructor
+                    ], 200);
+                } else {
+                    // Instructor exists and is not deleted
+                    return response()->json([
+                        'message' => 'An instructor with this email already exists',
+                        'error' => 'Duplicate email'
+                    ], 409);
+                }
+            }
+
+            // Create new instructor if no existing instructor found
+            $instructor = Instructor::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'status' => $request->status
+            ]);
+
+            return response()->json([
+                'message' => 'Instructor created successfully',
+                'instructor' => $instructor
+            ], 201);
+
+        } catch (\Exception $e) {
+            \Log::error('Error creating instructor: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to create instructor',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     // Update an instructor's information
@@ -218,6 +249,9 @@ class InstructorController extends Controller
         $instructor = Instructor::findOrFail($id);
 
         DB::transaction(function () use ($instructor) {
+            // Remove all program assignments first
+            $instructor->programs()->detach();
+
             // Soft delete the instructor
             $instructor->delete();
 
@@ -247,16 +281,46 @@ class InstructorController extends Controller
             $request->validate([
                 'programs' => 'required|array',
                 'programs.*.id' => 'required|exists:programs,id',
-                'programs.*.yearLevel' => 'required|integer|min:1|max:4'
+                'programs.*.yearLevel' => 'required|integer|min:1'
             ]);
 
-            // Format the programs data and validate year levels
+            // Format the programs data and validate grade levels
             $programsData = collect($request->programs)->mapWithKeys(function ($program) {
-                $yearLevel = (int)$program['yearLevel'];
-                if ($yearLevel < 1 || $yearLevel > 4) {
-                    throw new \Exception("Invalid year level: {$yearLevel}. Must be between 1 and 4.");
+                $gradeLevel = (int)$program['yearLevel'];
+                
+                // Get the program to validate grade level
+                $programModel = \App\Models\Program::find($program['id']);
+                if (!$programModel) {
+                    throw new \Exception("Program not found");
                 }
-                return [$program['id'] => ['yearLevel' => $yearLevel]];
+
+                // Validate grade level based on program category
+                switch ($programModel->category) {
+                    case 'Junior High':
+                        if ($gradeLevel < 7 || $gradeLevel > 10) {
+                            throw new \Exception("Invalid grade level for Junior High School. Must be between Grade 7 and Grade 10.");
+                        }
+                        break;
+                    case 'Intermediate':
+                        if ($gradeLevel < 4 || $gradeLevel > 6) {
+                            throw new \Exception("Invalid grade level for Intermediate. Must be between Grade 4 and Grade 6.");
+                        }
+                        break;
+                    case 'Senior High':
+                        if ($gradeLevel < 11 || $gradeLevel > 12) {
+                            throw new \Exception("Invalid grade level for Senior High School. Must be between Grade 11 and Grade 12.");
+                        }
+                        break;
+                    case 'Higher Education':
+                        if ($gradeLevel < 1 || $gradeLevel > 4) {
+                            throw new \Exception("Invalid year level for Higher Education. Must be between 1st Year and 4th Year.");
+                        }
+                        break;
+                    default:
+                        throw new \Exception("Invalid program category: " . $programModel->category);
+                }
+
+                return [$program['id'] => ['yearLevel' => $gradeLevel]];
             })->all();
 
             // Log the formatted data
@@ -264,45 +328,61 @@ class InstructorController extends Controller
                 'programs_data' => $programsData
             ]);
 
-            // Instead of sync, we'll use attach to add new assignments
+            // Check for existing assignments with the same grade level
             foreach ($programsData as $programId => $data) {
-                // Check if this program-year combination already exists
-                $existingAssignment = $instructor->programs()
+                $existingAssignment = DB::table('instructor_program')
+                    ->where('instructor_id', $id)
                     ->where('program_id', $programId)
-                    ->wherePivot('yearLevel', $data['yearLevel'])
-                    ->exists();
+                    ->where('instructor_program.yearLevel', $data['yearLevel'])
+                    ->first();
 
-                if (!$existingAssignment) {
-                    $instructor->programs()->attach($programId, ['yearLevel' => $data['yearLevel']]);
+                if ($existingAssignment) {
+                    $program = Program::find($programId);
+                    $gradeText = $this->formatGradeLevelText($data['yearLevel'], $program->category);
+                    throw new \Exception("Instructor is already assigned to this program with {$gradeText}");
                 }
             }
 
-            // Verify the data was saved correctly
-            $savedPrograms = $instructor->programs()->withPivot('yearLevel')->get();
-            Log::info('Saved Programs Data:', [
-                'programs' => $savedPrograms->map(function($program) {
-                    return [
-                        'id' => $program->id,
-                        'name' => $program->name,
-                        'year_level' => $program->pivot->yearLevel,
-                        'year_level_type' => gettype($program->pivot->yearLevel)
-                    ];
-                })->toArray()
-            ]);
+            // Use attach to add new assignments without removing existing ones
+            foreach ($programsData as $programId => $data) {
+                $instructor->programs()->attach($programId, $data);
+            }
 
             return response()->json([
                 'message' => 'Programs assigned successfully',
-                'programs' => $savedPrograms
+                'programs' => $programsData
             ]);
+
         } catch (\Exception $e) {
-            Log::error('Error Assigning Programs:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+            Log::error('Error assigning programs:', [
                 'instructor_id' => $id,
-                'request_data' => $request->all()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
-            return response()->json(['message' => $e->getMessage()], 500);
+
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 422);
         }
+    }
+
+    // Helper function to get ordinal suffix
+    private function getOrdinalSuffix($number) {
+        $j = $number % 10;
+        $k = $number % 100;
+        if ($j == 1 && $k != 11) return "st";
+        if ($j == 2 && $k != 12) return "nd";
+        if ($j == 3 && $k != 13) return "rd";
+        return "th";
+    }
+
+    // Helper function to format grade level text based on program category
+    private function formatGradeLevelText($yearLevel, $category) {
+        return match($category) {
+            'Higher Education' => $yearLevel . $this->getOrdinalSuffix($yearLevel) . ' Year',
+            'Intermediate', 'Junior High', 'Senior High' => 'Grade ' . $yearLevel,
+            default => 'Grade ' . $yearLevel
+        };
     }
 
     // Get all instructors assigned to a specific program by program code
@@ -314,8 +394,32 @@ class InstructorController extends Controller
         if (!$program) {
             return response()->json(['error' => 'Program not found'], 404);
         }
+
         // Get instructors for this program with the year level from the pivot table
-        $instructors = $program->instructors()->withPivot('yearLevel')->get();
+        $instructors = DB::table('instructor_program')
+            ->join('instructors', 'instructor_program.instructor_id', '=', 'instructors.id')
+            ->where('instructor_program.program_id', $program->id)
+            ->select(
+                'instructors.*',
+                'instructor_program.yearLevel',
+                'instructor_program.program_id'
+            )
+            ->get()
+            ->map(function ($instructor) {
+                return [
+                    'id' => $instructor->id,
+                    'name' => $instructor->name,
+                    'email' => $instructor->email,
+                    'status' => $instructor->status,
+                    'educationLevel' => $instructor->educationLevel,
+                    'created_at' => $instructor->created_at,
+                    'updated_at' => $instructor->updated_at,
+                    'pivot' => [
+                        'yearLevel' => (int)$instructor->yearLevel,
+                        'program_id' => $instructor->program_id
+                    ]
+                ];
+            });
 
         return response()->json($instructors);
     }
@@ -565,6 +669,48 @@ public function getInstructorCommentsWithStudentNames($instructorId)
                 'message' => 'Failed to remove program',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function getInstructorsByProgramName($programName)
+    {
+        try {
+            // Clean and normalize the program name
+            $normalizedSearchName = trim(strtolower($programName));
+            
+            // Find the program by name using LIKE for more flexible matching
+            $program = Program::where(function($query) use ($normalizedSearchName) {
+                $query->whereRaw('LOWER(name) LIKE ?', ['%' . $normalizedSearchName . '%'])
+                      ->orWhereRaw('LOWER(name) LIKE ?', ['%' . str_replace(' - ', '%', $normalizedSearchName) . '%']);
+            })->first();
+
+            if (!$program) {
+                \Log::info('Program not found for name:', ['search_name' => $programName, 'normalized' => $normalizedSearchName]);
+                return response()->json(['message' => 'Program not found'], 404);
+            }
+
+            // Get instructors for this program with the year level from the pivot table
+            $instructors = $program->instructors()->withPivot('yearLevel')->get();
+
+            if ($instructors->isEmpty()) {
+                \Log::info('No instructors found for program:', ['program_id' => $program->id, 'program_name' => $program->name]);
+                return response()->json(['message' => 'No instructors found for this program'], 200);
+            }
+
+            \Log::info('Found instructors for program:', [
+                'program_id' => $program->id,
+                'program_name' => $program->name,
+                'instructor_count' => $instructors->count()
+            ]);
+
+            return response()->json($instructors);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching instructors by program name:', [
+                'error' => $e->getMessage(),
+                'program_name' => $programName,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['message' => 'Failed to fetch instructors'], 500);
         }
     }
 }

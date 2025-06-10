@@ -93,7 +93,7 @@ const SDashboard = () => {
             <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white">Completed</h2>
           </div>
           <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400 mb-3">
-            You’ve completed <strong>
+            You've completed <strong>
               {completedCount} out of {totalCount}
             </strong> evaluations.
           </p>
@@ -117,9 +117,9 @@ const SDashboard = () => {
             </div>
             <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white">Next Evaluations</h2>
           </div>
-          <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400">
+          <div className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400">
             <h1>⏳ Evaluation schedule will be announced soon.</h1>
-          </p>
+          </div>
         </div>
 
         {/* Instructors */}
@@ -131,7 +131,7 @@ const SDashboard = () => {
             <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white">Instructors</h2>
           </div>
           <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400">
-            {loading ? "Loading..." : `You’re evaluating ${instructors.length} instructor(s) this semester.`}
+            {loading ? "Loading..." : `You're evaluating ${instructors.length} instructor(s) this semester.`}
           </p>
         </div>
 
@@ -143,9 +143,9 @@ const SDashboard = () => {
             </div>
             <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white truncate">Announcements</h2>
           </div>
-          <p className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400">
+          <div className="text-xs sm:text-sm md:text-base text-center text-gray-600 dark:text-gray-400">
              <h1>📢 Announcements feature coming soon.</h1>
-          </p>
+          </div>
         </div>
       </div>
     </main>

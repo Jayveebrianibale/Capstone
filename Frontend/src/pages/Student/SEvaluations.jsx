@@ -269,62 +269,45 @@ const SEvaluations = () => {
       const user = JSON.parse(userData);
       console.log('User data:', user);
 
-      if (!user.program_id) {
-        setError('Program ID is missing from user data');
-        toast.error('Program ID is missing from user data');
-        setLoading(false);
-        return;
-      }
+      // Check if user is in Higher Education
+      if (user.educationLevel === 'Higher Education') {
+        if (!user.program_id) {
+          setError('Program ID is missing from user data');
+          toast.error('Program ID is missing from user data');
+          setLoading(false);
+          return;
+        }
 
-      if (!user.yearLevel) {
-        setError('Year Level is missing from user data');
-        toast.error('Year Level is missing from user data');
-        setLoading(false);
-        return;
-      }
+        if (!user.yearLevel) {
+          setError('Year Level is missing from user data');
+          toast.error('Year Level is missing from user data');
+          setLoading(false);
+          return;
+        }
 
-      const yearLevelNumber = mapYearLevelToNumber(user.yearLevel);
-      if (!yearLevelNumber) {
-        setError('Invalid Year Level format');
-        toast.error('Invalid Year Level format');
-        setLoading(false);
-        return;
-      }
+        const yearLevelNumber = mapYearLevelToNumber(user.yearLevel);
+        if (!yearLevelNumber) {
+          setError('Invalid Year Level format');
+          toast.error('Invalid Year Level format');
+          setLoading(false);
+          return;
+        }
 
-      setLoading(true);
-      const response = await InstructorService.getInstructorsByProgramAndYear(user.program_id, yearLevelNumber);
-      
-      if (Array.isArray(response) && response.length > 0) {
-        const mergedInstructors = response.map((instructor) => {
-          const history = evaluationHistory[instructor.id];
-          return {
-            ...instructor,
-            status: history ? 'Evaluated' : (submissionInfo[instructor.id]?.status || 'Not Started'),
-            submittedAt: history?.evaluatedAt || submissionInfo[instructor.id]?.evaluatedAt || null,
-            evaluationHistory: history
-          };
-        });
-
-        // Remove saved evaluations for instructors that are no longer in the list
-        setSavedEvaluations((prev) => {
-          const updated = { ...prev };
-          Object.keys(updated).forEach(instructorId => {
-            if (!mergedInstructors.some(instructor => instructor.id === parseInt(instructorId))) {
-              delete updated[instructorId];
-            }
-          });
-          return updated;
-        });
-
-        setInstructors(mergedInstructors);
-        setCurrentInstructors(mergedInstructors);
-        setNoInstructors(false);
+        setLoading(true);
+        const response = await InstructorService.getInstructorsByProgramAndYear(user.program_id, yearLevelNumber);
+        handleInstructorResponse(response);
       } else {
-        setInstructors([]);
-        setCurrentInstructors([]);
-        setNoInstructors(true);
-        // Clear saved evaluations when no instructors are found
-        setSavedEvaluations({});
+        // For non-Higher Education levels, use program_name to fetch instructors
+        if (!user.program_name) {
+          setError('Program name is missing from user data');
+          toast.error('Program name is missing from user data');
+          setLoading(false);
+          return;
+        }
+
+        setLoading(true);
+        const response = await InstructorService.getInstructorsByProgramName(user.program_name);
+        handleInstructorResponse(response);
       }
     } catch (err) {
       console.error('Error fetching instructors:', err);
@@ -333,10 +316,44 @@ const SEvaluations = () => {
       setInstructors([]);
       setCurrentInstructors([]);
       setNoInstructors(true);
-      // Clear saved evaluations on error
       setSavedEvaluations({});
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Helper function to handle instructor response
+  const handleInstructorResponse = (response) => {
+    if (Array.isArray(response) && response.length > 0) {
+      const mergedInstructors = response.map((instructor) => {
+        const history = evaluationHistory[instructor.id];
+        return {
+          ...instructor,
+          status: history ? 'Evaluated' : (submissionInfo[instructor.id]?.status || 'Not Started'),
+          submittedAt: history?.evaluatedAt || submissionInfo[instructor.id]?.evaluatedAt || null,
+          evaluationHistory: history
+        };
+      });
+
+      // Remove saved evaluations for instructors that are no longer in the list
+      setSavedEvaluations((prev) => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(instructorId => {
+          if (!mergedInstructors.some(instructor => instructor.id === parseInt(instructorId))) {
+            delete updated[instructorId];
+          }
+        });
+        return updated;
+      });
+
+      setInstructors(mergedInstructors);
+      setCurrentInstructors(mergedInstructors);
+      setNoInstructors(false);
+    } else {
+      setInstructors([]);
+      setCurrentInstructors([]);
+      setNoInstructors(true);
+      setSavedEvaluations({});
     }
   };
 

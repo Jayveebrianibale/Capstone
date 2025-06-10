@@ -52,9 +52,10 @@ Route::get('/instructors/export/csv', [EvaluationController::class, 'exportInstr
 Route::post('/instructors/{id}/assign-programs', [InstructorController::class, 'assignProgram']);
 Route::delete('/instructors/{instructorId}/programs/{programId}', [InstructorController::class, 'removeProgram']);
 Route::get('/instructors/program/{programId}/year/{yearLevel}', [InstructorController::class, 'getInstructorsByProgramAndYear']);
+Route::get('/instructors/program-name/{programName}', [InstructorController::class, 'getInstructorsByProgramName']);
 Route::get('/instructors/by-course', [InstructorController::class, 'getInstructorsByCourse']);
 Route::get('/instructors', [InstructorController::class, 'index']);
-Route::post('/instructors', [InstructorController::class, 'store']);
+Route::post('/instructors', [InstructorController::class, 'create']);
 Route::put('/instructors/{id}', [InstructorController::class, 'update']);
 Route::delete('/instructors/{id}', [InstructorController::class, 'destroy']);
 

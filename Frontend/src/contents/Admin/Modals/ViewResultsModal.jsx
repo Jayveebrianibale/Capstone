@@ -6,6 +6,15 @@ import InstructorService from '../../../services/InstructorService';
 import { toast, ToastContainer } from 'react-toastify';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
+// Helper function to get ordinal suffix for numbers
+const getOrdinalSuffix = (number) => {
+  const j = number % 10;
+  const k = number % 100;
+  if (j === 1 && k !== 11) return "st";
+  if (j === 2 && k !== 12) return "nd";
+  if (j === 3 && k !== 13) return "rd";
+  return "th";
+};
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -96,9 +105,11 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
             </h3>
             <div
               className={`text-3xl font-bold ${
-                percentage >= 85
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-red-600 dark:text-red-400'
+                percentage >= 90
+                  ? "text-green-600 dark:text-green-400"
+                  : percentage >= 75
+                  ? "text-[#1F3463] dark:text-blue-400"
+                  : "text-red-600 dark:text-red-400"
               }`}
             >
               {percentage.toFixed(2)}%
@@ -107,7 +118,7 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
 
           {/* Detailed Ratings */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 text-left">
               Detailed Ratings
             </h3>
             {loadingQuestions ? (
@@ -127,7 +138,7 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
                     className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <div>
+                      <div className="text-left">
                         <h4 className="font-medium text-gray-800 dark:text-white">
                           {question.category}
                         </h4>
@@ -172,7 +183,7 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
               key={index}
               className="pb-2 mb-2 border-b border-gray-200 dark:border-gray-600 last:border-b-0 last:pb-0 last:mb-0"
             >
-              <p className="text-sm text-gray-800 dark:text-gray-200">
+              <p className="text-sm text-gray-800 dark:text-gray-200 text-center">
                 "{commentEntry.comment}"
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 text-right">
