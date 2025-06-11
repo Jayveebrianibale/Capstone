@@ -15,12 +15,12 @@ const DarkModeToggle = ({ darkMode, handleDarkModeToggle }) => {
   return (
     <button
       onClick={handleDarkModeToggle}
-      className="p-2 rounded-lg transition-colors duration-30"
+      className="rounded-lg transition-colors duration-30"
     >
       {darkMode ? (
-        <MdOutlineLightMode className="h-5 w-5 text-yellow-400" />
+        <MdOutlineLightMode className="h-6 w-6 text-yellow-400" />
       ) : (
-        <MdOutlineDarkMode className="h-5 w-5 text-gray-800 dark:text-gray-200" />
+        <MdOutlineDarkMode className="h-6 w-6 text-gray-800 dark:text-gray-200" />
       )}
     </button>
   );
