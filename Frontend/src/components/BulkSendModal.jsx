@@ -16,14 +16,21 @@ const BulkSendModal = ({
   const [sentInstructors, setSentInstructors] = useState(new Set());
   const [isConfirming, setIsConfirming] = useState(false);
 
+  // Deduplicate instructors by ID
+  const uniqueInstructors = React.useMemo(() => {
+    return Array.from(
+      new Map(instructors.map(instructor => [instructor.id, instructor])).values()
+    );
+  }, [instructors]);
+
   useEffect(() => {
     if (isSending) {
       let currentIndex = 0;
-      const totalInstructors = instructors.length;
+      const totalInstructors = uniqueInstructors.length;
       
       const interval = setInterval(() => {
         if (currentIndex < totalInstructors) {
-          const currentInstructor = instructors[currentIndex];
+          const currentInstructor = uniqueInstructors[currentIndex];
           setCurrentInstructor(currentInstructor);
           setSentCount(currentIndex + 1);
           setProgress(((currentIndex + 1) / totalInstructors) * 100);
@@ -42,7 +49,7 @@ const BulkSendModal = ({
       setSentInstructors(new Set());
       setIsConfirming(false);
     }
-  }, [isSending, instructors]);
+  }, [isSending, uniqueInstructors]);
 
   const handleConfirm = async (e) => {
     e.preventDefault();
@@ -94,7 +101,7 @@ const BulkSendModal = ({
               <div className="space-y-2">
                 <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300">
                   <span>Progress: {Math.round(progress)}%</span>
-                  <span>{sentCount} of {instructors.length} sent</span>
+                  <span>{sentCount} of {uniqueInstructors.length} sent</span>
                 </div>
                 <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div 
@@ -108,10 +115,10 @@ const BulkSendModal = ({
             {/* Recipients List */}
             <div className="max-h-60 overflow-y-auto">
               <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Recipients ({instructors.length})
+                Recipients ({uniqueInstructors.length})
               </div>
               <div className="space-y-2">
-                {instructors.map((instructor) => (
+                {uniqueInstructors.map((instructor) => (
                   <div
                     key={instructor.id}
                     className={`flex items-center justify-between p-2 rounded-lg transition-colors ${

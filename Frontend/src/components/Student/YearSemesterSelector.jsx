@@ -59,7 +59,7 @@ const YearSemesterSelector = ({
       setSelectedYear(defaultYear);
       localStorage.setItem('selectedYear', defaultYear); // Keep localStorage consistent
 
-      // If a semester is already selected, this new default year might complete the pair
+      // Only fetch instructors if both year and semester are selected
       if (defaultYear && selectedSemester) {
         fetchAssignedInstructors();
         setFormReady(true);
@@ -106,6 +106,7 @@ const YearSemesterSelector = ({
             }}
             className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:outline-none"
           >
+            <option value="">Select Semester</option>
             {semesters.map((semester) => (
               <option key={semester} value={semester}>{semester}</option>
             ))}

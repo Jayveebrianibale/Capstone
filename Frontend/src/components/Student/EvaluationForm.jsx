@@ -23,6 +23,18 @@ const EvaluationForm = ({
     }
   }, [responses, instructorId, validationErrors]);
 
+  const scrollToNextUnanswered = (currentQuestionId) => {
+    const currentIndex = questions.findIndex(q => q.id === currentQuestionId);
+    const nextUnanswered = questions.slice(currentIndex + 1).find(q => !instructorResponses?.[q.id]?.rating);
+    
+    if (nextUnanswered) {
+      const element = document.getElementById(`question-${nextUnanswered.id}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  };
+
   const handleSave = () => {
     // Check for missing ratings
     const errors = {};
@@ -66,6 +78,11 @@ const EvaluationForm = ({
       });
     }
     handleResponseChange(instructorId, questionId, value, label);
+    
+    // Add a small delay to ensure the response is updated before scrolling
+    setTimeout(() => {
+      scrollToNextUnanswered(questionId);
+    }, 100);
   };
 
   return (

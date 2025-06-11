@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import SectionService from '../../../services/SectionService';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { Loader2, X } from 'lucide-react';
 
 function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
   const [newSections, setNewSections] = useState(['']);
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingSections, setExistingSections] = useState([]);
+  const [editingSection, setEditingSection] = useState(null);
+  const [removingSectionId, setRemovingSectionId] = useState(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchExistingSections();
+    }
+  }, [isOpen, gradeLevel, category]);
+
+  const fetchExistingSections = async () => {
+    try {
+      const response = await SectionService.getByGradeAndCategory(gradeLevel, category);
+      setExistingSections(response);
+    } catch (error) {
+      console.error("Error fetching sections:", error);
+      toast.error("Failed to load existing sections");
+    }
+  };
 
   const handleAddSectionField = () => {
     setNewSections([...newSections, '']);
@@ -21,6 +40,44 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
     const updatedSections = [...newSections];
     updatedSections[index] = value;
     setNewSections(updatedSections);
+  };
+
+  const handleEditSection = (section) => {
+    setEditingSection(section);
+  };
+
+  const handleUpdateSection = async (sectionId, newName) => {
+    try {
+      setIsSubmitting(true);
+      await SectionService.update(sectionId, {
+        name: newName,
+        code: `${category}-${gradeLevel}-${newName}`,
+        year_level: gradeLevel,
+        category: category
+      });
+      toast.success('Section updated successfully');
+      setEditingSection(null);
+      fetchExistingSections();
+      if (onSave) onSave();
+    } catch (error) {
+      toast.error(error.message || 'Failed to update section');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteSection = async (sectionId) => {
+    try {
+      setRemovingSectionId(sectionId);
+      await SectionService.delete(sectionId);
+      toast.success('Section deleted successfully');
+      fetchExistingSections();
+      if (onSave) onSave();
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete section');
+    } finally {
+      setRemovingSectionId(null);
+    }
   };
 
   const handleAddSections = async (e) => {
@@ -49,6 +106,7 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
       await Promise.all(promises);
       toast.success('Sections added successfully');
       setNewSections(['']); // Reset to single empty field
+      fetchExistingSections();
       if (onSave) onSave();
     } catch (error) {
       toast.error(error.message || 'Failed to add sections');
@@ -66,7 +124,7 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Add Sections
+              Manage Sections
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Grade {gradeLevel}
@@ -81,8 +139,112 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
           </button>
         </div>
 
-        {/* Form */}
+        {/* Existing Sections */}
+        <div className="p-6 border-b dark:border-gray-700">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+            Existing Sections
+          </h3>
+          <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+            {existingSections.length === 0 ? (
+              <div className="text-center py-8 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                <div className="text-gray-500 dark:text-gray-400">
+                  No sections found for Grade {gradeLevel}
+                </div>
+              </div>
+            ) : (
+              existingSections.map((section) => (
+                <div key={section.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                  {editingSection?.id === section.id ? (
+                    <div className="flex-1 mr-4">
+                      <input
+                        type="text"
+                        value={editingSection.name}
+                        onChange={(e) => setEditingSection({ ...editingSection, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#1F3463] focus:border-transparent"
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                  ) : (
+                    <span className="text-gray-900 dark:text-gray-100 flex-1 mr-4">{section.name}</span>
+                  )}
+                  <div className="flex items-center gap-2">
+                    {editingSection?.id === section.id ? (
+                      <>
+                        <button
+                          onClick={() => handleUpdateSection(section.id, editingSection.name)}
+                          className="px-2.5 py-1.5 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-lg flex items-center gap-1.5 transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <span>Saving...</span>
+                            </>
+                          ) : (
+                            <>
+                              <FaPlus className="w-3.5 h-3.5" />
+                              <span>Save</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => setEditingSection(null)}
+                          className="px-2.5 py-1.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg flex items-center gap-1.5 transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={isSubmitting}
+                        >
+                          <X className="w-3.5 h-3.5" />
+                          <span>Cancel</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleEditSection(section)}
+                          disabled={isSubmitting || removingSectionId === section.id}
+                          className="px-2.5 py-1.5 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-lg flex items-center gap-1.5 transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Edit Section"
+                        >
+                          <FaEdit className="w-3.5 h-3.5" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSection(section.id)}
+                          disabled={removingSectionId === section.id}
+                          className="px-2.5 py-1.5 bg-[#1F3463] hover:bg-[#172a4d] text-white rounded-lg flex items-center gap-1.5 transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Remove Section"
+                        >
+                          {removingSectionId === section.id ? (
+                            <>
+                              <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <span>Removing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <FaTrash className="w-3.5 h-3.5" />
+                              <span>Remove</span>
+                            </>
+                          )}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Add New Sections Form */}
         <form onSubmit={handleAddSections} className="p-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+            Add New Sections
+          </h3>
           <div className="space-y-4">
             {newSections.map((section, index) => (
               <div key={index} className="group relative">

@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Exports\InstructorResultsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Section;
 
 
 
@@ -130,19 +131,46 @@ class InstructorController extends Controller
                         foreach ($programs as $entry) {
                             $programCode = $entry['code'] ?? null;
                             $yearLevel = (int)($entry['yearLevel'] ?? 0);
+                            $section = $entry['section'] ?? null;
     
                             if ($programCode && $yearLevel >= 1 && $yearLevel <= 4) {
                                 $program = Program::where('code', $programCode)->first();
     
                                 if ($program) {
+                                    // Handle sections only for non-Higher Education programs
+                                    $sectionId = null;
+                                    if ($section && $program->category !== 'Higher Education') {
+                                        $sectionModel = Section::firstOrCreate(
+                                            [
+                                                'name' => $section,
+                                                'code' => $programCode . '-' . $section,
+                                                'year_level' => $yearLevel,
+                                                'category' => $program->category,
+                                                'program_id' => $program->id
+                                            ],
+                                            [
+                                                'name' => $section,
+                                                'code' => $programCode . '-' . $section,
+                                                'year_level' => $yearLevel,
+                                                'category' => $program->category,
+                                                'program_id' => $program->id
+                                            ]
+                                        );
+                                        $sectionId = $sectionModel->id;
+                                    }
+    
                                     $exists = $instructor->programs()
                                         ->where('program_id', $program->id)
                                         ->wherePivot('yearLevel', $yearLevel)
+                                        ->when($sectionId, function($query) use ($sectionId) {
+                                            return $query->wherePivot('section_id', $sectionId);
+                                        })
                                         ->exists();
     
                                     if (! $exists) {
                                         $instructor->programs()->attach($program->id, [
-                                            'yearLevel' => $yearLevel
+                                            'yearLevel' => $yearLevel,
+                                            'section_id' => $sectionId
                                         ]);
                                     }
                                 }
@@ -270,145 +298,68 @@ class InstructorController extends Controller
     public function assignProgram(Request $request, $id)
     {
         try {
-            $instructor = Instructor::findOrFail($id);
-            
-            // Log the incoming request data
-            Log::info('Assign Program Request:', [
-                'instructor_id' => $id,
-                'request_data' => $request->all()
-            ]);
-
             $request->validate([
                 'programs' => 'required|array',
                 'programs.*.id' => 'required|exists:programs,id',
                 'programs.*.yearLevels' => 'required|array',
-                'programs.*.yearLevels.*' => 'required|integer|min:1'
+                'programs.*.yearLevels.*' => 'required|integer',
+                'programs.*.section_id' => 'nullable|exists:sections,id'
             ]);
 
-            // Format the programs data and validate grade levels
-            $programsData = collect($request->programs)->mapWithKeys(function ($program) {
-                $yearLevels = array_map('intval', $program['yearLevels']);
-                
-                // Get the program to validate grade level
-                $programModel = \App\Models\Program::find($program['id']);
-                if (!$programModel) {
-                    throw new \Exception("Program not found");
-                }
-
-                // Extract grade level from program name if it exists
-                $gradeLevel = null;
-                if (preg_match('/Grade (\d+)/', $programModel->name, $matches)) {
-                    $gradeLevel = (int)$matches[1];
-                }
-
-                // Validate each year level based on program category
-                foreach ($yearLevels as $yearLevel) {
-                    // If we have a grade level from the program name, use that instead
-                    if ($gradeLevel !== null) {
-                        $yearLevel = $gradeLevel;
-                    }
-
-                    switch ($programModel->category) {
-                        case 'Junior High':
-                        case 'JHS':
-                            if ($yearLevel < 7 || $yearLevel > 10) {
-                                throw new \Exception("Invalid grade level for Junior High School. Must be between Grade 7 and Grade 10.");
-                            }
-                            break;
-                        case 'Intermediate':
-                        case 'INT':
-                            if ($yearLevel < 4 || $yearLevel > 6) {
-                                throw new \Exception("Invalid grade level for Intermediate. Must be between Grade 4 and Grade 6.");
-                            }
-                            break;
-                        case 'Senior High':
-                        case 'SHS':
-                            if ($yearLevel < 11 || $yearLevel > 12) {
-                                throw new \Exception("Invalid grade level for Senior High School. Must be between Grade 11 and Grade 12.");
-                            }
-                            break;
-                        case 'Higher Education':
-                        case 'HE':
-                            if ($yearLevel < 1 || $yearLevel > 4) {
-                                throw new \Exception("Invalid year level for Higher Education. Must be between 1st Year and 4th Year.");
-                            }
-                            break;
-                        default:
-                            throw new \Exception("Invalid program category: " . $programModel->category);
-                    }
-                }
-
-                // Create an array of year level assignments
-                $assignments = [];
-                foreach ($yearLevels as $yearLevel) {
-                    // If we have a grade level from the program name, use that instead
-                    if ($gradeLevel !== null) {
-                        $yearLevel = $gradeLevel;
-                    }
-                    $assignments[] = ['yearLevel' => $yearLevel];
-                }
-
-                return [$program['id'] => $assignments];
-            })->all();
-
-            // Log the formatted data
-            Log::info('Formatted Programs Data:', [
-                'programs_data' => $programsData
-            ]);
-
-            // Check for existing assignments with the same grade level and section
-            foreach ($programsData as $programId => $assignments) {
-                $program = Program::find($programId);
-                if (!$program) {
-                    throw new \Exception("Program not found");
-                }
-
-                // Extract section from program name if it exists
-                $section = null;
-                if (strpos($program->name, ' - Section ') !== false) {
-                    $section = explode(' - Section ', $program->name)[1];
-                }
-
-                foreach ($assignments as $assignment) {
-                    $existingAssignment = DB::table('instructor_program')
-                        ->join('programs', 'instructor_program.program_id', '=', 'programs.id')
-                        ->where('instructor_program.instructor_id', $id)
-                        ->where('instructor_program.program_id', $programId)
-                        ->where('instructor_program.yearLevel', $assignment['yearLevel'])
-                        ->first();
-
-                    if ($existingAssignment) {
-                        $gradeText = $this->formatGradeLevelText($assignment['yearLevel'], $program->category);
-                        $sectionText = $section ? " in Section " . $section : "";
-                        throw new \Exception("Instructor is already assigned to this program with {$gradeText}{$sectionText}");
-                    }
+            $instructor = Instructor::findOrFail($id);
+            
+            // Format the programs data
+            $formattedPrograms = [];
+            foreach ($request->programs as $program) {
+                foreach ($program['yearLevels'] as $yearLevel) {
+                    $formattedPrograms[] = [
+                        'program_id' => $program['id'],
+                        'yearLevel' => $yearLevel,
+                        'section_id' => $program['section_id'] ?? null
+                    ];
                 }
             }
 
-            // Use attach to add new assignments without removing existing ones
-            foreach ($programsData as $programId => $assignments) {
-                foreach ($assignments as $assignment) {
-                    $instructor->programs()->attach($programId, [
-                        'yearLevel' => $assignment['yearLevel']
-                    ]);
+            // Log the formatted data
+            \Log::info('Formatted programs data:', $formattedPrograms);
+
+            // Check for existing assignments
+            foreach ($formattedPrograms as $assignment) {
+                $exists = $instructor->programs()
+                    ->where('programs.id', $assignment['program_id'])
+                    ->where('instructor_program.yearLevel', $assignment['yearLevel'])
+                    ->when($assignment['section_id'], function($query, $sectionId) {
+                        return $query->where('instructor_program.section_id', $sectionId);
+                    })
+                    ->exists();
+
+                if ($exists) {
+                    $program = Program::find($assignment['program_id']);
+                    $section = $assignment['section_id'] ? Section::find($assignment['section_id']) : null;
+                    $sectionText = $section ? " - Section {$section->name}" : "";
+                    return response()->json([
+                        'message' => "Instructor is already assigned to {$program->name}{$sectionText}"
+                    ], 422);
                 }
+            }
+
+            // Attach new assignments
+            foreach ($formattedPrograms as $assignment) {
+                $instructor->programs()->attach($assignment['program_id'], [
+                    'yearLevel' => $assignment['yearLevel'],
+                    'section_id' => $assignment['section_id']
+                ]);
             }
 
             return response()->json([
                 'message' => 'Programs assigned successfully',
-                'programs' => $programsData
+                'programs' => $instructor->programs()->get()
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error assigning programs:', [
-                'instructor_id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return response()->json([
-                'error' => $e->getMessage()
-            ], 422);
+            \Log::error('Error in assignProgram: ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            return response()->json(['message' => 'Failed to assign programs: ' . $e->getMessage()], 500);
         }
     }
 

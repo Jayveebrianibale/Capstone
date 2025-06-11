@@ -12,6 +12,7 @@ import AssignProgramModal from "../../contents/Admin/Modals/AssignProgramModal";
 import { Users, UserX } from "lucide-react";
 import { MdOutlineAssignmentTurnedIn } from "react-icons/md";
 import { formatGradeLevelText } from "../../utils/gradeLevelFormatter";
+import DragDropUpload from "../../components/DragDropUpload";
 
 function Instructors() {
   const [instructors, setInstructors] = useState([]);
@@ -162,8 +163,7 @@ function Instructors() {
     setShowModal(true);
   };
 
-  const handleCSVUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleCSVUpload = async (file) => {
     if (!file) return;
     setLoading(true);
     try {
@@ -174,14 +174,15 @@ function Instructors() {
       toast.error(error.message || "Upload failed. Please check your CSV file.");
     } finally {
       setLoading(false);
-      e.target.value = null;
     }
   };
 
   const handleDownloadTemplate = () => {
     const csvContent = `name,email,programs
-    John Doe,johndoe@email.com,"[{""code"":""BSIS"",""yearLevel"":1},{""code"":""BSA"",""yearLevel"":2}]"
-    Jane Smith,janesmith@email.com,"[{""code"":""INT"",""yearLevel"":4,""section"":""A""}]"`;
+John Doe,johndoe@email.com,"[{""code"":""BSIS"",""yearLevel"":1},{""code"":""BSA"",""yearLevel"":2}]"
+Jane Smith,janesmith@email.com,"[{""code"":""INT"",""yearLevel"":4,""section"":""A""}]"
+Mary Johnson,maryjohnson@email.com,"[{""code"":""JHS"",""yearLevel"":7,""section"":""B""}]"
+Robert Brown,robertbrown@email.com,"[{""code"":""SHS"",""yearLevel"":11,""section"":""A""}]"`;
   
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -352,28 +353,13 @@ function Instructors() {
 
       {instructors.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[50vh] bg-white border dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
-          <div className="flex justify-center mb-4 sm:mb-6">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
-              <UserX className="w-6 h-6 sm:w-8 sm:h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
-            </div>
-          </div>
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2 text-center">
-            No instructors yet
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 text-center text-sm sm:text-base max-w-md px-2">
-            Get started by adding new instructors individually or upload a CSV file
-          </p>
           
-          <div className="flex flex-col w-full max-w-xs gap-3">
-            <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer text-sm sm:text-base">
-              <FiUpload className="w-4 h-4" /> Upload CSV
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleCSVUpload}
-                className="hidden"
-              />
-            </label>
+          <div className="w-full max-w-md">
+            <DragDropUpload 
+              onFileUpload={handleCSVUpload}
+              title="Upload Instructors CSV"
+              subtitle="Drag and drop your instructors CSV file here"
+            />
           </div>
           
           <div className="mt-6 sm:mt-8 text-center px-4">

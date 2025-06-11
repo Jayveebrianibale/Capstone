@@ -17,7 +17,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       setSelectedPrograms(
         instructor?.programs?.map((p) => ({
           id: p.id,
-          yearLevels: p.pivot?.yearLevel ? [p.pivot.yearLevel] : [],
+          yearLevels: p.pivot?.yearLevel ? [p.pivot.yearLevel] : []
         })) || []
       );
     }
@@ -62,95 +62,10 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
     });
   };
 
-  const getDefaultYearLevel = (program) => {
-    // Extract grade level from program name for all categories
-    const match = program.name.match(/Grade (\d+)/);
-    if (match) {
-      return parseInt(match[1], 10);
-    }
-
-    // If no grade level found in name, use default values
-    switch (program.category) {
-      case 'Junior High':
-        return 7; // Default to Grade 7
-      case 'Senior High':
-        return 11; // Default to Grade 11
-      case 'Higher Education':
-        return 1; // Default to 1st Year
-      case 'Intermediate':
-        return 4; // Default to Grade 4
-      default:
-        return null;
-    }
-  };
-
-  const handleYearLevelChange = (programId, yearLevels) => {
-    // Get the program to check its category
-    const program = programs.find(p => p.id === programId);
-    if (!program) return;
-
-    // Validate year levels based on program category
-    const isValid = yearLevels.every(yearLevel => validateGradeLevel(yearLevel, program.category));
-    if (!isValid) {
-      toast.error(`Invalid year level for ${program.category}. Please select valid grade levels.`);
-      return;
-    }
-
-    setSelectedPrograms((prev) =>
-      prev.map((p) =>
-        p.id === programId
-          ? { ...p, yearLevels }
-          : p
-      )
-    );
-  };
-
   const handleSave = async () => {
     try {
       setIsAssigning(true);
       
-      // Log initial state
-      console.log('Initial selected programs:', selectedPrograms);
-      console.log('Instructor ID:', instructor.id);
-      
-      // Validate year levels for all programs
-      const invalidPrograms = selectedPrograms.filter(p => {
-        const program = programs.find(prog => prog.id === p.id);
-        if (!program) return true;
-        
-        // Extract grade level from program name
-        const match = program.name.match(/Grade (\d+)/);
-        const gradeLevel = match ? parseInt(match[1], 10) : null;
-        
-        // If we have a grade level in the name, use that instead of the selected year levels
-        if (gradeLevel) {
-          p.yearLevels = [gradeLevel];
-        }
-        
-        // Check if year levels are required and valid for the program category
-        const isValidYearLevels = p.yearLevels.every(yearLevel => 
-          validateGradeLevel(yearLevel, program.category)
-        );
-        return !isValidYearLevels;
-      });
-
-      if (invalidPrograms.length > 0) {
-        const invalidProgramNames = invalidPrograms
-          .map(p => {
-            const program = programs.find(prog => prog.id === p.id);
-            const gradeTexts = p.yearLevels.map(yearLevel => 
-              formatGradeLevelText(yearLevel, program?.category)
-            ).join(", ");
-            return `${program?.name} (${gradeTexts})`;
-          })
-          .filter(Boolean)
-          .join(", ");
-          
-        toast.error(`Invalid grade levels for: ${invalidProgramNames}. Please check the grade level requirements for each program.`);
-        setIsAssigning(false);
-        return;
-      }
-
       // Format the data for the API
       const formattedData = {
         programs: selectedPrograms.map(p => {
@@ -218,66 +133,25 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
     }
   };
 
-  const isHigherEducationProgram = (program) => {
-    console.log("Checking program category:", program);
-    return program.category === "Higher Education";
-  };
-
-  const isACTProgram = (program) => {
-    const actNames = ['ACT', 'Associate in Computer Technology'];
-    return actNames.some(name => program.name.toUpperCase().includes(name.toUpperCase()));
-  };
-
-  const getYearLevelOptions = (category, programName) => {
-    console.log('Program Name:', programName);
-    console.log('Category:', category);
-
-    // Check if it's an ACT program first - handle both correct and typo cases
-    const isACT = programName?.toUpperCase().includes('ACT') || 
-                 programName?.toUpperCase().includes('ASSOCIATE IN COMPUTER TECHNOLOGY') ||
-                 programName?.toUpperCase().includes('ASSIOCIATE IN COMPUTER TECHNOLOGY');
-    
-    console.log('Is ACT:', isACT);
-
-    // For ACT programs, only show 1st and 2nd year
-    if (isACT) {
-      console.log('Returning ACT options');
-      return [
-        { value: 1, label: '1st' },
-        { value: 2, label: '2nd' }
-      ];
+  const getDefaultYearLevel = (program) => {
+    // Extract grade level from program name for all categories
+    const match = program.name.match(/Grade (\d+)/);
+    if (match) {
+      return parseInt(match[1], 10);
     }
 
-    // For other Higher Education programs, show all years
-    if (category === 'Higher Education') {
-      console.log('Returning Higher Education options');
-      return [
-        { value: 1, label: '1st' },
-        { value: 2, label: '2nd' },
-        { value: 3, label: '3rd' },
-        { value: 4, label: '4th' }
-      ];
-    }
-
-    // For other categories, return appropriate grade levels
-    switch (category) {
+    // If no grade level found in name, use default values
+    switch (program.category) {
       case 'Junior High':
-        return Array.from({ length: 4 }, (_, i) => ({
-          value: i + 7,
-          label: `Grade ${i + 7}`
-        }));
-      case 'Intermediate':
-        return Array.from({ length: 3 }, (_, i) => ({
-          value: i + 4,
-          label: `Grade ${i + 4}`
-        }));
+        return 7; // Default to Grade 7
       case 'Senior High':
-        return Array.from({ length: 2 }, (_, i) => ({
-          value: i + 11,
-          label: `Grade ${i + 11}`
-        }));
+        return 11; // Default to Grade 11
+      case 'Higher Education':
+        return 1; // Default to 1st Year
+      case 'Intermediate':
+        return 4; // Default to Grade 4
       default:
-        return [];
+        return null;
     }
   };
 
@@ -328,7 +202,6 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
                 {filteredPrograms.map((program) => {
                   const isChecked = selectedPrograms.some((p) => p.id === program.id);
                   const selectedYearLevels = selectedPrograms.find((p) => p.id === program.id)?.yearLevels || [];
-                  const isHigherEducation = isHigherEducationProgram(program);
 
                   return (
                     <div
@@ -355,36 +228,6 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
                             </div>
                           </div>
                         </div>
-
-                        {isChecked && isHigherEducation && (
-                          <div className="relative ml-6">
-                            <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Select Year Levels:</div>
-                            <div className="grid grid-cols-2 gap-4 p-4 rounded-lg">
-                              {getYearLevelOptions(program.category, program.name).map((option) => (
-                                <label
-                                  key={option.value}
-                                  className="flex items-center gap-3 text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded transition-colors"
-                                >
-                                  <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors relative flex-shrink-0 ${selectedYearLevels.includes(option.value) ? 'bg-[#1F3463] border-[#1F3463] text-white' : 'border-gray-300 dark:border-gray-600'}`}>
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedYearLevels.includes(option.value)}
-                                      onChange={(e) => {
-                                        const newYearLevels = e.target.checked
-                                          ? [...selectedYearLevels, option.value]
-                                          : selectedYearLevels.filter(level => level !== option.value);
-                                        handleYearLevelChange(program.id, newYearLevels);
-                                      }}
-                                      className="absolute opacity-0 h-4 w-4 cursor-pointer"
-                                    />
-                                    {selectedYearLevels.includes(option.value) && <FaCheck className="w-2.5 h-2.5" />}
-                                  </div>
-                                  <span className="text-gray-700 dark:text-gray-300 whitespace-nowrap">{option.label}</span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
                   );

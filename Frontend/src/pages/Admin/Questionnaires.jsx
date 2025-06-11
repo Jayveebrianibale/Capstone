@@ -14,6 +14,7 @@ import { FiUpload } from 'react-icons/fi';
 import { toast, ToastContainer } from "react-toastify";
 import { useLoading } from "../../components/LoadingContext";
 import FullScreenLoader from "../../components/FullScreenLoader";
+import DragDropUpload from "../../components/DragDropUpload";
 import "react-toastify/dist/ReactToastify.css";
 
 function Questionnaires() {
@@ -27,6 +28,7 @@ function Questionnaires() {
     key: null,
     direction: "asc",
   });
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { loading, setLoading } = useLoading();
 
@@ -79,9 +81,11 @@ function Questionnaires() {
     setConfirmModalOpen(true);
   };
 
-  const handleCSVUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleCSVUpload = async (fileOrEvent) => {
+    // Handle both direct file uploads and event-based uploads
+    const file = fileOrEvent.files ? fileOrEvent.files[0] : fileOrEvent;
     if (!file) return;
+    
     setLoading(true);
     try {
       const result = await QuestionsService.bulkUpload(file);
@@ -100,7 +104,10 @@ function Questionnaires() {
       toast.error(error.message || "Upload failed. Please check your CSV file.");
     } finally {
       setLoading(false);
-      e.target.value = null;
+      // Only reset the input value if it's an event-based upload
+      if (fileOrEvent.target) {
+        fileOrEvent.target.value = null;
+      }
     }
   };
 
@@ -189,51 +196,52 @@ function Questionnaires() {
         </div>
       </div>
 
-      {/* Table or Empty State */}
+      {/* Content Section */}
       {sortedQuestions.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[70vh] bg-white border dark:bg-gray-800 rounded-2xl shadow-sm p-8">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
-              <FaQuestionCircle className="w-7 h-7 text-[#1F3463] dark:text-[#5d7cbf]" />
-            </div>
-          </div>
-        
-          {/* Text Content */}
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
-            No questions yet
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-8 text-center max-w-md">
-            Get started by creating your first evaluation question or upload a CSV file.
-          </p>
-        
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md">
-            <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all flex-1 cursor-pointer">
-              <FiUpload className="w-4 h-4" /> Upload CSV
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleCSVUpload}
-                className="hidden"
-              />
-            </label>
-          </div>
-        
-          {/* CSV Helper Text */}
-        <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Need a template?{' '}
+          {searchQuery ? (
+            <>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                No matching questions found
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 mb-8 text-center max-w-md">
+                Try adjusting your search query or browse all questions
+              </p>
               <button
-                type="button"
-                onClick={handleDownloadTemplate}
-                className="underline text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e] focus:outline-none"
+                onClick={() => setSearchQuery("")}
+                className="text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e] focus:outline-none underline"
               >
-                Download sample CSV
+                Clear search
               </button>
-            </p>
-          </div>
-      </div>
-      
+            </>
+          ) : (
+            <>
+            
+              {/* Action Buttons */}
+              <div className="w-full max-w-md">
+                <DragDropUpload 
+                  onFileUpload={handleCSVUpload}
+                  title="Upload Questions CSV"
+                  subtitle="Drag and drop your questions CSV file here"
+                />
+              </div>
+            
+              {/* CSV Helper Text */}
+              <div className="mt-6 sm:mt-8 text-center px-4">
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                  Need a template?{' '}
+                  <button
+                    type="button"
+                    onClick={handleDownloadTemplate}
+                    className="underline text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e] focus:outline-none"
+                  >
+                    Download sample CSV
+                  </button>
+                </p>
+              </div>
+            </>
+          )}
+        </div>
       ) : (
         <div className="space-y-4">
           {/* Show as table for medium screens and up */}

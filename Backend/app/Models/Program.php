@@ -4,9 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Program extends Model {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = ['name', 'code', 'yearLevel', 'category'];
     
@@ -21,12 +22,15 @@ class Program extends Model {
 
     public function instructors()
     {   
-        return $this->belongsToMany(Instructor::class, 'instructor_program', 'program_id', 'instructor_id')
-                ->withPivot('yearLevel')
+        return $this->belongsToMany(Instructor::class, 'instructor_program')
+                ->withPivot('yearLevel', 'section_id')
                 ->withTimestamps();
     }
 
-    
+    public function sections()
+    {
+        return $this->hasMany(Section::class);
+    }
 
 }   
 

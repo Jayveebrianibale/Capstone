@@ -16,6 +16,7 @@ function StudentProfileSetup() {
   const [programs, setPrograms] = useState([]);
   const [selectedProgramId, setSelectedProgramId] = useState("");
   const [selectedYearLevel, setSelectedYearLevel] = useState("");
+  const [selectedSection, setSelectedSection] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -37,12 +38,13 @@ function StudentProfileSetup() {
     ];
   };
 
-  const totalSteps = (educationLevel === "Higher Education" ? 3 : 2) + 1;
+  const totalSteps = (educationLevel === "Higher Education" ? 3 : 3) + 1;
 
   const handleEducationLevelSelect = (level) => {
     setEducationLevel(level);
     setSelectedProgramId("");
     setSelectedYearLevel("");
+    setSelectedSection("");
     setStep(1);
   };
 
@@ -93,9 +95,11 @@ function StudentProfileSetup() {
       const response = await api.get("/programs", {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log("Fetched programs:", response.data);
       const extracted = Array.isArray(response.data)
         ? response.data
         : response.data.programs || [];
+      console.log("Extracted programs:", extracted);
       setPrograms(extracted);
     } catch (err) {
       console.error("Failed to fetch programs:", err);
@@ -114,14 +118,13 @@ function StudentProfileSetup() {
     setErrorMessage("");
   
     try {
-      const chosenProgramForStep2 = programs.find(p => String(p.id) === selectedProgramId);
+      const chosenProgram = programs.find(p => String(p.id) === selectedSection);
   
       const payload = {
         educationLevel: educationLevel,
         selectedOption: educationLevel === "Higher Education"
                         ? selectedProgramId
-                        : chosenProgramForStep2?.name || "",
-        programName: chosenProgramForStep2?.name || "",
+                        : chosenProgram?.name || "",
       };
 
       // Only add yearLevel for Higher Education
@@ -144,7 +147,6 @@ function StudentProfileSetup() {
         localStorage.setItem("showPrivacyNoticeOnDashboard", "true");
         toast.success("Profile setup completed!");
         setTimeout(() => {
-          // Add state to indicate we're coming from profile setup
           navigate("/SDashboard", { state: { fromProfileSetup: true } });
         }, 800);
       } else {
@@ -162,7 +164,10 @@ function StudentProfileSetup() {
   const isNextDisabled = () => {
     if (step === 1) return !educationLevel;
     if (step === 2) return !selectedProgramId;
-    if (step === 3 && educationLevel === "Higher Education") return !selectedYearLevel;
+    if (step === 3) {
+      if (educationLevel === "Higher Education") return !selectedYearLevel;
+      return !selectedSection;
+    }
     return false;
   };
 
@@ -175,7 +180,10 @@ function StudentProfileSetup() {
   const isStepCompleted = (currentStep) => {
     if (currentStep === 1) return !!educationLevel;
     if (currentStep === 2) return !!selectedProgramId;
-    if (currentStep === 3 && educationLevel === "Higher Education") return !!selectedYearLevel;
+    if (currentStep === 3) {
+      if (educationLevel === "Higher Education") return !!selectedYearLevel;
+      return !!selectedSection;
+    }
     return false;
   };
 
@@ -376,25 +384,75 @@ function StudentProfileSetup() {
                 <h3 className="text-xl md:text-2xl font-semibold text-gray-800">
                   {educationLevel === "Higher Education" ? "Select your program" : "Select your grade level"}
                 </h3>
-                {renderSelect(
-                  selectedProgramId,
-                  (e) => setSelectedProgramId(e.target.value),
-                  programs.filter(p => p.category === educationLevel),
-                  "Select an option",
-                  "Select an option"
+                {educationLevel === "Higher Education" ? (
+                  renderSelect(
+                    selectedProgramId,
+                    (e) => {
+                      setSelectedProgramId(e.target.value);
+                      setSelectedSection("");
+                    },
+                    programs.filter(p => p.category === educationLevel),
+                    "Select an option",
+                    "Select an option"
+                  )
+                ) : (
+                  renderSelect(
+                    selectedProgramId,
+                    (e) => {
+                      setSelectedProgramId(e.target.value);
+                      setSelectedSection("");
+                    },
+                    programs
+                      .filter(p => {
+                        const category = educationLevel === "Senior High" ? ["Senior High", "SHS"] : 
+                                       educationLevel === "Junior High" ? ["Junior High", "JHS"] : 
+                                       educationLevel === "Intermediate" ? ["Intermediate", "INT"] : [educationLevel];
+                        return category.includes(p.category);
+                      })
+                      .reduce((acc, curr) => {
+                        if (!acc.find(item => item.id === curr.yearLevel)) {
+                          acc.push({ id: curr.yearLevel, name: curr.yearLevel });
+                        }
+                        return acc;
+                      }, []),
+                    "Select an option",
+                    "Select an option"
+                  )
                 )}
               </motion.div>
             )}
 
-            {step === 3 && educationLevel === "Higher Education" && (
+            {step === 3 && (
               <motion.div key="step3" variants={stepVariants} initial="initial" animate="animate" exit="exit" className="space-y-4 md:space-y-6">
-                <h3 className="text-xl md:text-2xl font-semibold text-gray-800">Select your year Level</h3>
-                {renderSelect(
-                  selectedYearLevel,
-                  (e) => setSelectedYearLevel(e.target.value),
-                  getYearLevelOptions(),
-                  "Select year level",
-                  "Select year level"
+                <h3 className="text-xl md:text-2xl font-semibold text-gray-800">
+                  {educationLevel === "Higher Education" ? "Select your year Level" : "Select your section"}
+                </h3>
+                {educationLevel === "Higher Education" ? (
+                  renderSelect(
+                    selectedYearLevel,
+                    (e) => setSelectedYearLevel(e.target.value),
+                    getYearLevelOptions(),
+                    "Select year level",
+                    "Select year level"
+                  )
+                ) : (
+                  renderSelect(
+                    selectedSection,
+                    (e) => setSelectedSection(e.target.value),
+                    programs
+                      .filter(p => {
+                        const category = educationLevel === "Senior High" ? ["Senior High", "SHS"] : 
+                                       educationLevel === "Junior High" ? ["Junior High", "JHS"] : 
+                                       educationLevel === "Intermediate" ? ["Intermediate", "INT"] : [educationLevel];
+                        return category.includes(p.category) && p.yearLevel === selectedProgramId;
+                      })
+                      .map(p => ({
+                        value: p.id,
+                        label: p.name.split(' - ')[1] || p.name
+                      })),
+                    "Select section",
+                    "Select section"
+                  )
                 )}
               </motion.div>
             )}

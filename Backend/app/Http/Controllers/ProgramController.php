@@ -68,6 +68,8 @@ public function bulkUpload(Request $request) {
             }
 
             try {
+                DB::beginTransaction();
+
                 // Create program
                 $program = Program::create([
                     'name'      => $data['name'],
@@ -78,16 +80,27 @@ public function bulkUpload(Request $request) {
 
                 // Only create section for non-Higher Education programs
                 if (!empty($data['section']) && $data['category'] !== 'Higher Education') {
-                    $section = Section::create([
-                        'name' => $data['section'],
-                        'code' => $data['code'] . '-' . $data['section'],
-                        'year_level' => $data['yearLevel'],
-                        'category' => ucwords(str_replace('_',' ',$data['category']))
-                    ]);
+                    // Check if section already exists
+                    $existingSection = Section::where('name', $data['section'])
+                                           ->where('code', $data['code'] . '-' . $data['section'])
+                                           ->where('year_level', $data['yearLevel'])
+                                           ->first();
+
+                    if (!$existingSection) {
+                        $section = Section::create([
+                            'name' => $data['section'],
+                            'code' => $data['code'] . '-' . $data['section'],
+                            'year_level' => $data['yearLevel'],
+                            'category' => ucwords(str_replace('_',' ',$data['category'])),
+                            'program_id' => $program->id
+                        ]);
+                    }
                 }
 
+                DB::commit();
                 $inserted[] = $program;
             } catch (\Exception $e) {
+                DB::rollBack();
                 $errors[] = [
                     'row' => $i + 2,
                     'errors' => [$e->getMessage()]
@@ -106,8 +119,20 @@ public function bulkUpload(Request $request) {
     //  Retrieves all programs.
     public function index()
     {
-        $programs = Program::all();
-        return response()->json(['programs' => $programs]);
+        try {
+            $programs = Program::with(['sections' => function($query) {
+                $query->orderBy('year_level', 'asc')
+                      ->orderBy('name', 'asc');
+            }])->get();
+
+            return response()->json(['programs' => $programs]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching programs: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to fetch programs',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
    
@@ -119,40 +144,84 @@ public function bulkUpload(Request $request) {
             'name' => 'required|string',
             'code' => 'required|string',
             'yearLevel' => 'nullable|string',
-            'category' => 'nullable|string',
+            'category' => 'required|string',
+            'section' => 'nullable|string',
         ]);
 
-        // For Senior High programs, check only by name and category
-        if ($request->category === 'SHS') {
-            $existingProgram = Program::where('name', $request->name)
-                                    ->where('category', 'SHS')
-                                    ->first();
-        } else {
-            // For other programs, check by name, code, and year level
-            $existingProgram = Program::where('name', $request->name)
-                                    ->where('code', $request->code)
-                                    ->where('yearLevel', $request->yearLevel)
-                                    ->first();
-        }
+        try {
+            DB::beginTransaction();
 
-        if ($existingProgram) {
+            // Check for existing program with the same name, code, and year level
+            $existingProgram = Program::where(function($query) use ($request) {
+                $query->where('name', $request->name)
+                      ->where('code', $request->code)
+                      ->where('yearLevel', $request->yearLevel)
+                      ->where('category', ucwords(str_replace('_', ' ', $request->category)));
+            })->first();
+
+            if ($existingProgram) {
+                // If program exists, check if we need to add a new section
+                if (!empty($request->section) && $request->category !== 'Higher Education') {
+                    $existingSection = Section::where('name', $request->section)
+                                           ->where('code', $request->code . '-' . $request->section)
+                                           ->where('year_level', $request->yearLevel)
+                                           ->first();
+
+                    if (!$existingSection) {
+                        Section::create([
+                            'name' => $request->section,
+                            'code' => $request->code . '-' . $request->section,
+                            'year_level' => $request->yearLevel,
+                            'category' => ucwords(str_replace('_', ' ', $request->category)),
+                            'program_id' => $existingProgram->id
+                        ]);
+
+                        DB::commit();
+                        return response()->json([
+                            'message' => 'Section added to existing program successfully',
+                            'program' => $existingProgram->load('sections')
+                        ], 200);
+                    }
+                }
+
+                return response()->json([
+                    'message' => 'Program with the same name already exists'
+                ], 422);
+            }
+
+            // Create the new program
+            $program = Program::create([
+                'name' => $request->name,
+                'code' => $request->code,
+                'yearLevel' => $request->yearLevel,
+                'category' => ucwords(str_replace('_', ' ', $request->category)),
+            ]);
+
+            // Create section for non-Higher Education programs
+            if (!empty($request->section) && $request->category !== 'Higher Education') {
+                Section::create([
+                    'name' => $request->section,
+                    'code' => $request->code . '-' . $request->section,
+                    'year_level' => $request->yearLevel,
+                    'category' => ucwords(str_replace('_', ' ', $request->category)),
+                    'program_id' => $program->id
+                ]);
+            }
+
+            DB::commit();
+
             return response()->json([
-                'message' => 'Program with the same name already exists'
-            ], 422);
+                'message' => 'Program created successfully',
+                'program' => $program->load('sections')
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to create program',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        // Create the new program
-        $program = Program::create([
-            'name' => $request->name,
-            'code' => $request->code,
-            'yearLevel' => $request->yearLevel,
-            'category' => ucwords(str_replace('_', ' ', $request->category)),
-        ]);
-
-        return response()->json([
-            'message' => 'Program created successfully',
-            'program' => $program
-        ], 201);
     }
 
     

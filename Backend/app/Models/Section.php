@@ -13,18 +13,19 @@ class Section extends Model
         'name',
         'code',
         'year_level',
-        'category'
+        'category',
+        'program_id'
     ];
-
-    public function instructors()
-    {
-        return $this->belongsToMany(Instructor::class, 'instructor_program', 'section_id', 'instructor_id')
-                    ->withPivot('program_id', 'yearLevel')
-                    ->withTimestamps();
-    }
 
     public function program()
     {
         return $this->belongsTo(Program::class);
+    }
+
+    public function instructors()
+    {
+        return $this->belongsToMany(Instructor::class, 'instructor_program', 'section_id', 'instructor_id')
+            ->withPivot('yearLevel')
+            ->withTimestamps();
     }
 } 

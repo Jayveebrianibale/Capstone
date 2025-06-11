@@ -178,7 +178,7 @@ const InstructorTable = ({
                   {status === 'Evaluated' ? (
                     <button
                       onClick={() => handleViewEvaluation(instructor)}
-                      className="px-2.5 py-1 rounded-lg bg-[#1F3463] hover:bg-blue-700 text-white text-xs"
+                      className="px-4 py-2 rounded-lg bg-[#1F3463] hover:bg-blue-700 text-white text-sm sm:text-base"
                     >
                       View
                     </button>
@@ -188,7 +188,7 @@ const InstructorTable = ({
                         setViewOnlyInstructorId(null);
                         setExpandedInstructorId(isExpanded ? null : instructor.id);
                       }}
-                      className={`px-2.5 py-1 rounded-lg text-xs ${
+                      className={`px-4 py-2 rounded-lg text-sm sm:text-base ${
                         saved ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#1F3463] hover:bg-blue-700'
                       } text-white`}
                     >

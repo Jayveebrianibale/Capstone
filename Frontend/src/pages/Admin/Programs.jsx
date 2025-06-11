@@ -11,6 +11,7 @@ import HigherEducationModal from "../../contents/Admin/Modals/HigherEducationMod
 import SeniorHighModal from "../../contents/Admin/Modals/SeniorHighModal";
 import JuniorHighModal from "../../contents/Admin/Modals/JuniorHighModal";
 import IntermediateModal from "../../contents/Admin/Modals/IntermediateModal";
+import DragDropUpload from "../../components/DragDropUpload";
 
 function Programs() {
   const [programs, setPrograms] = useState([]);
@@ -61,23 +62,30 @@ function Programs() {
   };
 
   const getFilteredItems = () => {
-    const category = activeTab.toLowerCase();
-    const searchLower = searchQuery.toLowerCase();
+    let filtered = programs;
 
-    // Map the tab name to the correct category codes
-    const categoryMap = {
-      "higher education": ["Higher Education"],
-      "senior high": ["SHS", "Senior High"],
-      "junior high": ["Junior High", "Jhs", "jhs"],
-      "intermediate": ["Intermediate"]
-    };
+    // Filter by active tab
+    if (activeTab === 'Higher Education') {
+      filtered = filtered.filter(item => item.category === 'Higher Education');
+    } else if (activeTab === 'Intermediate') {
+      filtered = filtered.filter(item => item.category === 'Intermediate' || item.category === 'INT');
+    } else if (activeTab === 'Junior High') {
+      filtered = filtered.filter(item => item.category === 'Junior High' || item.category === 'JHS');
+    } else if (activeTab === 'Senior High') {
+      filtered = filtered.filter(item => item.category === 'Senior High' || item.category === 'SHS');
+    }
 
-    // Filter programs based on category and search query
-    return programs.filter(prog =>
-      categoryMap[category].includes(prog.category) &&
-      (prog.name.toLowerCase().includes(searchLower) ||
-       (prog.code && prog.code.toLowerCase().includes(searchLower)))
-    );
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(item =>
+        item.name.toLowerCase().includes(query) ||
+        item.code.toLowerCase().includes(query) ||
+        (item.yearLevel && item.yearLevel.toLowerCase().includes(query))
+      );
+    }
+
+    return filtered;
   };
 
   const openAddProgramModal = () => {
@@ -90,8 +98,7 @@ function Programs() {
     setActiveModal(activeTab);
   };
 
-  const handleCSVUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleCSVUpload = async (file) => {
     if (!file) return;
     setLoading(true);
     try {
@@ -102,7 +109,6 @@ function Programs() {
       toast.error(error.response?.data?.message || "Upload failed. Please check your CSV file.");
     } finally {
       setLoading(false);
-      e.target.value = null;
     }
   };
 
@@ -280,44 +286,30 @@ function Programs() {
       {/* Content Section */}
       {getFilteredItems().length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[50vh] bg-white border dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
-          <div className="flex justify-center mb-4 sm:mb-6">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
-              <FaSearch className="w-6 h-6 sm:w-8 sm:h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
-            </div>
-          </div>
-
-          {/* Text Content */}
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2 text-center">
-            {searchQuery ? "No matching programs found" : "No Programs Found"}
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 text-center text-sm sm:text-base max-w-md px-2">
-            {searchQuery ? (
-              "Try adjusting your search query or browse all programs"
-            ) : (
-              `Start by adding new programs to ${activeTab} or upload a CSV file.`
-            )}
-          </p>
-
           {searchQuery ? (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e] focus:outline-none underline"
-            >
-              Clear search
-            </button>
+            <>
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2 text-center">
+                No matching programs found
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 text-center text-sm sm:text-base max-w-md px-2">
+                Try adjusting your search query or browse all programs
+              </p>
+              <button
+                onClick={() => setSearchQuery("")}
+                className="text-[#1F3463] dark:text-[#5d7cbf] font-medium hover:text-[#17284e] focus:outline-none underline"
+              >
+                Clear search
+              </button>
+            </>
           ) : (
             <>
               {/* Action Buttons */}
-              <div className="flex flex-col w-full max-w-xs gap-3">
-                <label className="border border-[#1F3463] text-[#1F3463] dark:text-white dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer text-sm sm:text-base">
-                  <FiUpload className="w-4 h-4" /> Upload CSV
-                  <input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleCSVUpload}
-                    className="hidden"
-                  />
-                </label>
+              <div className="w-full max-w-md">
+                <DragDropUpload 
+                  onFileUpload={handleCSVUpload}
+                  title="Upload Programs CSV"
+                  subtitle="Drag and drop your programs CSV file here"
+                />
               </div>
 
               {/* CSV Helper Text */}
