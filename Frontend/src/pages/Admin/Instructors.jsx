@@ -181,7 +181,7 @@ function Instructors() {
   const handleDownloadTemplate = () => {
     const csvContent = `name,email,programs
     John Doe,johndoe@email.com,"[{""code"":""BSIS"",""yearLevel"":1},{""code"":""BSA"",""yearLevel"":2}]"
-    Jane Smith,janesmith@email.com,"[{""code"":""BAB"",""yearLevel"":1}]"`;
+    Jane Smith,janesmith@email.com,"[{""code"":""INT"",""yearLevel"":4,""section"":""A""}]"`;
   
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);

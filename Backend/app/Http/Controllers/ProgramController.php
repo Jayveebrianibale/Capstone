@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Instructor;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Models\Section;
 
 
 class ProgramController extends Controller
@@ -39,6 +40,7 @@ public function bulkUpload(Request $request) {
                 'code'      => 'required|string|max:255',
                 'yearLevel' => 'nullable|string',
                 'category'  => 'required|string',
+                'section'   => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -66,13 +68,25 @@ public function bulkUpload(Request $request) {
             }
 
             try {
-                // Create
-                $inserted[] = Program::create([
+                // Create program
+                $program = Program::create([
                     'name'      => $data['name'],
                     'code'      => $data['code'],
                     'yearLevel' => $data['yearLevel'],
                     'category'  => ucwords(str_replace('_',' ',$data['category'])),
                 ]);
+
+                // Only create section for non-Higher Education programs
+                if (!empty($data['section']) && $data['category'] !== 'Higher Education') {
+                    $section = Section::create([
+                        'name' => $data['section'],
+                        'code' => $data['code'] . '-' . $data['section'],
+                        'year_level' => $data['yearLevel'],
+                        'category' => ucwords(str_replace('_',' ',$data['category']))
+                    ]);
+                }
+
+                $inserted[] = $program;
             } catch (\Exception $e) {
                 $errors[] = [
                     'row' => $i + 2,

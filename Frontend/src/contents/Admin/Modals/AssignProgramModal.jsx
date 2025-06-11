@@ -63,15 +63,22 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
   };
 
   const getDefaultYearLevel = (program) => {
+    // Extract grade level from program name for all categories
+    const match = program.name.match(/Grade (\d+)/);
+    if (match) {
+      return parseInt(match[1], 10);
+    }
+
+    // If no grade level found in name, use default values
     switch (program.category) {
       case 'Junior High':
         return 7; // Default to Grade 7
-      case 'Intermediate':
-        return 4; // Default to Grade 4
       case 'Senior High':
         return 11; // Default to Grade 11
       case 'Higher Education':
         return 1; // Default to 1st Year
+      case 'Intermediate':
+        return 4; // Default to Grade 4
       default:
         return null;
     }
@@ -111,6 +118,15 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
         const program = programs.find(prog => prog.id === p.id);
         if (!program) return true;
         
+        // Extract grade level from program name
+        const match = program.name.match(/Grade (\d+)/);
+        const gradeLevel = match ? parseInt(match[1], 10) : null;
+        
+        // If we have a grade level in the name, use that instead of the selected year levels
+        if (gradeLevel) {
+          p.yearLevels = [gradeLevel];
+        }
+        
         // Check if year levels are required and valid for the program category
         const isValidYearLevels = p.yearLevels.every(yearLevel => 
           validateGradeLevel(yearLevel, program.category)
@@ -139,9 +155,13 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       const formattedData = {
         programs: selectedPrograms.map(p => {
           const program = programs.find(prog => prog.id === p.id);
+          // Extract grade level from program name
+          const match = program.name.match(/Grade (\d+)/);
+          const gradeLevel = match ? parseInt(match[1], 10) : null;
+          
           const formattedProgram = {
             id: p.id,
-            yearLevels: p.yearLevels.map(level => parseInt(level)),
+            yearLevels: gradeLevel ? [gradeLevel] : p.yearLevels.map(level => parseInt(level)),
             programName: program?.name
           };
           console.log('Formatted program:', formattedProgram);

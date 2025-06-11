@@ -107,12 +107,15 @@ function Programs() {
   };
 
   const handleDownloadTemplate = () => {
-    const csvContent = `name,code,category,yearLevel
-      Bachelor of Science in Information Systems,BSIS,Higher Education,1st - 4th Year
-      Bachelor of Science in Accountancy,BSA,Higher Education,1st - 4th Year
-      Bachelor of Science in Social Work,BSSW,Higher Education,1st - 4th Year
-      Grade 7,JHS,Junior High,"Grade 7"
-      Grade 10,JHS,Junior High,"Grade 10"`;
+    const csvContent = `name,code,category,yearLevel,section
+      Bachelor of Science in Information Systems,BSIS,Higher Education,1st - 4th Year,
+      Bachelor of Science in Accountancy,BSA,Higher Education,1st - 4th Year,
+      Grade 4 - Section A,INT,Intermediate,Grade 4,Section A
+      Grade 4 - Section B,INT,Intermediate,Grade 4,Section B
+      Grade 7 - Section A,JHS,Junior High,Grade 7,Section A
+      Grade 7 - Section B,JHS,Junior High,Grade 7,Section B
+      Grade 11 - Section A,SHS,Senior High,Grade 11,Section A
+      Grade 11 - Section B,SHS,Senior High,Grade 11,Section B`;
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -242,7 +245,9 @@ function Programs() {
             className="bg-[#1F3463] hover:bg-[#19294f] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
           >
             <FaPlus className="w-4 h-4" />
-            <span className="text-sm font-semibold">Add Program</span>
+            <span className="text-sm font-semibold">
+              {activeTab === "Higher Education" ? "Add Program" : "Add Section"}
+            </span>
           </button>
         </div>
       </div>
@@ -277,11 +282,7 @@ function Programs() {
         <div className="flex flex-col items-center justify-center min-h-[50vh] bg-white border dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
           <div className="flex justify-center mb-4 sm:mb-6">
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#f0f4ff] dark:bg-[#1a2a4a] flex items-center justify-center shadow-sm border border-[#e0e7ff] dark:border-gray-600">
-              {searchQuery ? (
-                <FaSearch className="w-6 h-6 sm:w-8 sm:h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
-              ) : (
-                <FaRegFolderOpen className="w-6 h-6 sm:w-8 sm:h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
-              )}
+              <FaSearch className="w-6 h-6 sm:w-8 sm:h-8 text-[#1F3463] dark:text-[#5d7cbf]" />
             </div>
           </div>
 

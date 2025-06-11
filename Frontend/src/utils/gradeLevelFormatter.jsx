@@ -28,12 +28,16 @@ export const validateGradeLevel = (yearLevel, category) => {
   
   switch (category) {
     case 'Junior High':
+    case 'JHS':
       return level >= 7 && level <= 10;
     case 'Intermediate':
+    case 'INT':
       return level >= 4 && level <= 6;
     case 'Senior High':
+    case 'SHS':
       return level >= 11 && level <= 12;
     case 'Higher Education':
+    case 'HE':
       return level >= 1 && level <= 4;
     default:
       return false;
@@ -44,6 +48,7 @@ export const validateGradeLevel = (yearLevel, category) => {
 export const getYearLevelOptions = (category, programName = '') => {
   switch (category) {
     case 'Junior High':
+    case 'JHS':
       return [
         { value: 7, label: "Grade 7" },
         { value: 8, label: "Grade 8" },
@@ -51,17 +56,20 @@ export const getYearLevelOptions = (category, programName = '') => {
         { value: 10, label: "Grade 10" },
       ];
     case 'Intermediate':
+    case 'INT':
       return [
         { value: 4, label: "Grade 4" },
         { value: 5, label: "Grade 5" },
         { value: 6, label: "Grade 6" },
       ];
     case 'Senior High':
+    case 'SHS':
       return [
         { value: 11, label: "Grade 11" },
         { value: 12, label: "Grade 12" },
       ];
     case 'Higher Education':
+    case 'HE':
       if (programName.toLowerCase() === "associate in computer technology") {
         return [
           { value: 1, label: "1st Year" },

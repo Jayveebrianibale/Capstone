@@ -16,6 +16,7 @@ use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\GradeLevelController;
 use App\Models\Program;
 use App\Http\Controllers\PDFController;
+use App\Http\Controllers\SectionController;
 
 // Authentication Routes
 Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'getUser']);
@@ -107,3 +108,9 @@ Route::delete('/questions/{id}', [QuestionController::class, 'destroy']); // Del
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/check-storage-status', [EvaluationController::class, 'checkStorageStatus']);
 });
+
+// Section Routes
+Route::get('/sections', [SectionController::class, 'index']);
+Route::post('/sections', [SectionController::class, 'store']);
+Route::put('/sections/{id}', [SectionController::class, 'update']);
+Route::delete('/sections/{id}', [SectionController::class, 'destroy']);

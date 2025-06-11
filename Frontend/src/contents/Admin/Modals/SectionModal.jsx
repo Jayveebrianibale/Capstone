@@ -1,0 +1,149 @@
+import React, { useState } from 'react';
+import { toast } from 'react-toastify';
+import SectionService from '../../../services/SectionService';
+import { FaPlus } from 'react-icons/fa';
+import { Loader2, X } from 'lucide-react';
+
+function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
+  const [newSections, setNewSections] = useState(['']);
+  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleAddSectionField = () => {
+    setNewSections([...newSections, '']);
+  };
+
+  const handleRemoveSectionField = (index) => {
+    setNewSections(newSections.filter((_, i) => i !== index));
+  };
+
+  const handleSectionChange = (index, value) => {
+    const updatedSections = [...newSections];
+    updatedSections[index] = value;
+    setNewSections(updatedSections);
+  };
+
+  const handleAddSections = async (e) => {
+    e.preventDefault();
+    
+    // Filter out empty sections
+    const sectionsToAdd = newSections.filter(section => section.trim());
+    
+    if (sectionsToAdd.length === 0) {
+      toast.error('Please enter at least one section name');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const promises = sectionsToAdd.map(section => {
+        const sectionData = {
+          name: section.trim(),
+          code: `${category}-${gradeLevel}-${section.trim()}`,
+          year_level: gradeLevel,
+          category: category
+        };
+        return SectionService.create(sectionData);
+      });
+
+      await Promise.all(promises);
+      toast.success('Sections added successfully');
+      setNewSections(['']); // Reset to single empty field
+      if (onSave) onSave();
+    } catch (error) {
+      toast.error(error.message || 'Failed to add sections');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              Add Sections
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Grade {gradeLevel}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSubmitting}
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleAddSections} className="p-6">
+          <div className="space-y-4">
+            {newSections.map((section, index) => (
+              <div key={index} className="group relative">
+                <input
+                  type="text"
+                  value={section}
+                  onChange={(e) => handleSectionChange(index, e.target.value)}
+                  placeholder="Enter section name"
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl
+                    focus:ring-2 focus:ring-[#1F3463] focus:border-transparent
+                    placeholder-gray-400 dark:placeholder-gray-500
+                    text-gray-900 dark:text-gray-100
+                    transition-all duration-200
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    pr-12"
+                  disabled={isSubmitting}
+                />
+                {index > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSectionField(index)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-3 mt-6">
+            <button
+              type="button"
+              onClick={handleAddSectionField}
+              className="w-full px-4 py-3 text-[#1F3463] border border-[#1F3463] rounded-xl hover:bg-[#1F3463]/5 dark:hover:bg-[#1F3463]/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting}
+            >
+              <FaPlus className="w-4 h-4" />
+              Add Another Section
+            </button>
+            <button
+              type="submit"
+              className="w-full px-4 py-3 bg-[#1F3463] text-white rounded-xl hover:bg-[#172a4d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Adding Sections...
+                </>
+              ) : (
+                'Add Sections'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default SectionModal; 

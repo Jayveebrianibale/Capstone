@@ -2,10 +2,17 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import axios from "axios";
+import { FaPlus } from 'react-icons/fa';
+import { Loader2 } from 'lucide-react';
 
-function IntermediateModal({ isOpen, onClose, onSave, isEditing, program }) {
-  const [formData, setFormData] = useState({ sectionName: "", grade: "" });
+export default function IntermediateModal({ isOpen, onClose, onSave, isEditing, program }) {
+  const [formData, setFormData] = useState({
+    entries: [{
+      gradeLevel: "",
+      sections: ['']
+    }]
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -18,21 +25,75 @@ function IntermediateModal({ isOpen, onClose, onSave, isEditing, program }) {
       }, 500);
 
       if (isEditing && program) {
+        // Parse existing data from program name
+        const existingEntries = program.name.split('; ').map(entry => {
+          const [gradeLevel, ...sections] = entry.split(' - ');
+          return {
+            gradeLevel: gradeLevel.trim(),
+            sections: sections.length > 0 ? sections : ['']
+          };
+        });
         setFormData({
-          sectionName: program.sectionName || "",
-          grade: program.grade || "",
+          entries: existingEntries.length > 0 ? existingEntries : [{ gradeLevel: "", sections: [''] }]
         });
       } else {
-        setFormData({ sectionName: "", grade: "" });
+        setFormData({
+          entries: [{ gradeLevel: "", sections: [''] }]
+        });
       }
 
       return () => clearTimeout(timer);
     }
   }, [isOpen, isEditing, program]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value.trimStart() }));
+  const handleGradeLevelChange = (index, value) => {
+    const updatedEntries = [...formData.entries];
+    updatedEntries[index].gradeLevel = value;
+    setFormData(prev => ({
+      ...prev,
+      entries: updatedEntries
+    }));
+  };
+
+  const handleAddEntry = () => {
+    setFormData(prev => ({
+      ...prev,
+      entries: [...prev.entries, { gradeLevel: "", sections: [''] }]
+    }));
+  };
+
+  const handleRemoveEntry = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      entries: prev.entries.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddSection = (entryIndex) => {
+    const updatedEntries = [...formData.entries];
+    updatedEntries[entryIndex].sections.push('');
+    setFormData(prev => ({
+      ...prev,
+      entries: updatedEntries
+    }));
+  };
+
+  const handleRemoveSection = (entryIndex, sectionIndex) => {
+    const updatedEntries = [...formData.entries];
+    updatedEntries[entryIndex].sections = updatedEntries[entryIndex].sections.filter((_, i) => i !== sectionIndex);
+    setFormData(prev => ({
+      ...prev,
+      entries: updatedEntries
+    }));
+  };
+
+  const handleSectionChange = (entryIndex, sectionIndex, value) => {
+    const updatedEntries = [...formData.entries];
+    updatedEntries[entryIndex].sections[sectionIndex] = value;
+    setFormData(prev => ({
+      ...prev,
+      entries: updatedEntries
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -40,23 +101,44 @@ function IntermediateModal({ isOpen, onClose, onSave, isEditing, program }) {
     setIsSubmitting(true);
 
     try {
-      if (!formData.sectionName || !formData.grade) {
-        toast.warning("All fields are required");
-        return;
+      // Validate all entries
+      for (const entry of formData.entries) {
+        if (!entry.gradeLevel) {
+          toast.warning("Please select a grade level for all entries.");
+          return;
+        }
+
+        const sectionsToAdd = entry.sections.filter(section => section.trim());
+        if (sectionsToAdd.length === 0) {
+          toast.warning("Please enter at least one section for each grade level.");
+          return;
+        }
       }
 
-      const programData = {
-        ...formData,
-        category: "Intermediate",
-        name: `${formData.grade} - ${formData.sectionName}`,
-        code: "INT"
-      };
+      // Create separate program entries for each section
+      const programEntries = formData.entries.flatMap(entry => {
+        const sectionsToAdd = entry.sections.filter(section => section.trim());
+        return sectionsToAdd.map(section => ({
+          name: `${entry.gradeLevel} - ${section}`,
+          code: "INT",
+          category: "INT",
+          yearLevel: entry.gradeLevel,
+          entries: [{
+            gradeLevel: entry.gradeLevel,
+            sections: [section]
+          }]
+        }));
+      });
 
-      await onSave(programData, isEditing, program?.id);
+      // Save each program entry separately
+      for (const programData of programEntries) {
+        await onSave(programData, isEditing, program?.id);
+      }
+
       onClose();
     } catch (error) {
       console.error("Error saving program:", error);
-      toast.error(error.response?.data?.message || "Failed to save program");
+      toast.error("Failed to save program.");
     } finally {
       setIsSubmitting(false);
     }
@@ -105,7 +187,7 @@ function IntermediateModal({ isOpen, onClose, onSave, isEditing, program }) {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {isEditing ? "Edit Intermediate Program" : "Add Intermediate Program"}
+            {isEditing ? "Edit Intermediate" : "Add Intermediate"}
           </h2>
           <button
             onClick={onClose}
@@ -118,91 +200,111 @@ function IntermediateModal({ isOpen, onClose, onSave, isEditing, program }) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="space-y-4">
-            {/* Section Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Section Name
-              </label>
-              <input
-                type="text"
-                name="sectionName"
-                value={formData.sectionName}
-                onChange={handleChange}
-                placeholder="Enter section name"
-                maxLength={30}
-                disabled={isLoading || isSubmitting}
-                className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl
-                  focus:ring-2 focus:ring-[#1F3463] focus:border-transparent
-                  placeholder-gray-400 dark:placeholder-gray-500
-                  text-gray-900 dark:text-gray-100
-                  transition-all duration-200
-                  disabled:opacity-50 disabled:cursor-not-allowed"
-                required
-              />
-            </div>
+          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+            {formData.entries.map((entry, entryIndex) => (
+              <div key={entryIndex} className="space-y-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Entry {entryIndex + 1}
+                  </h3>
+                  {entryIndex > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveEntry(entryIndex)}
+                      className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
+                      disabled={isLoading || isSubmitting}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
 
-            {/* Grade Level */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Grade Level
-              </label>
-              <select
-                name="grade"
-                value={formData.grade}
-                onChange={handleChange}
-                disabled={isLoading || isSubmitting}
-                className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl
-                  focus:ring-2 focus:ring-[#1F3463] focus:border-transparent
-                  text-gray-900 dark:text-gray-100
-                  transition-all duration-200
-                  hover:border-[#1F3463] dark:hover:border-[#1F3463]
-                  cursor-pointer
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  [&>option]:bg-white [&>option]:dark:bg-gray-700
-                  [&>option]:text-gray-900 [&>option]:dark:text-gray-100
-                  [&>option:hover]:bg-[#1F3463] [&>option:hover]:text-white
-                  [&>option:checked]:bg-[#1F3463] [&>option:checked]:text-white"
-                required
-              >
-                <option value="">Select Grade Level</option>
-                <option value="Grade 4">Grade 4</option>
-                <option value="Grade 5">Grade 5</option>
-                <option value="Grade 6">Grade 6</option>
-              </select>
-            </div>
+                {/* Grade Level */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Grade Level
+                  </label>
+                  <select
+                    value={entry.gradeLevel}
+                    onChange={(e) => handleGradeLevelChange(entryIndex, e.target.value)}
+                    disabled={isLoading || isSubmitting}
+                    className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl
+                      focus:ring-2 focus:ring-[#1F3463] focus:border-transparent
+                      text-gray-900 dark:text-gray-100
+                      transition-all duration-200
+                      hover:border-[#1F3463] dark:hover:border-[#1F3463]
+                      cursor-pointer
+                      disabled:opacity-50 disabled:cursor-not-allowed"
+                    required
+                  >
+                    <option value="">Select grade level</option>
+                    <option value="Grade 5">Grade 5</option>
+                    <option value="Grade 6">Grade 6</option>
+                  </select>
+                </div>
+
+                {/* Sections */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Sections
+                  </label>
+                  <div className="space-y-3">
+                    {entry.sections.map((section, sectionIndex) => (
+                      <div key={sectionIndex} className="group relative">
+                        <input
+                          type="text"
+                          value={section}
+                          onChange={(e) => handleSectionChange(entryIndex, sectionIndex, e.target.value)}
+                          placeholder="Enter Section Name"
+                          disabled={isLoading || isSubmitting}
+                          className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl
+                            focus:ring-2 focus:ring-[#1F3463] focus:border-transparent
+                            placeholder-gray-400 dark:placeholder-gray-500
+                            text-gray-900 dark:text-gray-100
+                            transition-all duration-200
+                            disabled:opacity-50 disabled:cursor-not-allowed
+                            pr-12"
+                        />
+                        {sectionIndex > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSection(entryIndex, sectionIndex)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
+                            disabled={isLoading || isSubmitting}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isLoading || isSubmitting}
-              className="px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300
-                bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600
-                rounded-xl transition-colors duration-200
-                disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Cancel
-            </button>
+          <div className="flex flex-col gap-3 pt-4">
+            {!isEditing && (
+              <button
+                type="button"
+                onClick={handleAddEntry}
+                className="w-full px-4 py-3 text-[#1F3463] border border-[#1F3463] rounded-xl hover:bg-[#1F3463]/5 dark:hover:bg-[#1F3463]/10 transition-colors flex items-center justify-center gap-2"
+                disabled={isLoading || isSubmitting}
+              >
+                <FaPlus className="w-4 h-4" />
+                Add Another Grade Level
+              </button>
+            )}
             <button
               type="submit"
               disabled={isLoading || isSubmitting}
-              className="px-4 py-2.5 text-sm font-medium text-white
-                bg-[#1F3463] hover:bg-[#172a4d]
-                rounded-xl transition-colors duration-200
-                disabled:opacity-50 disabled:cursor-not-allowed
-                flex items-center gap-2"
+              className="w-full px-4 py-3 bg-[#1F3463] text-white rounded-xl hover:bg-[#172a4d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                  />
-                  Saving...
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {isEditing ? "Updating Program..." : "Adding Program..."}
                 </>
               ) : (
                 isEditing ? "Update Program" : "Add Program"
@@ -214,5 +316,3 @@ function IntermediateModal({ isOpen, onClose, onSave, isEditing, program }) {
     </div>
   );
 }
-
-export default IntermediateModal;

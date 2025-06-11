@@ -11,17 +11,23 @@ import FullScreenLoader from "../../components/FullScreenLoader";
 import { useLoading } from "../../components/LoadingContext";
 import { Users, UserX, Loader2 } from "lucide-react";
 import { validateGradeLevel } from "../../utils/gradeLevelFormatter.jsx";
+import SectionModal from '../../contents/Admin/Modals/SectionModal';
+import { FaPlus } from 'react-icons/fa';
+import SectionService from "../../services/SectionService";
 
 function JuniorHigh() {
   const [activeTab, setActiveTab] = useState(0);
   const [mergedInstructorsByGrade, setMergedInstructorsByGrade] = useState([[], [], [], []]); // For grades 7-10
   const [noInstructors, setNoInstructors] = useState(false);
-  const [fetchError, setFetchError] = useState(false); // Added fetchError state
-  const [submittedCount, setSubmittedCount] = useState(0); // Added submittedCount state
-  const [bulkSending, setBulkSending] = useState(false); // Added bulkSending state
-  const [bulkSendStatus, setBulkSendStatus] = useState(null); // Added bulkSendStatus state
-  const [showConfirmModal, setShowConfirmModal] = useState(false); // Added showConfirmModal state
-  const [filters, setFilters] = useState({ // Added filters state
+  const [submittedCount, setSubmittedCount] = useState(0);
+  const [bulkSending, setBulkSending] = useState(false);
+  const [bulkSendStatus, setBulkSendStatus] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSectionModal, setShowSectionModal] = useState(false);
+  const [selectedGrade, setSelectedGrade] = useState(null);
+  const [sections, setSections] = useState([]);
+  const [activeSection, setActiveSection] = useState("Section A");
+  const [filters, setFilters] = useState({
     schoolYear: '',
     semester: '',
     searchQuery: ''
@@ -31,17 +37,17 @@ function JuniorHigh() {
   const programCode = "JHS";
   const { loading, setLoading } = useLoading();
 
-  const schoolYearOptions = EvaluationFilterService.getSchoolYearOptions(); // Added schoolYearOptions
-  const semesterOptions = EvaluationFilterService.getSemesterOptions(); // Added semesterOptions
+  const schoolYearOptions = EvaluationFilterService.getSchoolYearOptions();
+  const semesterOptions = EvaluationFilterService.getSemesterOptions();
 
-  const handleFilterChange = (filterType, value) => { // Added handleFilterChange
+  const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
       ...prev,
       [filterType]: value
     }));
   };
 
-  const handleSearch = (query) => { // Modified handleSearch
+  const handleSearch = (query) => {
     handleFilterChange('searchQuery', query);
   };
 
@@ -53,7 +59,12 @@ function JuniorHigh() {
     console.log("Add Instructor");
   };
 
-  const filterInstructors = (instructors, query) => { // Added filterInstructors
+  const handleManageSections = (gradeLevel) => {
+    setSelectedGrade(gradeLevel);
+    setShowSectionModal(true);
+  };
+
+  const filterInstructors = (instructors, query) => {
     if (!query) return instructors;
     return instructors.filter(instructor =>
       instructor.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -61,7 +72,7 @@ function JuniorHigh() {
     );
   };
 
-  const handleBulkSend = async () => { // Added handleBulkSend function
+  const handleBulkSend = async () => {
     setShowConfirmModal(false);
     setBulkSending(true);
     try {
@@ -100,10 +111,18 @@ function JuniorHigh() {
     }
   };
 
+  const fetchSections = async () => {
+    try {
+      const response = await SectionService.getByGradeAndCategory(activeTab + 7, "Junior High");
+      setSections(response);
+    } catch (error) {
+      console.error("Error fetching sections:", error);
+      toast.error("Failed to load sections");
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
-    setFetchError(false);
     try {
       // Fetch filtered results and evaluation counts
       const [filteredResults, courseEvalCounts] = await Promise.all([
@@ -114,19 +133,14 @@ function JuniorHigh() {
         EvaluationService.getCourseEvaluationSubmissionCounts(),
       ]);
 
-      console.log("Filtered Results:", filteredResults);
-
       if (!Array.isArray(filteredResults) || !Array.isArray(courseEvalCounts)) {
         throw new Error("Invalid data format received from one or more endpoints");
       }
 
-      // Find the submitted count for the current programCode
       const currentCourseStats = courseEvalCounts.find(course => course.course_code === programCode);
       setSubmittedCount(currentCourseStats ? currentCourseStats.submitted_count : 0);
 
-      // Fetch instructors to merge with filtered results
       const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
-      console.log("Raw Instructors Data from Backend:", JSON.stringify(instructorsData, null, 2));
 
       if (!Array.isArray(instructorsData)) {
         throw new Error("Invalid instructors data format received");
@@ -173,11 +187,13 @@ function JuniorHigh() {
               status: item.status,
               educationLevel: item.educationLevel,
               gradeLevel: yearLevel,
+              section: assignment.program_name.split(' - ')[1] || 'No Section',
               program: assignment.program_name || `Grade ${yearLevel}`,
               pivot: {
                 yearLevel: yearLevel,
                 program_id: assignment.program_id,
-                program_name: assignment.program_name || `Grade ${yearLevel}`
+                program_name: assignment.program_name || `Grade ${yearLevel}`,
+                section: assignment.program_name.split(' - ')[1] || 'No Section'
               },
               ratings: item.ratings || {
                 q1: null,
@@ -194,25 +210,25 @@ function JuniorHigh() {
               overallRating: item.overallRating || 0
             };
 
-            console.log(`Created instructor object for ${item.name} in grade ${yearLevel}:`, JSON.stringify(instructor, null, 2));
+            console.log(`Created instructor object for ${item.name} in grade ${yearLevel}:`, {
+              program_name: assignment.program_name,
+              section: instructor.section,
+              yearLevel: yearLevel
+            });
 
             // Place in correct group based on actual grade number
-            if (yearLevel === 7) {
-              console.log(`Adding ${item.name} to Grade 7 group`);
-              grouped[0].push(instructor);
-            }
-            else if (yearLevel === 8) {
-              console.log(`Adding ${item.name} to Grade 8 group`);
-              grouped[1].push(instructor);
-            }
-            else if (yearLevel === 9) {
-              console.log(`Adding ${item.name} to Grade 9 group`);
-              grouped[2].push(instructor);
-            }
-            else if (yearLevel === 10) {
-              console.log(`Adding ${item.name} to Grade 10 group`);
-              grouped[3].push(instructor);
-            }
+            const index = yearLevel - 7; // Convert 7-10 to 0-3
+            grouped[index].push(instructor);
+          });
+        });
+
+        // Sort each grade group by section
+        grouped.forEach(gradeGroup => {
+          gradeGroup.sort((a, b) => {
+            if (a.section === b.section) return 0;
+            if (a.section === 'No Section') return 1;
+            if (b.section === 'No Section') return -1;
+            return a.section.localeCompare(b.section);
           });
         });
 
@@ -249,7 +265,6 @@ function JuniorHigh() {
     } catch (error) {
       console.error("Error loading instructors:", error);
       toast.error(`Failed to load instructors for ${programCode}.`);
-      setFetchError(true);
       setNoInstructors(true);
     } finally {
       setLoading(false);
@@ -258,9 +273,9 @@ function JuniorHigh() {
 
   useEffect(() => {
     fetchData();
-  }, [programCode, filters.schoolYear, filters.semester]); // Added filter dependencies
+  }, [programCode, filters.schoolYear, filters.semester]);
 
-  useEffect(() => { // Added useEffect for search query with debounce
+  useEffect(() => {
     const timer = setTimeout(() => {
       fetchData();
     }, 500);
@@ -268,6 +283,9 @@ function JuniorHigh() {
     return () => clearTimeout(timer);
   }, [filters.searchQuery]);
 
+  useEffect(() => {
+    fetchSections();
+  }, [activeTab]);
 
   const hasInstructorsForGrade = (index) => {
     return mergedInstructorsByGrade[index]?.length > 0;
@@ -277,78 +295,139 @@ function JuniorHigh() {
     return mergedInstructorsByGrade.some((gradeGroup) => gradeGroup.length > 0);
   };
 
-  if (fetchError) { // Render error message if fetchError is true
-    return (
-      <div className="flex flex-col items-center justify-center h-[70vh]">
-        <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-          Something went wrong
-        </h2>
-        <p className="text-red-500 text-center">
-          We encountered an error while loading the data. Please try again later.
-        </p>
-      </div>
-    );
-  }
+  const filteredInstructors = mergedInstructorsByGrade[activeTab].filter(instructor => {
+    // For all grade levels, filter by section if sections exist
+    if (sections.length > 0) {
+      console.log(`Filtering instructor ${instructor.name}:`, {
+        grade: activeTab + 7,
+        instructorSection: instructor.section,
+        activeSection: activeSection,
+        matches: instructor.section === activeSection
+      });
+      return instructor.section === activeSection;
+    }
+    return true;
+  });
 
+  console.log(`Grade ${activeTab + 7} filtered instructors:`, {
+    totalInstructors: mergedInstructorsByGrade[activeTab].length,
+    filteredCount: filteredInstructors.length,
+    activeSection: activeSection,
+    sections: sections.map(s => s.name)
+  });
 
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
-      <ToastContainer position="top-right" autoClose={3000} /> {/* Added ToastContainer */}
+      <ToastContainer position="top-right" autoClose={3000} />
       {loading ? (
         <FullScreenLoader />
-      ) : noInstructors || !hasInstructorsAssigned() ? ( // Adjusted condition
-        <div className="flex flex-col items-center justify-center h-[70vh]">
-          <Users className="w-16 h-16 text-gray-400 mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-            No Instructors Found
-          </h2>
-          <p className="text-red-500 text-center">
-            {noInstructors ?
-             "There are currently no instructors assigned for Junior High Grades 7–10." :
-             "No instructors match the selected filters." // More specific message if filters are applied
-            }
-          </p>
-        </div>
       ) : (
         <>
           <ContentHeader
             title="Instructors"
-            stats={[`Submitted: ${submittedCount}`]} // Added submittedCount stat
-            onSearch={handleSearch} // Added onSearch prop
+            stats={[`Submitted: ${submittedCount}`]}
+            onSearch={handleSearch}
             onExport={handleExport}
             onAdd={handleAddInstructor}
-            onBulkSend={() => setShowConfirmModal(true)} // Added onBulkSend prop
-            onSchoolYearChange={(value) => handleFilterChange('schoolYear', value)} // Added filter props
-            onSemesterChange={(value) => handleFilterChange('semester', value)} // Added filter props
-            selectedSchoolYear={filters.schoolYear} // Added filter props
-            selectedSemester={filters.semester} // Added filter props
-            schoolYearOptions={schoolYearOptions} // Added filter props
-            semesterOptions={semesterOptions} // Added filter props
+            onBulkSend={() => setShowConfirmModal(true)}
+            onSchoolYearChange={(value) => handleFilterChange('schoolYear', value)}
+            onSemesterChange={(value) => handleFilterChange('semester', value)}
+            selectedSchoolYear={filters.schoolYear}
+            selectedSemester={filters.semester}
+            schoolYearOptions={schoolYearOptions}
+            semesterOptions={semesterOptions}
           />
 
-          <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
+          <div className="flex justify-between items-center mb-4">
+            <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
+            <button
+              onClick={() => handleManageSections(activeTab + 7)}
+              className="px-4 py-2 bg-[#1F3463] text-white rounded-lg hover:bg-[#172a4d] flex items-center gap-2"
+            >
+              <FaPlus className="w-4 h-4" />
+              Manage Sections
+            </button>
+          </div>
 
-          <div className="mt-4 text-center">
-            {hasInstructorsForGrade(activeTab) ? (
-              <InstructorTable instructors={mergedInstructorsByGrade[activeTab]} /> // Changed state name
+          {/* Section Tabs for all Grades */}
+          <div className="bg-gray-50 dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700 mb-4">
+            {sections.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {sections.map((section) => (
+                  <button
+                    key={section.id}
+                    onClick={() => setActiveSection(section.name)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      activeSection === section.name
+                        ? "bg-[#1F3463] text-white"
+                        : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    {section.name}
+                  </button>
+                ))}
+              </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg"> {/* Added styling */}
-                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-full mb-4"> {/* Added styling */}
-                  <UserX className="w-8 h-8 text-gray-500 dark:text-gray-400" /> {/* Added icon */}
+              <div className="flex flex-col items-center justify-center py-6">
+                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-full mb-4">
+                  <UserX className="w-8 h-8 text-gray-500 dark:text-gray-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2"> {/* Added styling */}
-                  No Instructors Assigned
+                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  No Sections Available
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-center"> {/* Added styling */}
-                  No instructors match the selected filters for {tabLabels[activeTab]}.\
+                <p className="text-gray-500 dark:text-gray-400 text-center mb-4">
+                  {`No sections are currently set up for ${tabLabels[activeTab]}.`}
                 </p>
+                <button
+                  onClick={() => handleManageSections(activeTab + 7)}
+                  className="px-4 py-2 bg-[#1F3463] text-white rounded-lg hover:bg-[#172a4d] flex items-center gap-2"
+                >
+                  <FaPlus className="w-4 h-4" />
+                  Add Section
+                </button>
               </div>
             )}
+          </div>
+
+          <div className="mt-4 text-center">
+            {sections.length > 0 ? (
+              hasInstructorsForGrade(activeTab) && filteredInstructors.length > 0 ? (
+                <InstructorTable 
+                  instructors={filteredInstructors} 
+                  gradeLevel={activeTab + 7}
+                  category="Junior High"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-full mb-4">
+                    <UserX className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    No Instructors in Section
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-center">
+                    {`No instructors are currently assigned to ${activeSection} for ${tabLabels[activeTab]}.`}
+                  </p>
+                </div>
+              )
+            ) : null}
           </div>
         </>
       )}
 
-      {/* Confirmation Modal */} {/* Added Confirmation Modal */}
+      {/* Section Management Modal */}
+      <SectionModal
+        isOpen={showSectionModal}
+        onClose={() => setShowSectionModal(false)}
+        gradeLevel={selectedGrade}
+        category="Junior High"
+        onSave={() => {
+          setShowSectionModal(false);
+          fetchData();
+          fetchSections();
+        }}
+      />
+
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
@@ -389,7 +468,6 @@ function JuniorHigh() {
         </div>
       )}
 
-      {/* Loading Overlay for Bulk Send */} {/* Added Loading Overlay */}
       {bulkSending && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl flex flex-col items-center">
