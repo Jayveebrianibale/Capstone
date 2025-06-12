@@ -146,7 +146,7 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
                           {question.question}
                         </p>
                       </div>
-                      <div className="text-lg font-semibold text-[#1F3463]">
+                      <div className="text-lg font-semibold dark:text-white">
                         {ratings[`q${index + 1}`]?.toFixed(2) || '-'}
                       </div>
                     </div>

@@ -107,6 +107,10 @@ Route::delete('/questions/{id}', [QuestionController::class, 'destroy']); // Del
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/check-storage-status', [EvaluationController::class, 'checkStorageStatus']);
+    
+    // Student evaluation completion email
+    Route::post('/instructors/send-student-evaluation-complete', [InstructorController::class, 'sendStudentEvaluationComplete'])
+        ->name('instructors.send-student-evaluation-complete');
 });
 
 // Section Routes

@@ -83,7 +83,7 @@ function InstructorTable({ instructors, questions }) {
                 {[...Array(9)].map((_, i) => (
                   <td
                     key={i}
-                    className="px-2 py-2 text-center whitespace-nowrap text-[#1F3463]"
+                    className="px-2 py-2 text-center whitespace-nowrap"
                     style={{ minWidth: "2.5rem" }}
                   >
                     {ratings[`q${i + 1}`]?.toFixed(2) || "-"}

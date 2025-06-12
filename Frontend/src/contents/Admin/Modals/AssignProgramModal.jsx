@@ -53,7 +53,10 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       } else {
         // Get the appropriate year level based on program category
         let defaultYearLevel = getDefaultYearLevel(program);
-        setExpandedProgram(program.id);
+        // Only expand for Higher Education programs
+        if (program.category === 'Higher Education') {
+          setExpandedProgram(program.id);
+        }
         return [
           ...prev,
           { 
@@ -187,24 +190,19 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
     
     console.log('Is ACT program:', isACT);
 
-    switch (program.category) {
-      case 'Higher Education':
-        // Return only 1st and 2nd year for ACT program
-        if (isACT) {
-          console.log('Returning ACT years:', [1, 2]);
-          return [1, 2];
-        }
-        console.log('Returning regular HE years:', [1, 2, 3, 4]);
-        return [1, 2, 3, 4]; // 4 years for other higher education programs
-      case 'Junior High':
-        return [7, 8, 9, 10];
-      case 'Senior High':
-        return [11, 12];
-      case 'Intermediate':
-        return [4, 5, 6];
-      default:
-        return [];
+    // Only return year level options for Higher Education
+    if (program.category === 'Higher Education') {
+      // Return only 1st and 2nd year for ACT program
+      if (isACT) {
+        console.log('Returning ACT years:', [1, 2]);
+        return [1, 2];
+      }
+      console.log('Returning regular HE years:', [1, 2, 3, 4]);
+      return [1, 2, 3, 4]; // 4 years for other higher education programs
     }
+    
+    // For other categories, return empty array as we don't need year level selection
+    return [];
   };
 
   const filteredPrograms = programs.filter((p) =>
@@ -281,7 +279,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
                             </div>
                           </div>
                         </div>
-                        {isChecked && (
+                        {isChecked && program.category === 'Higher Education' && (
                           <button
                             onClick={() => setExpandedProgram(isExpanded ? null : program.id)}
                             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -291,7 +289,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
                         )}
                       </div>
                       
-                      {isChecked && isExpanded && (
+                      {isChecked && isExpanded && program.category === 'Higher Education' && (
                         <div className="mt-4 pl-8">
                           <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Select Year Levels:

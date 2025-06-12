@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import SectionService from '../../../services/SectionService';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
@@ -12,13 +12,7 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
   const [editingSection, setEditingSection] = useState(null);
   const [removingSectionId, setRemovingSectionId] = useState(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchExistingSections();
-    }
-  }, [isOpen, gradeLevel, category]);
-
-  const fetchExistingSections = async () => {
+  const fetchExistingSections = useCallback(async () => {
     try {
       const response = await SectionService.getByGradeAndCategory(gradeLevel, category);
       setExistingSections(response);
@@ -26,20 +20,28 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
       console.error("Error fetching sections:", error);
       toast.error("Failed to load existing sections");
     }
-  };
+  }, [gradeLevel, category]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchExistingSections();
+    }
+  }, [isOpen, fetchExistingSections]);
 
   const handleAddSectionField = () => {
-    setNewSections([...newSections, '']);
+    setNewSections(prev => [...prev, '']);
   };
 
   const handleRemoveSectionField = (index) => {
-    setNewSections(newSections.filter((_, i) => i !== index));
+    setNewSections(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSectionChange = (index, value) => {
-    const updatedSections = [...newSections];
-    updatedSections[index] = value;
-    setNewSections(updatedSections);
+    setNewSections(prev => {
+      const updated = [...prev];
+      updated[index] = value;
+      return updated;
+    });
   };
 
   const handleEditSection = (section) => {
@@ -47,16 +49,33 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
   };
 
   const handleUpdateSection = async (sectionId, newName) => {
+    if (!newName.trim()) {
+      toast.error('Section name cannot be empty');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       await SectionService.update(sectionId, {
-        name: newName,
-        code: `${category}-${gradeLevel}-${newName}`,
+        name: newName.trim(),
+        code: `${category}-${gradeLevel}-${newName.trim()}`,
         year_level: gradeLevel,
         category: category
       });
-      toast.success('Section updated successfully');
+      
+      // Update local state first for immediate feedback
+      setExistingSections(prev => 
+        prev.map(section => 
+          section.id === sectionId 
+            ? { ...section, name: newName.trim() }
+            : section
+        )
+      );
+      
       setEditingSection(null);
+      toast.success('Section updated successfully');
+      
+      // Then fetch fresh data
       fetchExistingSections();
       if (onSave) onSave();
     } catch (error) {
@@ -70,7 +89,12 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
     try {
       setRemovingSectionId(sectionId);
       await SectionService.delete(sectionId);
+      
+      // Update local state first for immediate feedback
+      setExistingSections(prev => prev.filter(section => section.id !== sectionId));
       toast.success('Section deleted successfully');
+      
+      // Then fetch fresh data
       fetchExistingSections();
       if (onSave) onSave();
     } catch (error) {
@@ -103,9 +127,15 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
         return SectionService.create(sectionData);
       });
 
-      await Promise.all(promises);
-      toast.success('Sections added successfully');
+      const results = await Promise.all(promises);
+      
+      // Update local state first for immediate feedback
+      setExistingSections(prev => [...prev, ...results]);
       setNewSections(['']); // Reset to single empty field
+      
+      toast.success('Sections added successfully');
+      
+      // Then fetch fresh data
       fetchExistingSections();
       if (onSave) onSave();
     } catch (error) {

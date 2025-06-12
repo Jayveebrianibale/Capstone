@@ -142,7 +142,6 @@ function Intermediate() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch filtered results and evaluation counts
       const [filteredResults, courseEvalCounts] = await Promise.all([
         EvaluationFilterService.getFilteredResults(programCode, {
           schoolYear: filters.schoolYear,
@@ -155,11 +154,18 @@ function Intermediate() {
         throw new Error("Invalid data format received from one or more endpoints");
       }
 
-      const currentCourseStats = courseEvalCounts.find(course => course.course_code === programCode);
-      setSubmittedCount(currentCourseStats ? currentCourseStats.submitted_count : 0);
+      // Calculate total submitted count from the data
+      const totalSubmitted = courseEvalCounts.reduce((total, course) => {
+        if (course.program_code === programCode) {
+          return total + (course.submitted || 0);
+        }
+        return total;
+      }, 0);
+
+      setSubmittedCount(totalSubmitted);
 
       const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
-
+      
       if (!Array.isArray(instructorsData)) {
         throw new Error("Invalid instructors data format received");
       }
@@ -173,14 +179,20 @@ function Intermediate() {
             return;
           }
 
+          // Process each assignment for this instructor
           item.pivot.assignments.forEach((assignment) => {
             const yearLevel = parseInt(assignment.yearLevel, 10);
+            console.log(`Processing assignment for ${item.name}:`, {
+              yearLevel,
+              assignment: JSON.stringify(assignment, null, 2)
+            });
             
             if (isNaN(yearLevel) || yearLevel < 4 || yearLevel > 6) {
-              console.log(`Invalid grade level for instructor ${item.name}:`, yearLevel);
+              console.log(`Invalid year level for instructor ${item.name}:`, yearLevel);
               return;
             }
 
+            // Create instructor object for this assignment
             const instructor = {
               id: item.id,
               name: item.name,
@@ -196,11 +208,22 @@ function Intermediate() {
                 program_name: assignment.program_name || `Grade ${yearLevel}`,
                 section: assignment.program_name.split(' - ')[1] || 'No Section'
               },
-              ratings: item.ratings,
-              comments: item.comments,
-              overallRating: item.overallRating
+              ratings: item.ratings || {
+                q1: null,
+                q2: null,
+                q3: null,
+                q4: null,
+                q5: null,
+                q6: null,
+                q7: null,
+                q8: null,
+                q9: null
+              },
+              comments: item.comments || "No comments",
+              overallRating: item.overallRating || 0
             };
 
+            // Place in correct group based on actual year number
             if (yearLevel === 4) {
               grouped[0].push(instructor);
             }
@@ -226,27 +249,41 @@ function Intermediate() {
         return grouped;
       };
 
+      // Merge instructors with filtered results
       const merged = instructorsData.map(instructor => {
         const result = filteredResults.find(r => r.id === instructor.id || r.name === instructor.name) || {};
+        // Initialize default values for ratings and comments if not present
+        const defaultRatings = {
+          q1: null, q2: null, q3: null, q4: null, q5: null,
+          q6: null, q7: null, q8: null, q9: null
+        };
+        
         return { 
           ...instructor,
           ...result,
+          ratings: result.ratings || defaultRatings,
+          comments: result.comments || "No comments",
+          overallRating: result.overallRating || 0,
           pivot: instructor.pivot
         };
       });
 
+      console.log("Merged Data before Grouping:", JSON.stringify(merged, null, 2));
+
       const mergedGrouped = groupByGrade(merged);
-      const filteredMergedGrouped = mergedGrouped.map(gradeGroup =>
+
+      console.log("Merged Data after Grouping:", mergedGrouped);
+
+      // Apply search filter
+      const filteredMerged = mergedGrouped.map(gradeGroup =>
         filterInstructors(gradeGroup, filters.searchQuery)
       );
 
-      setMergedInstructorsByGrade(filteredMergedGrouped);
+      setMergedInstructorsByGrade(filteredMerged);
       setNoInstructors(instructorsData.length === 0);
-
     } catch (error) {
-      console.error("Error loading instructors:", error);
-      // toast.error(`Failed to load instructors for ${programCode}.`);
-      setNoInstructors(true);
+      console.error("Data fetch failed:", error);
+      setNoInstructors(false);
     } finally {
       setLoading(false);
     }
@@ -292,7 +329,12 @@ function Intermediate() {
         <>
           <ContentHeader
             title="Instructors"
-            stats={[`Submitted: ${submittedCount}`]}
+            stats={[
+              {
+                label: "Submitted",
+                value: submittedCount > 0 ? submittedCount : "No submissions"
+              }
+            ]}
             onSearch={handleSearch}
             onExport={handleExport}
             onAdd={handleAddInstructor}

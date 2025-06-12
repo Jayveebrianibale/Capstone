@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Requests\GetInstructorsByProgramAndYearRequest;
 use App\Http\Controllers\Controller;
 use App\Mail\InstructorResultMail;
+use App\Mail\StudentEvaluationCompleteMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -23,9 +24,6 @@ use App\Exports\InstructorResultsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Section;
-
-
-
 
 class InstructorController extends Controller
 {
@@ -723,6 +721,46 @@ public function getInstructorCommentsWithStudentNames($instructorId)
                 'trace' => $e->getTraceAsString()
             ]);
             return response()->json(['message' => 'Failed to fetch instructors'], 500);
+        }
+    }
+
+    public function sendStudentEvaluationComplete(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'studentName' => 'required|string',
+                'schoolYear' => 'required|string',
+                'semester' => 'required|string',
+                'instructorCount' => 'required|integer'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Get the student's email from the authenticated user
+            $studentEmail = auth()->user()->email;
+
+            // Send the email
+            Mail::to($studentEmail)->send(new StudentEvaluationCompleteMail(
+                $request->studentName,
+                $request->schoolYear,
+                $request->semester,
+                $request->instructorCount
+            ));
+
+            return response()->json([
+                'message' => 'Evaluation completion email sent successfully'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error sending student evaluation completion email: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to send evaluation completion email',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -58,7 +58,13 @@ const ContentHeader = ({
       <div className="font-bold flex flex-wrap md:gap-6 lg:gap-10 text-gray-800 dark:text-white">
         <h1 className="text-2xl w-full md:w-auto">{title}</h1>
         {stats.map((stat, index) => (
-          <h1 key={index} className="mt-2">{stat}</h1>
+          <div key={index} className="mt-2 flex items-center">
+            {typeof stat === 'string' ? (
+              <span>{stat}</span>
+            ) : (
+              <span>{`${stat.label}: ${stat.value}`}</span>
+            )}
+          </div>
         ))}
       </div>
 

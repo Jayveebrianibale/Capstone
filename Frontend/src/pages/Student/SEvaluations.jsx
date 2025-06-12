@@ -510,7 +510,21 @@ const SEvaluations = () => {
         }))
       );
 
+      // Show success message immediately
       toast.success('All evaluations submitted successfully!');
+
+      // Send email notification asynchronously
+      const userData = JSON.parse(sessionStorage.getItem('user'));
+      InstructorService.sendStudentEvaluationCompleteEmail({
+        studentName: userData.name,
+        schoolYear: selectedYear,
+        semester: selectedSemester,
+        instructorCount: savedIds.length
+      }).catch(emailError => {
+        console.error('Error sending completion email:', emailError);
+        // Don't show error to user since the main submission was successful
+      });
+
     } catch (err) {
       console.error('Error submitting all evaluations:', err);
       

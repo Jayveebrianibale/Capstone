@@ -414,9 +414,9 @@ class EvaluationController extends Controller {
                 ->count('evaluations.student_id');
 
             $results[] = [
-                'course_code'   => $course->program_code, 
-                'course_name'   => $course->program_name,
-                'submitted_count' => $submittedCount,
+                'program_code'   => $course->program_code, 
+                'program_name'   => $course->program_name,
+                'submitted' => $submittedCount,
             ];
         }
 

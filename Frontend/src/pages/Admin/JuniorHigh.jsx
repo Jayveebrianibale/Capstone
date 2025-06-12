@@ -138,7 +138,6 @@ function JuniorHigh() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch filtered results and evaluation counts
       const [filteredResults, courseEvalCounts] = await Promise.all([
         EvaluationFilterService.getFilteredResults(programCode, {
           schoolYear: filters.schoolYear,
@@ -151,28 +150,24 @@ function JuniorHigh() {
         throw new Error("Invalid data format received from one or more endpoints");
       }
 
-      const currentCourseStats = courseEvalCounts.find(course => course.course_code === programCode);
-      setSubmittedCount(currentCourseStats ? currentCourseStats.submitted_count : 0);
+      // Calculate total submitted count from the data
+      const totalSubmitted = courseEvalCounts.reduce((total, course) => {
+        if (course.program_code === programCode) {
+          return total + (course.submitted || 0);
+        }
+        return total;
+      }, 0);
+
+      setSubmittedCount(totalSubmitted);
 
       const instructorsData = await ProgramService.getInstructorsByProgramCode(programCode);
-
+      
       if (!Array.isArray(instructorsData)) {
         throw new Error("Invalid instructors data format received");
       }
 
-      // Log each instructor's grade levels
-      instructorsData.forEach(instructor => {
-        console.log(`Instructor ${instructor.name} (ID: ${instructor.id}) grade levels:`, {
-          pivot: instructor.pivot,
-          gradeLevel: instructor.pivot?.yearLevel,
-          mappedGrade: validateGradeLevel(instructor.pivot?.yearLevel, 'Junior High')
-        });
-      });
-
-      // Group instructors by actual grade level (7-10)
       const groupByGrade = (data) => {
         const grouped = [[], [], [], []]; // [Grade 7, Grade 8, Grade 9, Grade 10]
-        console.log('Starting groupByGrade with data:', JSON.stringify(data, null, 2));
         
         data.forEach((item) => {
           if (!item || !item.pivot || !Array.isArray(item.pivot.assignments)) {
@@ -189,7 +184,7 @@ function JuniorHigh() {
             });
             
             if (isNaN(yearLevel) || yearLevel < 7 || yearLevel > 10) {
-              console.log(`Invalid grade level for instructor ${item.name}:`, yearLevel);
+              console.log(`Invalid year level for instructor ${item.name}:`, yearLevel);
               return;
             }
 
@@ -224,15 +219,19 @@ function JuniorHigh() {
               overallRating: item.overallRating || 0
             };
 
-            console.log(`Created instructor object for ${item.name} in grade ${yearLevel}:`, {
-              program_name: assignment.program_name,
-              section: instructor.section,
-              yearLevel: yearLevel
-            });
-
-            // Place in correct group based on actual grade number
-            const index = yearLevel - 7; // Convert 7-10 to 0-3
-            grouped[index].push(instructor);
+            // Place in correct group based on actual year number
+            if (yearLevel === 7) {
+              grouped[0].push(instructor);
+            }
+            else if (yearLevel === 8) {
+              grouped[1].push(instructor);
+            }
+            else if (yearLevel === 9) {
+              grouped[2].push(instructor);
+            }
+            else if (yearLevel === 10) {
+              grouped[3].push(instructor);
+            }
           });
         });
 
@@ -246,20 +245,26 @@ function JuniorHigh() {
           });
         });
 
-        // Log the grouped data for debugging
-        console.log('Final grouped instructors:', JSON.stringify(grouped, null, 2));
         return grouped;
       };
 
       // Merge instructors with filtered results
       const merged = instructorsData.map(instructor => {
-          const result = filteredResults.find(r => r.id === instructor.id || r.name === instructor.name) || {};
-          // Preserve the original pivot.assignments from the API
-          return { 
-              ...instructor,
-              ...result,
-              pivot: instructor.pivot // Keep the original pivot with assignments
-          };
+        const result = filteredResults.find(r => r.id === instructor.id || r.name === instructor.name) || {};
+        // Initialize default values for ratings and comments if not present
+        const defaultRatings = {
+          q1: null, q2: null, q3: null, q4: null, q5: null,
+          q6: null, q7: null, q8: null, q9: null
+        };
+        
+        return { 
+          ...instructor,
+          ...result,
+          ratings: result.ratings || defaultRatings,
+          comments: result.comments || "No comments",
+          overallRating: result.overallRating || 0,
+          pivot: instructor.pivot
+        };
       });
 
       console.log("Merged Data before Grouping:", JSON.stringify(merged, null, 2));
@@ -269,17 +274,15 @@ function JuniorHigh() {
       console.log("Merged Data after Grouping:", mergedGrouped);
 
       // Apply search filter
-      const filteredMergedGrouped = mergedGrouped.map(gradeGroup =>
+      const filteredMerged = mergedGrouped.map(gradeGroup =>
         filterInstructors(gradeGroup, filters.searchQuery)
       );
 
-      setMergedInstructorsByGrade(filteredMergedGrouped);
+      setMergedInstructorsByGrade(filteredMerged);
       setNoInstructors(instructorsData.length === 0);
-
     } catch (error) {
-      console.error("Error loading instructors:", error);
-      // toast.error(`Failed to load instructors for ${programCode}.`);
-      setNoInstructors(true);
+      console.error("Data fetch failed:", error);
+      setNoInstructors(false);
     } finally {
       setLoading(false);
     }

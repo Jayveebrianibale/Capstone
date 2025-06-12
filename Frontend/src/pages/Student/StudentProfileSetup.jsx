@@ -189,11 +189,9 @@ function StudentProfileSetup() {
 
   const renderEducationLevelOptions = () => {
     const levels = ["Higher Education", "Senior High", "Junior High", "Intermediate"];
-    const cols = windowWidth < 640 ? 1 : 2;
-    const gridClass = `grid grid-cols-${cols} gap-4`;
     
     return (
-      <div className={gridClass}>
+      <div className="grid grid-cols-2 gap-4">
         {levels.map((level) => (
           <div
             key={level}

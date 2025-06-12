@@ -252,7 +252,7 @@ function Programs() {
           >
             <FaPlus className="w-4 h-4" />
             <span className="text-sm font-semibold">
-              {activeTab === "Higher Education" ? "Add Program" : "Add Section"}
+              {activeTab === "Higher Education" ? "Add Program" : "Add Grade Level"}
             </span>
           </button>
         </div>

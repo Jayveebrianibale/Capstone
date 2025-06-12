@@ -44,14 +44,14 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, ac
           console.log("Fetched submission stats:", stats);
           setSubmissionStats(stats);
           
-          // Create notifications from stats
+          // Create notifications from stats for submitted evaluations
           const newNotifications = stats
-            .filter(stat => stat.not_submitted > 0)
+            .filter(stat => stat.submitted > 0)
             .map(stat => ({
-              id: `${stat.program_code}-${stat.yearLevel}`,
+              id: `${stat.program_code}-${stat.yearLevel}-${Date.now()}`,
               program: stat.program,
               yearLevel: stat.yearLevel,
-              notSubmitted: stat.not_submitted,
+              submitted: stat.submitted,
               timestamp: new Date().toISOString(),
               read: false
             }));
@@ -131,7 +131,7 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, ac
             </button>
 
             {showNotificationDropdown && (
-              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+              <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 border border-gray-200 dark:border-gray-700">
                 <div className="p-4">
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Notifications</h3>
@@ -153,7 +153,7 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, ac
                       No new notifications
                     </div>
                   ) : (
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                    <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                       {notifications.map((notification) => (
                         <div
                           key={notification.id}
@@ -175,8 +175,8 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, ac
                             )}
                           </div>
                           <div className="mt-2 flex justify-between text-sm">
-                            <span className="text-red-600 dark:text-red-400">
-                              {notification.notSubmitted} students haven't submitted
+                            <span className="text-green-600 dark:text-green-400">
+                              {notification.submitted} students have submitted
                             </span>
                             <span className="text-gray-500 dark:text-gray-400 text-xs">
                               {new Date(notification.timestamp).toLocaleTimeString()}
