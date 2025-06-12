@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->integer('year_level');
             $table->string('category'); // Intermediate, Junior High, Senior High
+            $table->foreignId('program_id')->nullable()->constrained('programs')->onDelete('cascade');
             $table->timestamps();
         });
     }
