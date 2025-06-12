@@ -10,6 +10,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
   const [selectedPrograms, setSelectedPrograms] = useState([]);
   const [isAssigning, setIsAssigning] = useState(false);
   const [search, setSearch] = useState("");
+  const [expandedProgram, setExpandedProgram] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -47,10 +48,12 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
     setSelectedPrograms((prev) => {
       const exists = prev.find((p) => p.id === program.id);
       if (exists) {
+        setExpandedProgram(null);
         return prev.filter((p) => p.id !== program.id);
       } else {
         // Get the appropriate year level based on program category
         let defaultYearLevel = getDefaultYearLevel(program);
+        setExpandedProgram(program.id);
         return [
           ...prev,
           { 
@@ -155,6 +158,55 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
     }
   };
 
+  const handleYearLevelChange = (programId, yearLevel) => {
+    setSelectedPrograms(prev => {
+      return prev.map(p => {
+        if (p.id === programId) {
+          const yearLevels = p.yearLevels.includes(yearLevel)
+            ? p.yearLevels.filter(yl => yl !== yearLevel)
+            : [...p.yearLevels, yearLevel];
+          return { ...p, yearLevels };
+        }
+        return p;
+      });
+    });
+  };
+
+  const getYearLevelOptionsForProgram = (program) => {
+    // Debug logs
+    console.log('Program:', program);
+    console.log('Program name:', program.name);
+    
+    // Check if program is ACT - handle typo in "Assiociate"
+    const programName = program.name.toLowerCase();
+    const isACT = programName.includes('assiociate in computer technology') || 
+                 programName.includes('associate in computer technology') ||
+                 programName.includes('act') ||
+                 (programName.includes('assiociate') && programName.includes('computer')) ||
+                 (programName.includes('associate') && programName.includes('computer'));
+    
+    console.log('Is ACT program:', isACT);
+
+    switch (program.category) {
+      case 'Higher Education':
+        // Return only 1st and 2nd year for ACT program
+        if (isACT) {
+          console.log('Returning ACT years:', [1, 2]);
+          return [1, 2];
+        }
+        console.log('Returning regular HE years:', [1, 2, 3, 4]);
+        return [1, 2, 3, 4]; // 4 years for other higher education programs
+      case 'Junior High':
+        return [7, 8, 9, 10];
+      case 'Senior High':
+        return [11, 12];
+      case 'Intermediate':
+        return [4, 5, 6];
+      default:
+        return [];
+    }
+  };
+
   const filteredPrograms = programs.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -202,6 +254,7 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
                 {filteredPrograms.map((program) => {
                   const isChecked = selectedPrograms.some((p) => p.id === program.id);
                   const selectedYearLevels = selectedPrograms.find((p) => p.id === program.id)?.yearLevels || [];
+                  const isExpanded = expandedProgram === program.id;
 
                   return (
                     <div
@@ -228,7 +281,43 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
                             </div>
                           </div>
                         </div>
+                        {isChecked && (
+                          <button
+                            onClick={() => setExpandedProgram(isExpanded ? null : program.id)}
+                            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                          >
+                            <FaChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                          </button>
+                        )}
                       </div>
+                      
+                      {isChecked && isExpanded && (
+                        <div className="mt-4 pl-8">
+                          <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Select Year Levels:
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {getYearLevelOptionsForProgram(program).map((yearLevel) => (
+                              <label
+                                key={yearLevel}
+                                className={`px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer transition-colors ${
+                                  selectedYearLevels.includes(yearLevel)
+                                    ? 'bg-[#1F3463] text-white'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedYearLevels.includes(yearLevel)}
+                                  onChange={() => handleYearLevelChange(program.id, yearLevel)}
+                                  className="hidden"
+                                />
+                                {formatGradeLevelText(yearLevel, program.category)}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
