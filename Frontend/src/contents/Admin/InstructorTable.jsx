@@ -96,13 +96,7 @@ function InstructorTable({ instructors, questions }) {
                   {comments}
                 </td>
                 <td
-                  className={`px-4 py-2 text-center font-bold whitespace-nowrap ${
-                    percentage >= 90
-                      ? "text-green-500"
-                      : percentage >= 75
-                      ? "text-yellow-500"
-                      : "text-red-500"
-                  }`}
+                  className="px-4 py-2 text-center font-bold whitespace-nowrap text-gray-900 dark:text-gray-100"
                 >
                   {percentage.toFixed(2)}%
                 </td>
@@ -154,13 +148,7 @@ function InstructorTable({ instructors, questions }) {
             </div>
   
             <div
-              className={`mt-4 font-bold text-center ${
-                percentage >= 90
-                  ? "text-green-500"
-                  : percentage >= 75
-                  ? "text-yellow-500"
-                  : "text-red-500"
-              } whitespace-nowrap`}
+              className="mt-4 font-bold text-center text-gray-900 dark:text-gray-100 whitespace-nowrap"
             >
               {percentage.toFixed(2)}%
             </div>

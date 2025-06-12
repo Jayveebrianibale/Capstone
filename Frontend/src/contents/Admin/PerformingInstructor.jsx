@@ -24,9 +24,7 @@ const PerformingInstructor = () => {
   }, []);
 
   const getPercentageColor = (value) => {
-    if (value >= 90) return 'text-green-500 font-semibold';
-    if (value >= 75) return 'text-yellow-500 font-semibold';
-    return 'text-red-500 font-semibold';
+    return 'text-gray-900 dark:text-gray-100 font-semibold';
   };
 
   return (

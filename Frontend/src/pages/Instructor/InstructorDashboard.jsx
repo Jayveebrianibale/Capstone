@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import bgImage from '../../assets/Login.jpg';
 import AnalyticsChart from '@/contents/Instructor/AnalyticsChart';
 import { EvaluationTable } from '../../contents/Instructor/EvaluationTable';
+import InstructorService from '../../services/InstructorService';
 
 function InstructorDashboard() {
   const [instructor, setInstructor] = useState(null);
+  const [evaluationPeriod, setEvaluationPeriod] = useState({ schoolYear: '', semester: '' });
 
   const getPercentageColor = (value) => {
     if (value >= 90) return 'text-green-500 font-semibold';
@@ -17,8 +19,25 @@ function InstructorDashboard() {
     const user = JSON.parse(sessionStorage.getItem('user'));
     if (user) {
       setInstructor(user);
+      // Fetch evaluation period data
+      fetchEvaluationPeriod(user.instructor_id);
     }
   }, []);
+
+  const fetchEvaluationPeriod = async (instructorId) => {
+    try {
+      const response = await InstructorService.getEvaluations();
+      if (response && response[instructorId] && response[instructorId].length > 0) {
+        const latestEvaluation = response[instructorId][0];
+        setEvaluationPeriod({
+          schoolYear: latestEvaluation.school_year,
+          semester: latestEvaluation.semester
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching evaluation period:', error);
+    }
+  };
 
   const currentHour = new Date().getHours();
   const greeting = () => {
@@ -51,6 +70,11 @@ function InstructorDashboard() {
           <p className="mt-1 text-sm sm:text-base text-gray-200">
             Here's your Evaluation Results Overview.
           </p>
+          {evaluationPeriod.schoolYear && evaluationPeriod.semester && (
+            <p className="mt-2 text-sm sm:text-base text-gray-200">
+              School Year: {evaluationPeriod.schoolYear} | Semester: {evaluationPeriod.semester}
+            </p>
+          )}
         </div>
       </div>
 

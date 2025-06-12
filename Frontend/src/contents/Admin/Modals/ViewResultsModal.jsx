@@ -104,13 +104,7 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
               Overall Rating
             </h3>
             <div
-              className={`text-3xl font-bold ${
-                percentage >= 90
-                  ? "text-green-500"
-                  : percentage >= 75
-                  ? "text-yellow-500"
-                  : "text-red-500"
-              }`}
+              className="text-3xl font-bold text-gray-900 dark:text-gray-100"
             >
               {percentage.toFixed(2)}%
             </div>

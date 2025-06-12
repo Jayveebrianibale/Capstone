@@ -84,3 +84,8 @@ Route::get('/login', function () {
 Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
 
+Route::get('/logo', function () {
+    $path = public_path('images/Updated-logo.png');
+    return response()->file($path, ['Content-Type' => 'image/png']);
+});
+

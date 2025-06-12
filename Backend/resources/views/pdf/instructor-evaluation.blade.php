@@ -17,6 +17,8 @@ email<!DOCTYPE html>
             text-align: center;
         }
         .school-header {
+            color: #1F3463;
+            font-size: 24px;
             font-weight: bold;
             margin-bottom: 10px;
         }
@@ -49,14 +51,8 @@ email<!DOCTYPE html>
             color: #1F3463;
             margin: 5px 0;
         }
-        .metric-value.excellent {
-            color: #22c55e; /* green-500 */
-        }
-        .metric-value.good {
-            color: #eab308; /* yellow-500 */
-        }
-        .metric-value.needs-improvement {
-            color: #ef4444; /* red-500 */
+        .metric-value.excellent, .metric-value.good, .metric-value.needs-improvement {
+            color: #1F3463;
         }
         .section-title {
             font-size: 18px;

@@ -75,7 +75,7 @@ function Login() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#1F3463]/90 to-[#1F3463]/30 flex items-end p-10">
             <div className="space-y-4">
               <h2 className="text-4xl font-bold text-white mb-2">Welcome Back!</h2>
-              <p className="text-white/90 text-lg max-w-md">Sign in to access the Teacher's Performance Evaluation System and manage your evaluations</p>
+              <p className="text-white/90 text-lg max-w-md">Sign in to access the Teachers' Performance Evaluation System and manage your evaluations</p>
               <div className="w-16 h-1 bg-white/50 rounded-full mt-4"></div>
             </div>
           </div>
@@ -87,14 +87,13 @@ function Login() {
             <div className="flex justify-center mb-6 transform hover:scale-105 transition-transform duration-300">
                 <img src={Logo} alt="LVCC Logo" className="w-28 h-28" />
             </div>
-            <h1 className="text-4xl font-bold text-[#1F3463] mb-2">TPES</h1>
-            <h2 className="text-xl font-semibold text-gray-700 mb-3">Teacher's Performance Evaluation System</h2>
-            <div className="w-20 h-1 bg-[#1F3463]/20 rounded-full mx-auto mb-4"></div>
+            <h1 className="text-4xl font-bold text-[#1F3463] mb-2">LVCC</h1>
+            <h2 className="text-xl font-semibold text-gray-700 mb-3">TEACHERS' PERFORMANCE EVALUATION SYSTEM</h2>
             <p className="text-gray-600">Sign in using your LV account</p>
           </div>
   
           {/* Google Sign In Button */}
-          <div className="space-y-6">
+          <div className="space-y-3">
             <button
               type="button"
               onClick={handleGoogleLogin}
@@ -108,7 +107,7 @@ function Login() {
           <div className="mt-10 text-center text-sm text-gray-500">
             <p className="mb-2">Don't have an LV account?</p>
             <a href="#" className="inline-flex items-center font-medium text-[#1F3463] hover:text-[#1A2C56] underline underline-offset-4 decoration-[#1F3463]/30 hover:decoration-[#1F3463]/50 transition-colors">
-              Contact System Administrator
+              Contact LVCC Administrator
               <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
               </svg>
