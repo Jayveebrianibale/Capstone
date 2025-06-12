@@ -312,13 +312,10 @@ function JuniorHigh() {
   const filteredInstructors = mergedInstructorsByGrade[activeTab].filter(instructor => {
     // For all grade levels, filter by section if sections exist
     if (sections.length > 0) {
-      console.log(`Filtering instructor ${instructor.name}:`, {
-        grade: activeTab + 7,
-        instructorSection: instructor.section,
-        activeSection: activeSection,
-        matches: instructor.section === activeSection
-      });
-      return instructor.section === activeSection;
+      // Extract section from program name
+      const sectionMatch = instructor.program?.match(/Section ([A-Z])/);
+      const instructorSection = sectionMatch ? `Section ${sectionMatch[1]}` : 'No Section';
+      return instructorSection === activeSection;
     }
     return true;
   });

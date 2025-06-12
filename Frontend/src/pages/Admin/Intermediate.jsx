@@ -272,9 +272,16 @@ function Intermediate() {
     return mergedInstructorsByGrade.some((gradeGroup) => gradeGroup.length > 0);
   };
 
-  const filteredInstructors = activeTab === 0
-    ? mergedInstructorsByGrade[0].filter(instructor => instructor.section === activeSection)
-    : mergedInstructorsByGrade[activeTab];
+  const filteredInstructors = mergedInstructorsByGrade[activeTab].filter(instructor => {
+    // For all grade levels, filter by section if sections exist
+    if (sections.length > 0) {
+      // Extract section from program name
+      const sectionMatch = instructor.program?.match(/Section ([A-Z])/);
+      const instructorSection = sectionMatch ? `Section ${sectionMatch[1]}` : 'No Section';
+      return instructorSection === activeSection;
+    }
+    return true;
+  });
 
   return (
     <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">

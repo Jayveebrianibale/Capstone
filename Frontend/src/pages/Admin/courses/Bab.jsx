@@ -315,7 +315,7 @@ function Bab() {
           <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
             No Instructors Found
           </h2>
-          <p className="text-red-500 text-center">
+          <p className="text-gray-500 dark:text-gray-400 text-center">
             There are currently no instructors assigned to any year level for BAB.
           </p>
         </div>
