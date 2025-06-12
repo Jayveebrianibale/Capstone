@@ -28,7 +28,7 @@ public function bulkUpload(Request $request) {
 
         $inserted = [];
         $errors   = [];
-        $skipped  = [];
+        $sectionsCreated = 0;
 
         foreach ($rows as $i => $row) {
             $data = array_combine($header, $row);
@@ -51,22 +51,6 @@ public function bulkUpload(Request $request) {
                 continue;
             }
 
-            // Check for existing program with same code and year level
-            $existingProgram = Program::where('code', $data['code'])
-                                   ->where('yearLevel', $data['yearLevel'])
-                                   ->where('category', ucwords(str_replace('_',' ',$data['category'])))
-                                   ->first();
-            
-            if ($existingProgram) {
-                $skipped[] = [
-                    'row' => $i + 2,
-                    'code' => $data['code'],
-                    'yearLevel' => $data['yearLevel'],
-                    'message' => "Program with code '{$data['code']}' and year level '{$data['yearLevel']}' already exists"
-                ];
-                continue;
-            }
-
             try {
                 DB::beginTransaction();
 
@@ -77,28 +61,28 @@ public function bulkUpload(Request $request) {
                     'yearLevel' => $data['yearLevel'],
                     'category'  => ucwords(str_replace('_',' ',$data['category'])),
                 ]);
+                $inserted[] = $program;
 
-                // Only create section for non-Higher Education programs
+                // Create section for non-Higher Education programs
                 if (!empty($data['section']) && $data['category'] !== 'Higher Education') {
-                    // Check if section already exists
-                    $existingSection = Section::where('name', $data['section'])
-                                           ->where('code', $data['code'] . '-' . $data['section'])
-                                           ->where('year_level', $data['yearLevel'])
-                                           ->first();
-
-                    if (!$existingSection) {
-                        $section = Section::create([
-                            'name' => $data['section'],
-                            'code' => $data['code'] . '-' . $data['section'],
-                            'year_level' => $data['yearLevel'],
-                            'category' => ucwords(str_replace('_',' ',$data['category'])),
-                            'program_id' => $program->id
-                        ]);
-                    }
+                    // Extract numeric value from year level (e.g., "Grade 4" -> 4)
+                    $yearLevel = preg_replace('/[^0-9]/', '', $data['yearLevel']);
+                    
+                    // Create a unique section code that includes the year level and section
+                    $sectionCode = $data['code'] . '-' . $yearLevel . '-' . $data['section'];
+                    
+                    // Create section
+                    $section = Section::create([
+                        'name' => $data['section'],
+                        'code' => $sectionCode,
+                        'year_level' => $yearLevel,
+                        'category' => ucwords(str_replace('_',' ',$data['category'])),
+                        'program_id' => $program->id
+                    ]);
+                    $sectionsCreated++;
                 }
 
                 DB::commit();
-                $inserted[] = $program;
             } catch (\Exception $e) {
                 DB::rollBack();
                 $errors[] = [
@@ -111,7 +95,7 @@ public function bulkUpload(Request $request) {
         return response()->json([
             'message'  => 'Programs upload complete',
             'inserted' => count($inserted),
-            'skipped'  => $skipped,
+            'sections_created' => $sectionsCreated,
             'errors'   => $errors,
         ], 201);
     }

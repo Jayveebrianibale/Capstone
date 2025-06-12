@@ -111,7 +111,7 @@ class InstructorController extends Controller
                 $instructor = Instructor::create([
                     'name' => $data['name'],
                     'email' => $data['email'],
-                    'educationLevel' => 'Higher Education' // Default to Higher Education since all programs are HE
+                    'educationLevel' => 'Higher Education' // Default to Higher Education
                 ]);
     
                 // Create user account
@@ -133,11 +133,25 @@ class InstructorController extends Controller
                             $yearLevel = (int)($entry['yearLevel'] ?? 0);
                             $section = $entry['section'] ?? null;
     
-                            if ($programCode && $yearLevel >= 1 && $yearLevel <= 4) {
+                            if ($programCode) {
                                 $program = Program::where('code', $programCode)->first();
     
                                 if ($program) {
-                                    // Handle sections only for non-Higher Education programs
+                                    // Determine education level based on program category
+                                    $educationLevel = match($program->category) {
+                                        'Higher Education' => 'Higher Education',
+                                        'Intermediate' => 'Intermediate',
+                                        'Junior High' => 'Junior High',
+                                        'Senior High' => 'Senior High',
+                                        default => 'Higher Education'
+                                    };
+    
+                                    // Update instructor's education level if needed
+                                    if ($educationLevel !== 'Higher Education') {
+                                        $instructor->update(['educationLevel' => $educationLevel]);
+                                    }
+    
+                                    // Handle sections for non-Higher Education programs
                                     $sectionId = null;
                                     if ($section && $program->category !== 'Higher Education') {
                                         $sectionModel = Section::firstOrCreate(
@@ -159,11 +173,12 @@ class InstructorController extends Controller
                                         $sectionId = $sectionModel->id;
                                     }
     
+                                    // Check if assignment already exists
                                     $exists = $instructor->programs()
                                         ->where('program_id', $program->id)
                                         ->wherePivot('yearLevel', $yearLevel)
                                         ->when($sectionId, function($query) use ($sectionId) {
-                                            return $query->wherePivot('section_id', $sectionId);
+                                            return $query->where('instructor_program.section_id', $sectionId);
                                         })
                                         ->exists();
     
