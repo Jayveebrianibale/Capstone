@@ -19,7 +19,7 @@ function LogoutModal({ isOpen, onClose, onConfirm, loading }) {
             Cancel
           </button>
           <button
-            className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 dark:hover:bg-red-800 flex items-center justify-center gap-2 min-w-[130px]"
+            className="px-4 py-2 rounded bg-[#1F3463] text-white hover:bg-[#1a2b52] dark:hover:bg-[#1a2b52] flex items-center justify-center gap-2 min-w-[130px]"
             onClick={onConfirm}
             disabled={loading}
           >

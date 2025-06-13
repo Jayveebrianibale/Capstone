@@ -106,7 +106,10 @@ function Login() {
   
           <div className="mt-10 text-center text-sm text-gray-500">
             <p className="mb-2">Don't have an LV account?</p>
-            <a href="#" className="inline-flex items-center font-medium text-[#1F3463] hover:text-[#1A2C56] underline underline-offset-4 decoration-[#1F3463]/30 hover:decoration-[#1F3463]/50 transition-colors">
+            <a 
+              href="mailto:admin@lvcc.edu.ph" 
+              className="inline-flex items-center font-medium text-[#1F3463] hover:text-[#1A2C56] underline underline-offset-4 decoration-[#1F3463]/30 hover:decoration-[#1F3463]/50 transition-colors"
+            >
               Contact LVCC Administrator
               <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
