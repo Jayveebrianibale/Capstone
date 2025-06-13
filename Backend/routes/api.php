@@ -75,6 +75,7 @@ Route::get('/program-evaluation-stats', [EvaluationController::class, 'programEv
 Route::get('/course-evaluation-submission-counts', [EvaluationController::class, 'courseEvaluationSubmissionCounts']);
 Route::get('/instructor/{id}/comments-with-student-names', [InstructorController::class, 'getCommentsWithStudentNames']);
 Route::get('/instructors/{id}/selected-comments', [InstructorController::class, 'getSelectedComments']);
+Route::get('/instructors/{id}/latest-evaluation-period', [InstructorController::class, 'getLatestEvaluationPeriod']);
 
 Route::get('/test-cors', function () {
     return response()->json(['message' => 'CORS works!']);

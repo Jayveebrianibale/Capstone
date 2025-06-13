@@ -866,4 +866,33 @@ public function getInstructorCommentsWithStudentNames($instructorId)
         \Log::info('Selected comments for instructor ' . $id . ': ' . json_encode($comments));
         return response()->json(['comments' => $comments]);
     }
+
+    public function getLatestEvaluationPeriod($id)
+    {
+        \Log::info('Getting latest evaluation period for instructor ID: ' . $id);
+        
+        $latestEvaluation = Evaluation::where('instructor_id', $id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        \Log::info('Latest evaluation found:', ['evaluation' => $latestEvaluation]);
+
+        if (!$latestEvaluation) {
+            \Log::info('No evaluation found for instructor ID: ' . $id);
+            return response()->json([
+                'school_year' => '',
+                'semester' => ''
+            ]);
+        }
+
+        \Log::info('Returning evaluation period:', [
+            'school_year' => $latestEvaluation->school_year,
+            'semester' => $latestEvaluation->semester
+        ]);
+
+        return response()->json([
+            'school_year' => $latestEvaluation->school_year,
+            'semester' => $latestEvaluation->semester
+        ]);
+    }
 }

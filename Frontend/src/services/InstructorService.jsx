@@ -278,6 +278,16 @@ const InstructorService = {
       throw error;
     }
   },
+
+  getLatestEvaluationPeriod: async (instructorId) => {
+    try {
+      const response = await api.get(`/instructors/${instructorId}/latest-evaluation-period`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching latest evaluation period:', error);
+      throw error;
+    }
+  },
 };
 
 

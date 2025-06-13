@@ -89,14 +89,11 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
   };
 
   const handleSend = async () => {
-    if (selectedComments.length === 0) {
-      toast.warning('Please select at least one comment to send.');
-      return;
-    }
-
     setSending(true);
     try {
-      await InstructorService.handleSendResult(instructor.id, selectedComments);
+      // Pass an empty array if no comments are selected
+      const commentsToSend = selectedComments.length > 0 ? selectedComments : [];
+      await InstructorService.handleSendResult(instructor.id, commentsToSend);
       toast.success('Email sent successfully!');
       setSent(true);
       setSending(false);

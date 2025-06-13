@@ -14,30 +14,72 @@ function InstructorDashboard() {
     return 'text-red-500 font-semibold';
   };
 
-  useEffect(() => {
-    // Get instructor data from sessionStorage
-    const user = JSON.parse(sessionStorage.getItem('user'));
-    if (user) {
-      setInstructor(user);
-      // Fetch evaluation period data
-      fetchEvaluationPeriod(user.instructor_id);
-    }
-  }, []);
-
   const fetchEvaluationPeriod = async (instructorId) => {
     try {
-      const response = await InstructorService.getEvaluations();
-      if (response && response[instructorId] && response[instructorId].length > 0) {
-        const latestEvaluation = response[instructorId][0];
+      console.log('Fetching evaluation period for instructor:', instructorId);
+      console.log('Instructor ID type:', typeof instructorId);
+      console.log('Instructor ID value:', instructorId);
+      
+      const response = await InstructorService.getLatestEvaluationPeriod(instructorId);
+      console.log('Evaluation period response:', response);
+      
+      if (response && response.school_year && response.semester) {
+        console.log('Setting evaluation period with values:', {
+          schoolYear: response.school_year,
+          semester: response.semester
+        });
         setEvaluationPeriod({
-          schoolYear: latestEvaluation.school_year,
-          semester: latestEvaluation.semester
+          schoolYear: response.school_year,
+          semester: response.semester
+        });
+      } else {
+        console.log('Response missing school year or semester:', response);
+        setEvaluationPeriod({
+          schoolYear: '',
+          semester: ''
         });
       }
     } catch (error) {
       console.error('Error fetching evaluation period:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data
+      });
     }
   };
+
+  useEffect(() => {
+    // Get instructor data from sessionStorage
+    const user = JSON.parse(sessionStorage.getItem('user'));
+    console.log('Full user object from sessionStorage:', user);
+    console.log('All user object keys:', Object.keys(user));
+    console.log('All user object values:', Object.values(user));
+    
+    if (user) {
+      setInstructor(user);
+      // Try to get the instructor ID from different possible properties
+      const instructorId = user.instructor_id || user.id;
+      console.log('Using instructor ID:', instructorId);
+      console.log('Instructor ID type:', typeof instructorId);
+      console.log('Instructor ID value:', instructorId);
+      
+      if (instructorId) {
+        // Convert to number if it's a string
+        const numericInstructorId = parseInt(instructorId, 10);
+        console.log('Numeric instructor ID:', numericInstructorId);
+        fetchEvaluationPeriod(numericInstructorId);
+      } else {
+        console.error('No instructor ID found in user object');
+      }
+    } else {
+      console.error('No user found in sessionStorage');
+    }
+  }, []);
+
+  // Add this to check the current state
+  useEffect(() => {
+    console.log('Current evaluation period state:', evaluationPeriod);
+  }, [evaluationPeriod]);
 
   const currentHour = new Date().getHours();
   const greeting = () => {
@@ -65,16 +107,11 @@ function InstructorDashboard() {
         <div className="absolute inset-0 bg-black bg-opacity-40 z-0" />
         <div className="relative z-10">
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight drop-shadow-md">
-            {greeting()}, {instructor.name}!
+            {greeting()}, {instructor?.name}!
           </h1>
           <p className="mt-1 text-sm sm:text-base text-gray-200">
             Here's your Evaluation Results Overview.
-          </p>
-          {evaluationPeriod.schoolYear && evaluationPeriod.semester && (
-            <p className="mt-2 text-sm sm:text-base text-gray-200">
-              School Year: {evaluationPeriod.schoolYear} | Semester: {evaluationPeriod.semester}
-            </p>
-          )}
+          </p>   
         </div>
       </div>
 
@@ -82,9 +119,12 @@ function InstructorDashboard() {
       <div className="grid grid-cols-1 gap-6">
         {/* Analytics Section */}
         <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">
             Overall Performance Analytics
           </h2>
+            <p className=" text-sm sm:text-base dark:text-gray-200">
+               School Year: {evaluationPeriod.schoolYear || 'Not available'} | Semester: {evaluationPeriod.semester || 'Not available'}
+          </p>
           <AnalyticsChart instructorId={instructor.instructor_id} getPercentageColor={getPercentageColor} />
         </div>
 
