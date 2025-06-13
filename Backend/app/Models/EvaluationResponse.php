@@ -7,7 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class EvaluationResponse extends Model
 {
-    protected $fillable = ['evaluation_id', 'question_id', 'rating', 'comment'];
+    protected $fillable = [
+        'evaluation_id',
+        'question_id',
+        'rating',
+        'comment'
+    ];
+
+    protected $casts = [
+        'rating' => 'integer'
+    ];
 
     public function evaluation()
     {

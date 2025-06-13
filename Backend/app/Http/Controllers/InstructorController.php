@@ -24,6 +24,7 @@ use App\Exports\InstructorResultsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Section;
+use App\Mail\InstructorEvaluationResult;
 
 class InstructorController extends Controller
 {
@@ -459,15 +460,77 @@ class InstructorController extends Controller
     public function sendResult(Request $request, $id)
     {
         $instructor = Instructor::findOrFail($id);
+        $selectedCommentIndices = $request->input('selectedComments', []);
+        
+        \Log::info('Sending result for instructor ' . $id);
+        \Log::info('Selected comment indices: ' . json_encode($selectedCommentIndices));
+        
+        // Get one comment per student evaluation
+        $evaluations = Evaluation::where('instructor_id', $id)->get();
+        $allComments = [];
+        foreach ($evaluations as $evaluation) {
+            $response = $evaluation->responses()
+                ->whereNotNull('comment')
+                ->where('comment', '!=', '')
+                ->first();
+                
+            if ($response && $response->comment) {
+                $allComments[] = $response->comment;
+            }
+        }
+        
+        // Get the selected comments based on indices
+        $selectedComments = [];
+        foreach ($selectedCommentIndices as $index) {
+            if (isset($allComments[$index])) {
+                $selectedComments[] = $allComments[$index];
+            }
+        }
+        
+        \Log::info('Selected comments: ' . json_encode($selectedComments));
+        
+        // Store selected comments in session
+        session(['selected_comments_' . $id => $selectedComments]);
+        
+        // Calculate overall rating
+        $totalRating = 0;
+        $totalResponses = 0;
+        
+        foreach ($evaluations as $evaluation) {
+            $responses = $evaluation->responses;
+            foreach ($responses as $response) {
+                if ($response->rating) {
+                    $totalRating += $response->rating;
+                    $totalResponses++;
+                }
+            }
+        }
+        
+        $overallRating = $totalResponses > 0 ? ($totalRating / $totalResponses) * 20 : 0;
+        $instructor->overallRating = $overallRating;
+        
+        // Generate PDF URL
+        $pdfUrl = url('/api/instructors/' . $id . '/pdf');
+        
+        // Send email
+        Mail::to($instructor->email)->send(new InstructorEvaluationResult($instructor, $selectedComments, $pdfUrl));
+        
+        return response()->json(['message' => 'Evaluation result sent successfully']);
+    }
 
-        // Calculate overall rating (same as PDF logic)
-        $questions = \App\Models\Question::all();
-        $evaluations = \App\Models\Evaluation::where('instructor_id', $id)->get();
+    public function generatePDF($id)
+    {
+        $instructor = Instructor::findOrFail($id);
+        $questions = Question::all();
         $ratings = [];
+        
+        // Calculate ratings for each question
         foreach ($questions as $index => $question) {
             $questionId = $question->id;
             $total = 0;
             $count = 0;
+            
+            $evaluations = $instructor->evaluations;
             foreach ($evaluations as $evaluation) {
                 $response = $evaluation->responses()
                     ->where('question_id', $questionId)
@@ -477,26 +540,35 @@ class InstructorController extends Controller
                     $count++;
                 }
             }
+            
             $ratings['q' . ($index + 1)] = $count > 0 ? $total / $count : null;
         }
+
+        // Calculate overall rating
         $overallRating = 0;
-        if (!empty($ratings) && count($questions) > 0) {
-            $sum = array_sum($ratings);
-            $count = count($ratings);
-            if ($count > 0) {
-                $overallRating = ($sum / $count) * 20; // 5*20=100
+        $totalResponses = 0;
+        $evaluations = Evaluation::where('instructor_id', $id)->get();
+        foreach ($evaluations as $evaluation) {
+            $responses = EvaluationResponse::where('evaluation_id', $evaluation->id)->get();
+            foreach ($responses as $response) {
+                $overallRating += $response->rating;
+                $totalResponses++;
             }
         }
-        $instructor->overallRating = $overallRating;
+        $instructor->overallRating = $totalResponses > 0 ? ($overallRating / $totalResponses) * 20 : 0;
 
-        $pdfUrl = url("api/instructors/{$instructor->id}/pdf");
+        // Get selected comments from session
+        $comments = session('selected_comments_' . $id, []);
 
-        // send mail
-        Mail::to($instructor->email)->send(new InstructorResultMail($instructor, $pdfUrl));
-
-        return response()->json([
-            'message' => 'Result email sent successfully.',
+        $pdf = PDF::loadView('pdf.instructor-evaluation', [
+            'instructor' => $instructor,
+            'questions' => $questions,
+            'ratings' => $ratings,
+            'comments' => $comments,
+            'overallRating' => $instructor->overallRating
         ]);
+
+        return $pdf->stream('instructor-evaluation.pdf');
     }
 
     public function sendBulkResults(Request $request, $programCode) {
@@ -762,5 +834,36 @@ public function getInstructorCommentsWithStudentNames($instructorId)
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getSelectedComments($id)
+    {
+        // First try to get from session
+        $comments = session('selected_comments_' . $id, []);
+        
+        // If no comments in session, get from database
+        if (empty($comments)) {
+            $evaluations = Evaluation::where('instructor_id', $id)->get();
+            $studentComments = [];
+            
+            foreach ($evaluations as $evaluation) {
+                // Get only one comment per student evaluation
+                $response = $evaluation->responses()
+                    ->whereNotNull('comment')
+                    ->where('comment', '!=', '')
+                    ->first();
+                    
+                if ($response && $response->comment) {
+                    $studentComments[] = $response->comment;
+                }
+            }
+            
+            // Store in session for future use
+            session(['selected_comments_' . $id => $studentComments]);
+            $comments = $studentComments;
+        }
+        
+        \Log::info('Selected comments for instructor ' . $id . ': ' . json_encode($comments));
+        return response()->json(['comments' => $comments]);
     }
 }

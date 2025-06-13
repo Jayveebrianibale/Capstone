@@ -88,30 +88,27 @@ function Intermediate() {
   };
 
   const handleBulkSend = async () => {
-    setShowConfirmModal(false);
     setBulkSending(true);
     try {
-      // Get unique instructors by ID
-      const uniqueInstructors = Array.from(
-        new Map(mergedInstructorsByGrade.flat().map(instructor => [instructor.id, instructor])).values()
-      );
-
-      if (uniqueInstructors.length === 0) {
+      const allInstructors = mergedInstructorsByGrade.flat();
+      
+      if (allInstructors.length === 0) {
         toast.warning("No instructors found for this program");
         setBulkSending(false);
+        setShowConfirmModal(false);
         return;
       }
 
       const response = await InstructorService.sendBulkResults(programCode, {
-        instructorIds: uniqueInstructors.map(instructor => instructor.id)
+        instructorIds: allInstructors.map(instructor => instructor.id)
       });
-
+      
       setBulkSendStatus(response);
       toast.success(
         `Successfully sent results to ${response.sent_count} instructors`,
         { autoClose: 5000 }
       );
-
+      
       if (response.failed_count > 0) {
         toast.warning(
           `Failed to send to ${response.failed_count} instructors`,
@@ -121,21 +118,13 @@ function Intermediate() {
       }
     } catch (err) {
       console.error("Bulk send error:", err);
-
-      if (err.sent_count !== undefined) {
-        setBulkSendStatus(err);
-        toast.success(
-          `Sent to ${err.sent_count} instructors (${err.failed_count} failed)`,
-          { autoClose: 5000 }
-        );
-      } else {
-        toast.error(
-          err.message || "Failed to perform bulk send operation",
-          { autoClose: 5000 }
-        );
-      }
+      toast.error(
+        err.message || "Failed to perform bulk send operation",
+        { autoClose: 5000 }
+      );
     } finally {
       setBulkSending(false);
+      setShowConfirmModal(false);
     }
   };
 

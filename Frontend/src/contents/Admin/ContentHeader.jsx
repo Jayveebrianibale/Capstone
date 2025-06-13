@@ -52,6 +52,14 @@ const ContentHeader = ({
     }
   };
 
+  const handleBulkSend = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onBulkSend) {
+      onBulkSend();
+    }
+  };
+
   return (
     <div className="grid gap-4 lg:grid-cols-2 items-start mb-4">
       {/* Title and stats */}
@@ -112,7 +120,7 @@ const ContentHeader = ({
           <button
             className="p-2 bg-[#1F3463] hover:bg-blue-600 text-white rounded-lg transition duration-200 flex items-center justify-center"
             title="Send All Results"
-            onClick={onBulkSend}
+            onClick={handleBulkSend}
           >
             <Mail size={20} />
           </button>

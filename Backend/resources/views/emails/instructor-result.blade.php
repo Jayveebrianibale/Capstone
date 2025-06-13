@@ -114,6 +114,21 @@
                                 </p>
                             </div>
 
+                            @if(!empty($comments))
+                            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 25px;">
+                                <p style="margin: 0 0 15px 0; font-size: 16px; color: #000000;">
+                                    <strong style="color: #000000;">Selected Student Comments:</strong>
+                                </p>
+                                <div style="margin-left: 15px;">
+                                    @foreach($comments as $comment)
+                                        <p style="margin: 0 0 10px 0; font-size: 14px; color: #000000; font-style: italic;">
+                                            "{{ $comment }}"
+                                        </p>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
+
                             <p style="margin: 0 0 20px 0; font-size: 16px; color: #000000;">
                                 You may access your detailed evaluation report using one of the following methods:
                             </p>

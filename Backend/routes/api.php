@@ -61,7 +61,7 @@ Route::put('/instructors/{id}', [InstructorController::class, 'update']);
 Route::delete('/instructors/{id}', [InstructorController::class, 'destroy']);
 
 //PDF Routes
-Route::get('/instructors/{id}/pdf', [PDFController::class, 'generatePDF']);
+Route::get('/instructors/{id}/pdf', [InstructorController::class, 'generatePDF'])->name('instructor.pdf');
 Route::post('instructors/{id}/send-result', [InstructorController::class, 'sendResult']);
 Route::get('/instructors/{id}/programs', [InstructorController::class, 'getAssignedPrograms']);
 Route::post('/instructors/bulk-upload', [InstructorController::class, 'bulkUpload']);
@@ -74,6 +74,7 @@ Route::get('/evaluation-submission-stats', [EvaluationController::class, 'evalua
 Route::get('/program-evaluation-stats', [EvaluationController::class, 'programEvaluationStats']);
 Route::get('/course-evaluation-submission-counts', [EvaluationController::class, 'courseEvaluationSubmissionCounts']);
 Route::get('/instructor/{id}/comments-with-student-names', [InstructorController::class, 'getCommentsWithStudentNames']);
+Route::get('/instructors/{id}/selected-comments', [InstructorController::class, 'getSelectedComments']);
 
 Route::get('/test-cors', function () {
     return response()->json(['message' => 'CORS works!']);

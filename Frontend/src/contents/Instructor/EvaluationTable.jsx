@@ -8,38 +8,55 @@ export function EvaluationTable({ instructor }) {
   const [ratings, setRatings] = useState({});
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingComments, setLoadingComments] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
+      setLoadingComments(true);
+      setError(null);
       try {
         const fetchedQuestions = await QuestionsService.getAll();
         setQuestions(fetchedQuestions);
 
         if (instructor?.instructor_id) {
+          // Fetch evaluation results
           const results = await InstructorService.getInstructorEvaluationResults(
             instructor.instructor_id
           );
-        
+          
           const ratingMap = {};
           results.forEach((item) => {
             ratingMap[item.question_id] = parseFloat(item.avg_rating);
           });
           setRatings(ratingMap);
-        
-          setComments(results.comments ?? []);
-        } else {
-          setRatings({});
-          setComments(["Instructor ID not found"]);
+
+          // Fetch selected comments
+          try {
+            const response = await fetch(
+              `${import.meta.env.VITE_API_URL}/instructors/${instructor.instructor_id}/selected-comments`
+            );
+            if (!response.ok) {
+              throw new Error('Failed to fetch comments');
+            }
+            const data = await response.json();
+            console.log('Selected comments response:', data);
+            setComments(data.comments || []);
+          } catch (commentError) {
+            console.error('Error fetching comments:', commentError);
+            setError('Failed to load comments');
+          }
         }
-        
       } catch (err) {
         console.error("Error fetching data:", err);
+        setError('Failed to load evaluation data');
         setQuestions([]);
         setRatings({});
-        setComments(["Error fetching evaluation data"]);
+        setComments([]);
       } finally {
         setLoading(false);
+        setLoadingComments(false);
       }
     }
 
@@ -57,6 +74,7 @@ export function EvaluationTable({ instructor }) {
 
   return (
     <div className="space-y-6">
+      {/* Ratings Table */}
       <div className="rounded-md border overflow-x-auto max-w-full dark:border-gray-700">
         <table className="min-w-[700px] w-full text-sm text-left text-gray-700 dark:text-gray-200">
           <thead className="bg-gray-100 dark:bg-gray-700">
@@ -76,11 +94,15 @@ export function EvaluationTable({ instructor }) {
               </tr>
             ) : (
               questions.map((q) => (
-                <tr key={q.id} className="border-t dark:border-gray-700">
+                <tr 
+                  key={q.id} 
+                  id={`question-${q.id}`}
+                  className="border-t dark:border-gray-700 question-row transition-colors duration-200"
+                >
                   <td className="px-6 py-4">{q.id}</td>
                   <td className="px-6 py-4">{q.category}</td>
                   <td className="px-6 py-4">{q.question}</td>
-                  <td className="px-6 py-4 text-[#1F3463] font-semibold">
+                  <td className="px-6 py-4 dark:text-gray-200 font-semibold">
                     {ratings[q.id]?.toFixed(2) ?? "-"}
                   </td>
                 </tr>
@@ -90,21 +112,30 @@ export function EvaluationTable({ instructor }) {
         </table>
       </div>
 
-      {/* Comments section is hidden */}
-      {/* <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-md border dark:border-gray-700">
-        <h3 className="text-md font-semibold mb-2">Comments:</h3>
-        {comments.length > 0 ? (
-          comments.map((c, i) => (
-            <p key={i} className="text-sm text-gray-600 dark:text-gray-300">
-              • {c}
-            </p>
+      {/* Selected Comments section */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-md border dark:border-gray-700">
+        <h3 className="text-md font-semibold dark:text-gray-200 mb-2">Comments:</h3>
+        {loadingComments ? (
+          <div className="flex items-center justify-center py-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#1F3463]"></div>
+            <p className="ml-2 text-sm text-gray-600 dark:text-gray-400">Loading comments...</p>
+          </div>
+        ) : error ? (
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        ) : comments.length > 0 ? (
+          comments.map((comment, index) => (
+            <div key={index} className="mb-3 last:mb-0">
+              <p className="text-sm text-gray-600 dark:text-gray-300 italic">
+                "{comment}"
+              </p>
+            </div>
           ))
         ) : (
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            No comments available.
+            No comments available for this evaluation period.
           </p>
         )}
-      </div> */}
+      </div>
     </div>
   );
 }

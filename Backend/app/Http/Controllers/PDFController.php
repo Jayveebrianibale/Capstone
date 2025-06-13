@@ -53,7 +53,10 @@ class PDFController extends Controller
 
             Log::info('Calculated Ratings:', ['ratings' => $ratings]);
 
-            $comments = $instructor->comments ?? 'Not specified';
+            $comments = $instructor->comments ?? [];
+            if (is_string($comments)) {
+                $comments = [$comments];
+            }
 
             // Calculate overall rating (average of all ratings, as percentage)
             $overallRating = 0;

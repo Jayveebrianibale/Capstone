@@ -33,6 +33,31 @@ export default function AnalyticsChart({ instructorId }) {
     return () => observer.disconnect();
   }, []);
 
+  const handleBarClick = (data) => {
+    if (data && data.activePayload) {
+      const questionNumber = data.activePayload[0].payload.name.replace('Qn', '');
+      const questionElement = document.getElementById(`question-${questionNumber}`);
+      
+      if (questionElement) {
+        // Remove highlight from all questions first
+        document.querySelectorAll('.question-row').forEach(row => {
+          row.classList.remove('bg-blue-100', 'dark:bg-blue-900/20');
+        });
+        
+        // Add highlight to clicked question
+        questionElement.classList.add('bg-blue-100', 'dark:bg-blue-900/20');
+        
+        // Scroll to the question
+        questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Remove highlight after 2 seconds
+        setTimeout(() => {
+          questionElement.classList.remove('bg-blue-100', 'dark:bg-blue-900/20');
+        }, 3000);
+      }
+    }
+  };
+
   // Fetch questions + ratings
   useEffect(() => {
     async function loadChart() {
@@ -98,15 +123,7 @@ export default function AnalyticsChart({ instructorId }) {
         <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
           Overall Average Rating
         </h3>
-        <div
-          className={`text-3xl font-bold ${
-            overallRating >= 90
-              ? 'text-green-500'
-              : overallRating >= 75
-              ? 'text-yellow-500'
-              : 'text-red-500'
-          }`}
-        >
+        <div className="text-3xl font-bold text-black dark:text-white">
           {overallRating.toFixed(2)}%
         </div>
       </div>
@@ -117,6 +134,7 @@ export default function AnalyticsChart({ instructorId }) {
           <BarChart
             data={data}
             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            onClick={handleBarClick}
           >
             <CartesianGrid stroke={gridColor} />
             <XAxis
@@ -145,7 +163,7 @@ export default function AnalyticsChart({ instructorId }) {
               verticalAlign="top"
               height={36}
             />
-            <Bar dataKey="Rating" radius={[4, 4, 0, 0]}>
+            <Bar dataKey="Rating" radius={[4, 4, 0, 0]} cursor="pointer">
               {data.map((_, idx) => (
                 <Cell key={idx} fill={colors[idx % colors.length]} />
               ))}

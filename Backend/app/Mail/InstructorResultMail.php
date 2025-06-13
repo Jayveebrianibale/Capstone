@@ -12,11 +12,13 @@ class InstructorResultMail extends Mailable
 
     public $instructor;
     public $pdfUrl;
+    public $comments;
 
-    public function __construct($instructor, $pdfUrl)
+    public function __construct($instructor, $pdfUrl, $comments = [])
     {
         $this->instructor = $instructor;
         $this->pdfUrl = $pdfUrl;
+        $this->comments = $comments;
     }
 
     public function build()

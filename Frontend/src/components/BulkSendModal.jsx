@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, X, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
 
 const BulkSendModal = ({
   isOpen,
@@ -15,6 +17,7 @@ const BulkSendModal = ({
   const [sentCount, setSentCount] = useState(0);
   const [sentInstructors, setSentInstructors] = useState(new Set());
   const [isConfirming, setIsConfirming] = useState(false);
+  const [selectedInstructors, setSelectedInstructors] = useState(new Set());
 
   // Deduplicate instructors by ID
   const uniqueInstructors = React.useMemo(() => {
@@ -22,6 +25,13 @@ const BulkSendModal = ({
       new Map(instructors.map(instructor => [instructor.id, instructor])).values()
     );
   }, [instructors]);
+
+  // Initialize selected instructors with all instructors by default
+  useEffect(() => {
+    if (uniqueInstructors.length > 0) {
+      setSelectedInstructors(new Set(uniqueInstructors.map(instructor => instructor.id)));
+    }
+  }, [uniqueInstructors]);
 
   useEffect(() => {
     if (isSending) {
@@ -51,13 +61,78 @@ const BulkSendModal = ({
     }
   }, [isSending, uniqueInstructors]);
 
+  const toggleInstructorSelection = (instructorId) => {
+    setSelectedInstructors(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(instructorId)) {
+        newSet.delete(instructorId);
+      } else {
+        newSet.add(instructorId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedInstructors.size === uniqueInstructors.length) {
+      setSelectedInstructors(new Set());
+    } else {
+      setSelectedInstructors(new Set(uniqueInstructors.map(instructor => instructor.id)));
+    }
+  };
+
   const handleConfirm = async (e) => {
     e.preventDefault();
+    if (selectedInstructors.size === 0) {
+      toast.warning("Please select at least one instructor to send results to.");
+      return;
+    }
+
     try {
       setIsConfirming(true);
-      await onConfirm();
+      const response = await onConfirm(Array.from(selectedInstructors));
+      
+      // Show success toast
+      if (response?.sent_count !== undefined) {
+        toast.success(
+          `Successfully sent results to ${response.sent_count} instructors`,
+          { 
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        );
+
+        if (response.failed_count > 0) {
+          toast.warning(
+            `Failed to send to ${response.failed_count} instructors`,
+            { 
+              position: "top-right",
+              autoClose: 7000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+            }
+          );
+        }
+      }
     } catch (error) {
       console.error('Error sending results:', error);
+      toast.error(
+        error.message || "Failed to perform bulk send operation",
+        { 
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
       setIsConfirming(false);
     }
   };
@@ -68,6 +143,18 @@ const BulkSendModal = ({
     <>
       {/* Confirmation Modal */}
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl w-full max-w-md mx-4 transform transition-all animate-scaleIn">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -92,7 +179,7 @@ const BulkSendModal = ({
           <div className="space-y-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                You are about to send evaluation results to all {programCode} instructors.
+                You are about to send evaluation results to selected {programCode} instructors.
               </p>
             </div>
 
@@ -101,7 +188,7 @@ const BulkSendModal = ({
               <div className="space-y-2">
                 <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300">
                   <span>Progress: {Math.round(progress)}%</span>
-                  <span>{sentCount} of {uniqueInstructors.length} sent</span>
+                  <span>{sentCount} of {selectedInstructors.size} sent</span>
                 </div>
                 <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div 
@@ -112,10 +199,20 @@ const BulkSendModal = ({
               </div>
             )}
 
+            {/* Select All Button */}
+            <div className="flex justify-end">
+              <button
+                onClick={toggleSelectAll}
+                className="text-sm text-[#1F3463] hover:text-[#172a4d] font-medium"
+              >
+                {selectedInstructors.size === uniqueInstructors.length ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
+
             {/* Recipients List */}
             <div className="max-h-60 overflow-y-auto">
               <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Recipients ({uniqueInstructors.length})
+                Recipients ({selectedInstructors.size} of {uniqueInstructors.length})
               </div>
               <div className="space-y-2">
                 {uniqueInstructors.map((instructor) => (
@@ -128,6 +225,12 @@ const BulkSendModal = ({
                     }`}
                   >
                     <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedInstructors.has(instructor.id)}
+                        onChange={() => toggleInstructorSelection(instructor.id)}
+                        className="w-4 h-4 text-[#1F3463] border-[#1F3463] rounded focus:ring-[#1F3463] focus:ring-offset-0 accent-[#1F3463]"
+                      />
                       <div className="w-8 h-8 rounded-full bg-[#1F3463] text-white flex items-center justify-center text-sm font-medium">
                         {instructor.name.charAt(0)}
                       </div>
@@ -163,12 +266,12 @@ const BulkSendModal = ({
             </button>
             <button
               onClick={handleConfirm}
+              disabled={isConfirming || isSending || selectedInstructors.size === 0}
               className={`px-4 py-2.5 flex items-center justify-center gap-2 ${
-                isConfirming || isSending
-                  ? "bg-[#1F3463] cursor-not-allowed"
-                  : "bg-[#1F3463] hover:bg-[#1F3463]"
+                isConfirming || isSending || selectedInstructors.size === 0
+                  ? "bg-[#1F3463] opacity-50 cursor-not-allowed"
+                  : "bg-[#1F3463] hover:bg-[#172a4d]"
               } text-white rounded-lg transition-colors font-medium min-w-[100px]`}
-              disabled={isConfirming || isSending}
             >
               {isConfirming || isSending ? (
                 <>

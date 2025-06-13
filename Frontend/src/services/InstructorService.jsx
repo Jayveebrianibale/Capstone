@@ -157,9 +157,11 @@ const InstructorService = {
     }
   },
 
-  handleSendResult: async (instructorId) => {
+  handleSendResult: async (instructorId, selectedComments = []) => {
     try {
-      const response = await api.post(`/instructors/${instructorId}/send-result`);
+      const response = await api.post(`/instructors/${instructorId}/send-result`, {
+        selectedComments
+      });
       return response.data;
     } catch (err) {
       console.error(err);
