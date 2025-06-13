@@ -159,12 +159,16 @@ const InstructorService = {
 
   handleSendResult: async (instructorId, selectedComments = []) => {
     try {
+      console.log('Sending comments to instructor:', instructorId);
+      console.log('Comments being sent:', selectedComments);
+      
       const response = await api.post(`/instructors/${instructorId}/send-result`, {
         selectedComments
       });
+      console.log('Server response:', response.data);
       return response.data;
     } catch (err) {
-      console.error(err);
+      console.error('Error sending comments:', err);
       throw err;
     }
   },

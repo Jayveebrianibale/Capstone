@@ -92,8 +92,12 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
   const handleSend = async () => {
     setSending(true);
     try {
-      // Pass an empty array if no comments are selected
-      const commentsToSend = selectedComments.length > 0 ? selectedComments : [];
+      // Get the actual comments based on selected indices
+      const commentsToSend = selectedComments.map(index => studentComments[index].comment);
+      console.log('Selected comment indices:', selectedComments);
+      console.log('Comments to send:', commentsToSend);
+      console.log('All student comments:', studentComments);
+      
       await InstructorService.handleSendResult(instructor.id, commentsToSend);
       toast.success('Email sent successfully!');
       setSent(true);

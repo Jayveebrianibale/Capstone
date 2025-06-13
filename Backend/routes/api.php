@@ -62,7 +62,7 @@ Route::delete('/instructors/{id}', [InstructorController::class, 'destroy']);
 
 //PDF Routes
 Route::get('/instructors/{id}/pdf', [InstructorController::class, 'generatePDF'])->name('instructor.pdf');
-Route::post('instructors/{id}/send-result', [InstructorController::class, 'sendResult']);
+Route::post('instructors/{id}/send-result', [InstructorController::class, 'handleSendResult']);
 Route::get('/instructors/{id}/programs', [InstructorController::class, 'getAssignedPrograms']);
 Route::post('/instructors/bulk-upload', [InstructorController::class, 'bulkUpload']);
 

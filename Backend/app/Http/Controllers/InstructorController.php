@@ -457,45 +457,25 @@ class InstructorController extends Controller
     }
 
     // Send the evaluation result to the instructor via email
-    public function sendResult(Request $request, $id)
+    public function handleSendResult($id, Request $request)
     {
         $instructor = Instructor::findOrFail($id);
-        $selectedCommentIndices = $request->input('selectedComments', []);
+        $selectedComments = $request->input('selectedComments', []);
         
         \Log::info('Sending result for instructor ' . $id);
-        \Log::info('Selected comment indices: ' . json_encode($selectedCommentIndices));
+        \Log::info('Selected comments received: ' . json_encode($selectedComments));
         
-        // Get one comment per student evaluation
-        $evaluations = Evaluation::where('instructor_id', $id)->get();
-        $allComments = [];
-        foreach ($evaluations as $evaluation) {
-            $response = $evaluation->responses()
-                ->whereNotNull('comment')
-                ->where('comment', '!=', '')
-                ->first();
-                
-            if ($response && $response->comment) {
-                $allComments[] = $response->comment;
-            }
-        }
+        // Store selected comments in the database
+        $instructor->selected_comments = json_encode($selectedComments);
+        $instructor->save();
         
-        // Get the selected comments based on indices
-        $selectedComments = [];
-        foreach ($selectedCommentIndices as $index) {
-            if (isset($allComments[$index])) {
-                $selectedComments[] = $allComments[$index];
-            }
-        }
-        
-        \Log::info('Selected comments: ' . json_encode($selectedComments));
-        
-        // Store selected comments in session
-        session(['selected_comments_' . $id => $selectedComments]);
+        \Log::info('Stored comments in database: ' . json_encode($selectedComments));
         
         // Calculate overall rating
         $totalRating = 0;
         $totalResponses = 0;
         
+        $evaluations = Evaluation::where('instructor_id', $id)->get();
         foreach ($evaluations as $evaluation) {
             $responses = $evaluation->responses;
             foreach ($responses as $response) {
@@ -838,32 +818,20 @@ public function getInstructorCommentsWithStudentNames($instructorId)
 
     public function getSelectedComments($id)
     {
-        // First try to get from session
-        $comments = session('selected_comments_' . $id, []);
+        \Log::info('Attempting to get comments for instructor ' . $id);
         
-        // If no comments in session, get from database
+        // Get selected comments from database
+        $instructor = Instructor::findOrFail($id);
+        $comments = json_decode($instructor->selected_comments ?? '[]', true);
+        
+        \Log::info('Retrieved comments from database: ' . json_encode($comments));
+        
+        // If no comments in database, return empty array
         if (empty($comments)) {
-            $evaluations = Evaluation::where('instructor_id', $id)->get();
-            $studentComments = [];
-            
-            foreach ($evaluations as $evaluation) {
-                // Get only one comment per student evaluation
-                $response = $evaluation->responses()
-                    ->whereNotNull('comment')
-                    ->where('comment', '!=', '')
-                    ->first();
-                    
-                if ($response && $response->comment) {
-                    $studentComments[] = $response->comment;
-                }
-            }
-            
-            // Store in session for future use
-            session(['selected_comments_' . $id => $studentComments]);
-            $comments = $studentComments;
+            \Log::info('No selected comments found in database for instructor ' . $id);
+            return response()->json(['comments' => []]);
         }
         
-        \Log::info('Selected comments for instructor ' . $id . ': ' . json_encode($comments));
         return response()->json(['comments' => $comments]);
     }
 
