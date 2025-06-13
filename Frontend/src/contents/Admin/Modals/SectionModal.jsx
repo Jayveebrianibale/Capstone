@@ -59,9 +59,9 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
       setIsSubmitting(true);
       await SectionService.update(sectionId, {
         name: newName.trim(),
-        code: `INT-${gradeLevel}-${newName.trim()}`,
+        code: category === 'Junior High' ? 'JHS' : category === 'Senior High' ? 'SHS' : 'INT',
         year_level: gradeLevel,
-        category: 'Intermediate'
+        category: category
       });
       
       // Update local state first for immediate feedback
@@ -140,9 +140,9 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
         // Create program data for this section
         const programData = {
           name: `Grade ${gradeLevel} - ${sectionName}`,
-          code: `INT-${gradeLevel}-${sectionName}`,
+          code: category === 'Junior High' ? 'JHS' : category === 'Senior High' ? 'SHS' : 'INT',
           yearLevel: `Grade ${gradeLevel}`,
-          category: 'Intermediate',
+          category: category,
           section: sectionName
         };
 
