@@ -119,12 +119,14 @@ function InstructorDashboard() {
       <div className="grid grid-cols-1 gap-6">
         {/* Analytics Section */}
         <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">
-            Overall Performance Analytics
-          </h2>
-            <p className=" text-sm sm:text-base dark:text-gray-200">
-               School Year: {evaluationPeriod.schoolYear || 'Not available'} | Semester: {evaluationPeriod.semester || 'Not available'}
-          </p>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-0 mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+              Overall Performance Analytics
+            </h2>
+            <p className="text-sm sm:text-base dark:text-gray-200 whitespace-nowrap mb-2 sm:mb-0">
+              School Year: {evaluationPeriod.schoolYear || 'Not available'} | Semester: {evaluationPeriod.semester || 'Not available'}
+            </p>
+          </div>
           <AnalyticsChart instructorId={instructor.instructor_id} getPercentageColor={getPercentageColor} />
         </div>
 
