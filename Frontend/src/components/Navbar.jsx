@@ -48,7 +48,7 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, ac
           const newNotifications = stats
             .filter(stat => stat.submitted > 0)
             .map(stat => ({
-              id: `${stat.program_code}-${stat.yearLevel}-${Date.now()}`,
+              id: `${stat.program_code}-${stat.yearLevel}`,
               program: stat.program,
               yearLevel: stat.yearLevel,
               submitted: stat.submitted,
@@ -57,14 +57,32 @@ function Navbar({ toggleSidebar, title, darkMode, handleDarkModeToggle, user, ac
             }));
 
           setNotifications(prev => {
-            // Keep existing notifications and add new ones
-            const existingIds = new Set(prev.map(n => n.id));
-            const uniqueNewNotifications = newNotifications.filter(n => !existingIds.has(n.id));
-            return [...prev, ...uniqueNewNotifications];
+            // Update existing notifications or add new ones
+            const updatedNotifications = [...prev];
+            
+            newNotifications.forEach(newNotif => {
+              const existingIndex = updatedNotifications.findIndex(
+                n => n.id === newNotif.id
+              );
+              
+              if (existingIndex !== -1) {
+                // Update existing notification if submission count increased
+                if (newNotif.submitted > updatedNotifications[existingIndex].submitted) {
+                  updatedNotifications[existingIndex] = {
+                    ...newNotif,
+                    read: false // Mark as unread when count increases
+                  };
+                  setUnreadCount(prev => prev + 1);
+                }
+              } else {
+                // Add new notification
+                updatedNotifications.push(newNotif);
+                setUnreadCount(prev => prev + 1);
+              }
+            });
+            
+            return updatedNotifications;
           });
-
-          // Update unread count
-          setUnreadCount(prev => prev + newNotifications.length);
         } catch (error) {
           console.error("Error fetching submission stats:", error);
         } finally {

@@ -524,22 +524,27 @@ class EvaluationController extends Controller {
                         'clear_storage' => true
                     ]);
                 } elseif ($currentPhase === 'Phase 2' && $newPhase === 'Phase 1') {
-                    // Restore archived data
-                    $this->restorePhaseOneData();
-                    
-                    // Update phase
-                    $settings->evaluation_phase = $newPhase;
-                    $settings->should_clear_storage = false;
-                    $settings->save();
-                    
-                    DB::commit();
-                    
-                    return response()->json([
-                        'message' => "Switched to $newPhase successfully",
-                        'previous_phase' => $currentPhase,
-                        'new_phase' => $newPhase,
-                        'clear_storage' => false
-                    ]);
+                    try {
+                        // Restore archived data
+                        $this->restorePhaseOneData();
+                        
+                        // Update phase
+                        $settings->evaluation_phase = $newPhase;
+                        $settings->should_clear_storage = false;
+                        $settings->save();
+                        
+                        DB::commit();
+                        
+                        return response()->json([
+                            'message' => "Switched to $newPhase successfully",
+                            'previous_phase' => $currentPhase,
+                            'new_phase' => $newPhase,
+                            'clear_storage' => false
+                        ]);
+                    } catch (\Exception $e) {
+                        DB::rollBack();
+                        throw $e;
+                    }
                 }
 
                 // For any other case, just update the phase
