@@ -115,7 +115,7 @@
                             </div>
 
                             @if(!empty($comments))
-                            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 25px;">
+                            <!-- <div style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 25px;">
                                 <p style="margin: 0 0 15px 0; font-size: 16px; color: #000000;">
                                     <strong style="color: #000000;">Student Comments:</strong>
                                 </p>
@@ -126,7 +126,7 @@
                                         </p>
                                     @endforeach
                                 </div>
-                            </div>
+                            </div> -->
                             @endif
 
                             <p style="margin: 0 0 20px 0; font-size: 16px; color: #000000;">
