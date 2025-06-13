@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import SectionService from '../../../services/SectionService';
+import ProgramService from '../../../services/ProgramService.jsx';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { Loader2, X } from 'lucide-react';
 
@@ -58,9 +59,9 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
       setIsSubmitting(true);
       await SectionService.update(sectionId, {
         name: newName.trim(),
-        code: `${category}-${gradeLevel}-${newName.trim()}`,
+        code: `INT-${gradeLevel}-${newName.trim()}`,
         year_level: gradeLevel,
-        category: category
+        category: 'Intermediate'
       });
       
       // Update local state first for immediate feedback
@@ -88,16 +89,30 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
   const handleDeleteSection = async (sectionId) => {
     try {
       setRemovingSectionId(sectionId);
+      
+      // Get the section first to get its program_id
+      const section = existingSections.find(s => s.id === sectionId);
+      if (!section) {
+        throw new Error('Section not found');
+      }
+
+      // Delete the section first
       await SectionService.delete(sectionId);
       
+      // Then delete the associated program
+      if (section.program_id) {
+        await ProgramService.delete(section.program_id);
+      }
+      
       // Update local state first for immediate feedback
-      setExistingSections(prev => prev.filter(section => section.id !== sectionId));
-      toast.success('Section deleted successfully');
+      setExistingSections(prev => prev.filter(s => s.id !== sectionId));
+      toast.success('Section and program deleted successfully');
       
       // Then fetch fresh data
       fetchExistingSections();
       if (onSave) onSave();
     } catch (error) {
+      console.error('Error deleting section:', error);
       toast.error(error.message || 'Failed to delete section');
     } finally {
       setRemovingSectionId(null);
@@ -117,13 +132,34 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
 
     try {
       setIsSubmitting(true);
-      const promises = sectionsToAdd.map(section => {
-        const sectionData = {
-          name: section.trim(),
-          code: `${category}-${gradeLevel}-${section.trim()}`,
-          year_level: gradeLevel,
-          category: category
+      
+      // Create a new program for each section
+      const promises = sectionsToAdd.map(async (section) => {
+        const sectionName = section.trim();
+        
+        // Create program data for this section
+        const programData = {
+          name: `Grade ${gradeLevel} - ${sectionName}`,
+          code: `INT-${gradeLevel}-${sectionName}`,
+          yearLevel: `Grade ${gradeLevel}`,
+          category: 'Intermediate',
+          section: sectionName
         };
+
+        console.log('Creating program with data:', programData); // Debug log
+
+        // Create the program
+        const newProgram = await ProgramService.create(programData);
+        
+        // Create the section
+        const sectionData = {
+          name: sectionName,
+          code: `INT-${gradeLevel}-${sectionName}`,
+          year_level: gradeLevel,
+          category: 'Intermediate',
+          program_id: newProgram.program.id
+        };
+        
         return SectionService.create(sectionData);
       });
 
@@ -139,6 +175,7 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
       fetchExistingSections();
       if (onSave) onSave();
     } catch (error) {
+      console.error('Error adding sections:', error);
       toast.error(error.message || 'Failed to add sections');
     } finally {
       setIsSubmitting(false);

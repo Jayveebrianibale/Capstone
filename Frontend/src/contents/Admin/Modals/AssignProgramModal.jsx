@@ -29,12 +29,39 @@ function AssignProgramModal({ isOpen, onClose, instructor }) {
       const data = await ProgramService.getAll();
       const extracted = Array.isArray(data) ? data : data?.programs || [];
 
-      const normalized = extracted.map((p) => ({
-        id: p.id,
-        name: p.name,
-        yearLevel: p.year_level || p.yearLevel,
-        category: p.category
-      }));
+      const normalized = extracted.map((p) => {
+        // For non-Higher Education programs
+        if (p.category !== 'Higher Education' && p.sections && p.sections.length > 0) {
+          // If the name already includes the section, use it as is
+          if (p.name.includes('Section')) {
+            return {
+              id: p.id,
+              name: p.name,
+              yearLevel: p.year_level || p.yearLevel,
+              category: p.category,
+              sections: p.sections
+            };
+          }
+          
+          // Otherwise, create entries for each section
+          return p.sections.map(section => ({
+            id: p.id,
+            name: `${p.name} - ${section.name}`,
+            yearLevel: p.year_level || p.yearLevel,
+            category: p.category,
+            sections: [section]
+          }));
+        }
+
+        // For Higher Education programs, return as is
+        return {
+          id: p.id,
+          name: p.name,
+          yearLevel: p.year_level || p.yearLevel,
+          category: p.category,
+          sections: p.sections || []
+        };
+      }).flat(); // Flatten the array of arrays
 
       console.log("Normalized programs:", normalized);
       setPrograms(normalized);

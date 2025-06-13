@@ -51,7 +51,23 @@ function Programs() {
     try {
       const response = await ProgramService.getAll();
       console.log("Fetched programs:", response);
-      setPrograms(Array.isArray(response.programs) ? response.programs : []);
+      
+      // Process programs to include section information
+      const processedPrograms = Array.isArray(response.programs) ? response.programs.map(program => {
+        // For non-Higher Education programs, include section information
+        if (program.category !== 'Higher Education' && program.sections) {
+          const sections = program.sections.map(section => section.name).join(', ');
+          return {
+            ...program,
+            name: sections ? `${program.name} - ${sections}` : program.name,
+            sections: program.sections
+          };
+        }
+        return program;
+      }) : [];
+      
+      console.log("Processed programs:", processedPrograms);
+      setPrograms(processedPrograms);
     } catch (error) {
       console.error("Error fetching programs:", error);
       toast.error("Failed to load programs.");
@@ -68,11 +84,20 @@ function Programs() {
     if (activeTab === 'Higher Education') {
       filtered = filtered.filter(item => item.category === 'Higher Education');
     } else if (activeTab === 'Intermediate') {
-      filtered = filtered.filter(item => item.category === 'Intermediate' || item.category === 'INT');
+      filtered = filtered.filter(item => 
+        item.category === 'Intermediate' || 
+        item.category === 'INT'
+      );
     } else if (activeTab === 'Junior High') {
-      filtered = filtered.filter(item => item.category === 'Junior High' || item.category === 'JHS');
+      filtered = filtered.filter(item => 
+        item.category === 'Junior High' || 
+        item.category === 'JHS'
+      );
     } else if (activeTab === 'Senior High') {
-      filtered = filtered.filter(item => item.category === 'Senior High' || item.category === 'SHS');
+      filtered = filtered.filter(item => 
+        item.category === 'Senior High' || 
+        item.category === 'SHS'
+      );
     }
 
     // Filter by search query
@@ -81,7 +106,10 @@ function Programs() {
       filtered = filtered.filter(item =>
         item.name.toLowerCase().includes(query) ||
         item.code.toLowerCase().includes(query) ||
-        (item.yearLevel && item.yearLevel.toLowerCase().includes(query))
+        (item.yearLevel && item.yearLevel.toLowerCase().includes(query)) ||
+        (item.sections && item.sections.some(section => 
+          section.name.toLowerCase().includes(query)
+        ))
       );
     }
 
@@ -213,6 +241,10 @@ function Programs() {
       setIsConfirmModalOpen(false);
       setDeleteProgramId(null);
     }
+  };
+
+  const handleProgramUpdate = async () => {
+    await fetchPrograms();
   };
 
   return (

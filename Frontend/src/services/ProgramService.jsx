@@ -64,6 +64,16 @@ const ProgramService = {
     console.log("Bulk Upload Response:", response.data);
     return response.data;
   },
+
+  getByCodeAndCategory: async (code, gradeLevel) => {
+    try {
+      const response = await api.get(`/programs/code/${code}/grade/${gradeLevel}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching program by code and category:', error);
+      throw error;
+    }
+  },
 };
 
 export default ProgramService;

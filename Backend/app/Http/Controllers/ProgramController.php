@@ -123,40 +123,50 @@ public function bulkUpload(Request $request) {
     // Stores a new program if it doesn't already exist.
     public function store(Request $request)
     {
-        // Validate request data
-        $request->validate([
-            'name' => 'required|string',
-            'code' => 'required|string',
-            'yearLevel' => 'nullable|string',
-            'category' => 'required|string',
-            'section' => 'nullable|string',
-        ]);
-
         try {
             DB::beginTransaction();
 
+            // Get and validate the request data
+            $validated = $request->validate([
+                'name' => 'required|string',
+                'code' => 'required|string',
+                'yearLevel' => 'nullable|string',
+                'category' => 'required|string',
+                'section' => 'nullable|string',
+            ]);
+
+            // Get the category from validated data
+            $category = $validated['category'];
+            $code = $category === 'Intermediate' ? 'INT' : $validated['code'];
+
             // Check for existing program with the same name, code, and year level
-            $existingProgram = Program::where(function($query) use ($request) {
-                $query->where('name', $request->name)
-                      ->where('code', $request->code)
-                      ->where('yearLevel', $request->yearLevel)
-                      ->where('category', ucwords(str_replace('_', ' ', $request->category)));
+            $existingProgram = Program::where(function($query) use ($validated, $code, $category) {
+                $query->where('name', $validated['name'])
+                      ->where(function($q) use ($code) {
+                          $q->where('code', $code)
+                            ->orWhere('code', $code === 'INT' ? 'Intermediate' : 'INT');
+                      })
+                      ->where('yearLevel', $validated['yearLevel'])
+                      ->where('category', $category);
             })->first();
 
             if ($existingProgram) {
                 // If program exists, check if we need to add a new section
-                if (!empty($request->section) && $request->category !== 'Higher Education') {
-                    $existingSection = Section::where('name', $request->section)
-                                           ->where('code', $request->code . '-' . $request->section)
-                                           ->where('year_level', $request->yearLevel)
+                if (!empty($validated['section']) && $category !== 'Higher Education') {
+                    $yearLevel = preg_replace('/[^0-9]/', '', $validated['yearLevel']);
+                    $sectionCode = $code . '-' . $yearLevel . '-' . $validated['section'];
+                    
+                    $existingSection = Section::where('name', $validated['section'])
+                                           ->where('code', $sectionCode)
+                                           ->where('year_level', $yearLevel)
                                            ->first();
 
                     if (!$existingSection) {
-                        Section::create([
-                            'name' => $request->section,
-                            'code' => $request->code . '-' . $request->section,
-                            'year_level' => $request->yearLevel,
-                            'category' => ucwords(str_replace('_', ' ', $request->category)),
+                        $section = Section::create([
+                            'name' => $validated['section'],
+                            'code' => $sectionCode,
+                            'year_level' => $yearLevel,
+                            'category' => $category,
                             'program_id' => $existingProgram->id
                         ]);
 
@@ -175,19 +185,22 @@ public function bulkUpload(Request $request) {
 
             // Create the new program
             $program = Program::create([
-                'name' => $request->name,
-                'code' => $request->code,
-                'yearLevel' => $request->yearLevel,
-                'category' => ucwords(str_replace('_', ' ', $request->category)),
+                'name' => $validated['name'],
+                'code' => $code,
+                'yearLevel' => $validated['yearLevel'],
+                'category' => $category,
             ]);
 
             // Create section for non-Higher Education programs
-            if (!empty($request->section) && $request->category !== 'Higher Education') {
+            if (!empty($validated['section']) && $category !== 'Higher Education') {
+                $yearLevel = preg_replace('/[^0-9]/', '', $validated['yearLevel']);
+                $sectionCode = $code . '-' . $yearLevel . '-' . $validated['section'];
+                
                 Section::create([
-                    'name' => $request->section,
-                    'code' => $request->code . '-' . $request->section,
-                    'year_level' => $request->yearLevel,
-                    'category' => ucwords(str_replace('_', ' ', $request->category)),
+                    'name' => $validated['section'],
+                    'code' => $sectionCode,
+                    'year_level' => $yearLevel,
+                    'category' => $category,
                     'program_id' => $program->id
                 ]);
             }
@@ -201,6 +214,8 @@ public function bulkUpload(Request $request) {
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Error creating program: ' . $e->getMessage());
+            \Log::error('Request data: ' . json_encode($request->all()));
             return response()->json([
                 'message' => 'Failed to create program',
                 'error' => $e->getMessage()
@@ -244,9 +259,18 @@ public function bulkUpload(Request $request) {
             'category' => 'required|string'
         ]);
 
+        // Normalize the category and code
+        $category = ucwords(str_replace('_', ' ', $request->category));
+        $code = $category === 'Intermediate' ? 'INT' : ($request->code ?? 'INT');
+
         // Find and update the program
         $program = Program::findOrFail($id);
-        $program->update($validated);
+        $program->update([
+            'name' => $validated['name'],
+            'code' => $code,
+            'yearLevel' => $validated['yearLevel'],
+            'category' => $category
+        ]);
 
         return response()->json([
             'message' => 'Program updated successfully',
@@ -268,8 +292,17 @@ public function bulkUpload(Request $request) {
     public function getInstructorsByProgramCode($programCode)
     {
         try {
-            // Get all programs with this code
-            $programs = Program::where('code', $programCode)->get();
+            // Get all programs with this code or its equivalent
+            $programs = Program::where(function($query) use ($programCode) {
+                $query->where('code', $programCode)
+                      ->orWhere(function($q) use ($programCode) {
+                          if ($programCode === 'INT') {
+                              $q->where('code', 'Intermediate');
+                          } else if ($programCode === 'Intermediate') {
+                              $q->where('code', 'INT');
+                          }
+                      });
+            })->get();
             
             if ($programs->isEmpty()) {
                 \Log::error("No programs found for code: " . $programCode);
@@ -294,7 +327,8 @@ public function bulkUpload(Request $request) {
                     'instructors.educationLevel',
                     'instructor_program.yearLevel',
                     'instructor_program.program_id',
-                    'programs.name as program_name'
+                    'programs.name as program_name',
+                    'programs.code as program_code'
                 )
                 ->get();
 
@@ -319,7 +353,8 @@ public function bulkUpload(Request $request) {
                             return [
                                 'yearLevel' => (int)$assignment->yearLevel,
                                 'program_id' => $assignment->program_id,
-                                'program_name' => $assignment->program_name
+                                'program_name' => $assignment->program_name,
+                                'program_code' => $assignment->program_code
                             ];
                         })->values()->toArray()
                     ]
@@ -497,5 +532,26 @@ public function bulkUpload(Request $request) {
         });
 
         return response()->json($results);
+    }
+
+    public function getByCodeAndGrade($code, $gradeLevel)
+    {
+        try {
+            $program = Program::where('code', $code)
+                ->where('yearLevel', 'Grade ' . $gradeLevel)
+                ->with('sections')
+                ->first();
+
+            if (!$program) {
+                return response()->json(['message' => 'Program not found'], 404);
+            }
+
+            return response()->json($program);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch program',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
