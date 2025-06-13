@@ -42,6 +42,7 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
         try {
           setLoadingQuestions(true);
           setLoadingComments(true);
+          setShowNames(false); // Reset showNames to false when modal opens
           
           const fetchedQuestions = await QuestionsService.getAll();
           setQuestions(fetchedQuestions);
@@ -179,12 +180,24 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
           </div>
 
           {/* Comments Section */}
-          <div className="space-y-2">
+          <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                 Student Comments
               </h3>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowNames(!showNames)}
+                  className="text-[#1F3463] dark:text-indigo-400 hover:opacity-75 focus:outline-none rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  title={showNames ? "Hide Names" : "Show Names"}
+                >
+                  {showNames ? (
+                    <FaEyeSlash className="text-xl" />
+                  ) : (
+                    <FaEye className="text-xl" />
+                  )}
+                </button>
+                <p className='text-[#1F3463]'>|</p>
                 <button
                   onClick={handleSelectAll}
                   className="text-sm text-[#1F3463] dark:text-indigo-400 hover:opacity-75 focus:outline-none"
@@ -206,18 +219,26 @@ const ViewResultsModal = ({ isOpen, onClose, instructor }) => {
                     key={index}
                     className="pb-2 mb-2 border-b border-gray-200 dark:border-gray-600 last:border-b-0 last:pb-0 last:mb-0"
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-8 h-8 rounded-full bg-[#1F3463] text-white flex items-center justify-center text-sm font-medium">
+                            {showNames ? commentEntry.student_name.charAt(0).toUpperCase() : 'A'}
+                          </div>
+                          <p className="text-sm font-medium text-[#1F3463] dark:text-indigo-400">
+                            {showNames ? commentEntry.student_name : 'Anonymous'}
+                          </p>
+                        </div>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 ml-10">
+                          "{commentEntry.comment}"
+                        </p>
+                      </div>
                       <input
                         type="checkbox"
                         checked={selectedComments.includes(index)}
                         onChange={() => handleCommentSelection(index)}
                         className="mt-1 h-4 w-4 border-gray-300 rounded focus:ring-[#1F3463]"
                       />
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-800 dark:text-gray-200 text-center">
-                          "{commentEntry.comment}"
-                        </p>
-                      </div>
                     </div>
                   </div>
                 ))}

@@ -185,7 +185,7 @@ class EvaluationController extends Controller {
         }
 
         public function topRatedInstructors() {
-            // Get the top 3 instructors based on average rating
+            // Get the top 10 instructors based on average rating
             $topInstructors = DB::table('evaluations')
                 ->join('evaluation_responses', 'evaluations.id', '=', 'evaluation_responses.evaluation_id')
                 ->join('instructors', 'evaluations.instructor_id', '=', 'instructors.id')
@@ -197,7 +197,7 @@ class EvaluationController extends Controller {
                 )
                 ->groupBy('instructors.id', 'instructors.name')
                 ->orderByDesc('percentage')
-                ->limit(3)
+                ->limit(10)
                 ->get();
 
             return response()->json($topInstructors);

@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { FiAward } from 'react-icons/fi';
+import { FiAward, FiX } from 'react-icons/fi';
 import EvaluationService from '../../services/EvaluationService';
 
 const PerformingInstructor = () => {
   const [topInstructors, setTopInstructors] = useState([]);
+  const [allInstructors, setAllInstructors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
-  const medalEmoji = ['🥇', '🥈', '🥉'];
+  const medalEmoji = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
   useEffect(() => {
     const fetchTopInstructors = async () => {
       try {
         const data = await EvaluationService.getTopInstructors();
-        setTopInstructors(data);
+        setAllInstructors(data);
+        setTopInstructors(data.slice(0, 5));
       } catch (error) {
         console.error("Error fetching top instructors:", error);
       } finally {
@@ -26,6 +29,41 @@ const PerformingInstructor = () => {
   const getPercentageColor = (value) => {
     return 'text-gray-900 dark:text-gray-100 font-semibold';
   };
+
+  const InstructorTable = ({ instructors, showAll = false }) => (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm text-left text-gray-900 dark:text-gray-200 rounded-lg overflow-hidden">
+        <thead>
+          <tr className="bg-gray-100 dark:bg-gray-700 text-center">
+            <th className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold">Name</th>
+            <th className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold">Average Rating</th>
+            <th className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold">Percentage</th>
+          </tr>
+        </thead>
+        <tbody>
+          {instructors.map((item, index) => {
+            const percentage = parseFloat(item.percentage);
+            const avgRating = parseFloat(item.avg_rating).toFixed(2);
+            return (
+              <tr
+                key={item.id}
+                className="even:bg-gray-50 dark:even:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                <td className="py-2 sm:py-3 px-3 sm:px-4 flex items-center gap-1 text-left">
+                  {medalEmoji[index] && <span className="text-lg sm:text-xl">{medalEmoji[index]}</span>}
+                  <span className="text-xs sm:text-sm">{item.name}</span>
+                </td>
+                <td className="px-3 sm:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm">{avgRating}</td>
+                <td className={`px-3 sm:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm ${getPercentageColor(percentage)}`}>
+                  {percentage.toFixed(2)}%
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 
   return (
     <div className="overflow-x-auto p-4 sm:p-6 rounded-lg">
@@ -47,48 +85,49 @@ const PerformingInstructor = () => {
         </div>
       ) : (
         <>
-          <div className="flex items-center space-x-2 mb-2 sm:mb-3">
-            <FiAward className="text-yellow-500 text-xl sm:text-2xl" />
-            <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Top Performing Instructors
-            </h1>
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <div className="flex items-center space-x-2">
+              <FiAward className="text-yellow-500 text-xl sm:text-2xl" />
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
+                Top Performing Instructors
+              </h1>
+            </div>
+            {allInstructors.length > 5 && (
+              <button
+                onClick={() => setShowModal(true)}
+                className="text-xs sm:text-sm text-[#1F3463] dark:text-[#5d7cbf] hover:text-[#2a4a8c] dark:hover:text-[#7d9fd9] font-medium"
+              >
+                View All
+              </button>
+            )}
           </div>
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-3 sm:mb-4">
             Based on evaluation results
           </p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-900 dark:text-gray-200 rounded-lg overflow-hidden">
-              <thead>
-                <tr className="bg-gray-100 dark:bg-gray-700 text-center">
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold">Name</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold">Average Rating</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold">Percentage</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topInstructors.map((item, index) => {
-                  const percentage = parseFloat(item.percentage);
-                  const avgRating = parseFloat(item.avg_rating).toFixed(2);
-                  return (
-                    <tr
-                      key={item.id}
-                      className="even:bg-gray-50 dark:even:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      <td className="py-2 sm:py-3 px-3 sm:px-4 flex items-center gap-1 text-left">
-                        {medalEmoji[index] && <span className="text-lg sm:text-xl">{medalEmoji[index]}</span>}
-                        <span className="text-xs sm:text-sm">{item.name}</span>
-                      </td>
-                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm">{avgRating}</td>
-                      <td className={`px-3 sm:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm ${getPercentageColor(percentage)}`}>
-                        {percentage.toFixed(2)}%
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <InstructorTable instructors={topInstructors} />
         </>
+      )}
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
+                All Performing Instructors
+              </h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <FiX className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-8rem)]">
+              <InstructorTable instructors={allInstructors} showAll={true} />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
