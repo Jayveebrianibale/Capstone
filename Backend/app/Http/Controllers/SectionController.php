@@ -90,7 +90,8 @@ class SectionController extends Controller
                 'name' => 'required|string|max:255',
                 'code' => 'required|string|unique:sections,code',
                 'year_level' => 'required|integer',
-                'category' => 'required|string'
+                'category' => 'required|string',
+                'program_id' => 'nullable|exists:programs,id'
             ]);
 
             if ($validator->fails()) {

@@ -148,19 +148,19 @@ function SectionModal({ isOpen, onClose, gradeLevel, category, onSave }) {
 
         console.log('Creating program with data:', programData); // Debug log
 
-        // Create the program
-        const newProgram = await ProgramService.create(programData);
-        
-        // Create the section
-        const sectionData = {
-          name: sectionName,
-          code: `INT-${gradeLevel}-${sectionName}`,
-          year_level: gradeLevel,
-          category: 'Intermediate',
-          program_id: newProgram.program.id
-        };
-        
-        return SectionService.create(sectionData);
+        try {
+          // Create the program (which will also create the section)
+          const response = await ProgramService.create(programData);
+          
+          if (response.program && response.program.sections && response.program.sections.length > 0) {
+            return response.program.sections[0];
+          } else {
+            throw new Error('Section was not created with the program');
+          }
+        } catch (error) {
+          console.error('Error creating program/section:', error);
+          throw new Error(error.response?.data?.message || 'Failed to create program and section');
+        }
       });
 
       const results = await Promise.all(promises);

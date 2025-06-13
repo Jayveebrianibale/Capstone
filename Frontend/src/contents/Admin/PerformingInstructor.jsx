@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { FiAward, FiX } from 'react-icons/fi';
 import EvaluationService from '../../services/EvaluationService';
+import { createPortal } from 'react-dom';
 
 const PerformingInstructor = () => {
   const [topInstructors, setTopInstructors] = useState([]);
   const [allInstructors, setAllInstructors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   const medalEmoji = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
@@ -65,6 +72,32 @@ const PerformingInstructor = () => {
     </div>
   );
 
+  const Modal = () => {
+    if (!mounted) return null;
+
+    return createPortal(
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
+        <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl transform transition-all">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
+              All Performing Instructors
+            </h2>
+            <button
+              onClick={() => setShowModal(false)}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+            >
+              <FiX className="w-6 h-6" />
+            </button>
+          </div>
+          <div className="p-4 overflow-y-auto max-h-[calc(90vh-8rem)]">
+            <InstructorTable instructors={allInstructors} showAll={true} />
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
   return (
     <div className="overflow-x-auto p-4 sm:p-6 rounded-lg">
       {loading ? (
@@ -108,27 +141,7 @@ const PerformingInstructor = () => {
         </>
       )}
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
-                All Performing Instructors
-              </h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <FiX className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="p-4 overflow-y-auto max-h-[calc(90vh-8rem)]">
-              <InstructorTable instructors={allInstructors} showAll={true} />
-            </div>
-          </div>
-        </div>
-      )}
+      {showModal && <Modal />}
     </div>
   );
 };
