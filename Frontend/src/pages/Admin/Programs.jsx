@@ -57,18 +57,43 @@ function Programs() {
       const processedPrograms = Array.isArray(response.programs) ? response.programs.map(program => {
         // For non-Higher Education programs, include section information
         if (program.category !== 'Higher Education' && program.sections) {
-          const sections = program.sections.map(section => section.name).join(', ');
+          // Sort sections alphabetically by name
+          const sortedSections = [...program.sections].sort((a, b) => 
+            a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+          );
+          const sections = sortedSections.map(section => section.name).join(', ');
           return {
             ...program,
             name: sections ? `${program.name} - ${sections}` : program.name,
-            sections: program.sections
+            sections: sortedSections // Use sorted sections
           };
         }
         return program;
       }) : [];
       
-      console.log("Processed programs:", processedPrograms);
-      setPrograms(processedPrograms);
+      // Sort the entire programs array by grade level first, then by name
+      const sortedPrograms = processedPrograms.sort((a, b) => {
+        // Extract grade numbers from yearLevel or name
+        const getGradeNumber = (program) => {
+          const yearLevel = program.yearLevel || program.name;
+          const match = yearLevel.match(/\d+/);
+          return match ? parseInt(match[0]) : 0;
+        };
+
+        const gradeA = getGradeNumber(a);
+        const gradeB = getGradeNumber(b);
+
+        // First sort by grade level
+        if (gradeA !== gradeB) {
+          return gradeA - gradeB;
+        }
+
+        // If same grade, sort by name
+        return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+      });
+      
+      console.log("Processed programs:", sortedPrograms);
+      setPrograms(sortedPrograms);
     } catch (error) {
       console.error("Error fetching programs:", error);
       toast.error("Failed to load programs.");
