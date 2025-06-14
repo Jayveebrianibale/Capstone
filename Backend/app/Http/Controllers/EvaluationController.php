@@ -504,51 +504,15 @@ class EvaluationController extends Controller {
             }
 
             DB::beginTransaction();
-            try {
-                if ($currentPhase === 'Phase 1' && $newPhase === 'Phase 2') {
-                    // Archive current data
-                    $this->archiveEvaluations();
-                    
-                    // Update phase
-                    $settings->evaluation_phase = $newPhase;
-                    $settings->should_clear_storage = true;
-                    $settings->storage_clear_timestamp = now();
-                    $settings->save();
-                    
-                    DB::commit();
-                    
-                    return response()->json([
-                        'message' => "Switched to $newPhase successfully",
-                        'previous_phase' => $currentPhase,
-                        'new_phase' => $newPhase,
-                        'clear_storage' => true
-                    ]);
-                } elseif ($currentPhase === 'Phase 2' && $newPhase === 'Phase 1') {
-                    try {
-                        // Restore archived data
-                        $this->restorePhaseOneData();
-                        
-                        // Update phase
-                        $settings->evaluation_phase = $newPhase;
-                        $settings->should_clear_storage = false;
-                        $settings->save();
-                        
-                        DB::commit();
-                        
-                        return response()->json([
-                            'message' => "Switched to $newPhase successfully",
-                            'previous_phase' => $currentPhase,
-                            'new_phase' => $newPhase,
-                            'clear_storage' => false
-                        ]);
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-                        throw $e;
-                    }
-                }
 
-                // For any other case, just update the phase
+            if ($currentPhase === 'Phase 1' && $newPhase === 'Phase 2') {
+                // Archive current data
+                $this->archiveEvaluations();
+                
+                // Update phase
                 $settings->evaluation_phase = $newPhase;
+                $settings->should_clear_storage = true;
+                $settings->storage_clear_timestamp = now();
                 $settings->save();
                 
                 DB::commit();
@@ -557,17 +521,67 @@ class EvaluationController extends Controller {
                     'message' => "Switched to $newPhase successfully",
                     'previous_phase' => $currentPhase,
                     'new_phase' => $newPhase,
-                    'clear_storage' => false
+                    'clear_storage' => true
                 ]);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                \Log::error('Error in phase switch transaction: ' . $e->getMessage());
-                throw $e;
+            } elseif ($currentPhase === 'Phase 2' && $newPhase === 'Phase 1') {
+                // Check if there are archived evaluations before attempting restore
+                $hasArchivedData = EvaluationArchive::where('phase', 'Phase 1')->exists();
+                
+                if ($hasArchivedData) {
+                    // Only restore if we have archived data
+                    $this->restorePhaseOneData();
+                } else {
+                    // If no archived data exists, clear the current data in the correct order
+                    // First disable foreign key checks
+                    DB::statement('SET FOREIGN_KEY_CHECKS=0');
+                    
+                    // Clear tables in the correct order
+                    EvaluationResponse::truncate();
+                    Evaluation::truncate();
+                    DB::table('instructor_program')->truncate();
+                    
+                    // Re-enable foreign key checks
+                    DB::statement('SET FOREIGN_KEY_CHECKS=1');
+                    
+                    \Log::info('No archived data found for Phase 1. Starting fresh Phase 1 cycle.');
+                }
+
+                // Update phase
+                $settings->evaluation_phase = $newPhase;
+                $settings->should_clear_storage = false;
+                $settings->save();
+                
+                DB::commit();
+                
+                return response()->json([
+                    'message' => "Switched to $newPhase successfully" . ($hasArchivedData ? " with restored data" : " (fresh cycle)"),
+                    'previous_phase' => $currentPhase,
+                    'new_phase' => $newPhase,
+                    'clear_storage' => false,
+                    'data_restored' => $hasArchivedData
+                ]);
             }
+
+            // For any other case, just update the phase
+            $settings->evaluation_phase = $newPhase;
+            $settings->save();
+            
+            DB::commit();
+            
+            return response()->json([
+                'message' => "Switched to $newPhase successfully",
+                'previous_phase' => $currentPhase,
+                'new_phase' => $newPhase,
+                'clear_storage' => false
+            ]);
+
         } catch (\Exception $e) {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
             \Log::error('Error in switchPhase: ' . $e->getMessage());
             return response()->json([
-                'message' => 'Failed to switch phase',
+                'message' => 'Failed to switch phase: ' . $e->getMessage(),
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -626,65 +640,58 @@ class EvaluationController extends Controller {
     }
     
     protected function restorePhaseOneData() {
-        try {
-            DB::beginTransaction();
+        // First, clear existing evaluations to avoid duplicates
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        Evaluation::truncate();
+        EvaluationResponse::truncate();
+        DB::table('instructor_program')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-            // First, clear existing evaluations to avoid duplicates
-            Evaluation::truncate();
-            EvaluationResponse::truncate();
-            DB::table('instructor_program')->truncate();
+        // Restore evaluations from archive
+        $archivedEvaluations = EvaluationArchive::with('responses')
+            ->where('phase', 'Phase 1')
+            ->get();
 
-            // Restore evaluations from archive
-            $archivedEvaluations = EvaluationArchive::with('responses')
-                ->where('phase', 'Phase 1')
-                ->get();
+        foreach ($archivedEvaluations as $archivedEvaluation) {
+            // Create new evaluation
+            $evaluation = Evaluation::create([
+                'student_id' => $archivedEvaluation->student_id,
+                'instructor_id' => $archivedEvaluation->instructor_id,
+                'school_year' => $archivedEvaluation->school_year,
+                'semester' => $archivedEvaluation->semester,
+                'status' => $archivedEvaluation->status,
+                'evaluated_at' => $archivedEvaluation->evaluated_at,
+                'created_at' => $archivedEvaluation->created_at,
+                'updated_at' => $archivedEvaluation->updated_at
+            ]);
 
-            foreach ($archivedEvaluations as $archivedEvaluation) {
-                // Create new evaluation
-                $evaluation = Evaluation::create([
-                    'student_id' => $archivedEvaluation->student_id,
-                    'instructor_id' => $archivedEvaluation->instructor_id,
-                    'school_year' => $archivedEvaluation->school_year,
-                    'semester' => $archivedEvaluation->semester,
-                    'status' => $archivedEvaluation->status,
-                    'evaluated_at' => $archivedEvaluation->evaluated_at,
-                    'created_at' => $archivedEvaluation->created_at,
-                    'updated_at' => $archivedEvaluation->updated_at
-                ]);
-
-                // Restore responses
-                foreach ($archivedEvaluation->responses as $response) {
-                    EvaluationResponse::create([
-                        'evaluation_id' => $evaluation->id,
-                        'question_id' => $response->question_id,
-                        'rating' => $response->rating,
-                        'comment' => $response->comment,
-                        'created_at' => $response->created_at,
-                        'updated_at' => $response->updated_at
-                    ]);
-                }
-            }
-
-            // Restore program assignments
-            $archivedAssignments = \App\Models\InstructorProgramArchive::where('phase', 'Phase 1')->get();
-            foreach ($archivedAssignments as $archivedAssignment) {
-                DB::table('instructor_program')->insert([
-                    'instructor_id' => $archivedAssignment->instructor_id,
-                    'program_id' => $archivedAssignment->program_id,
-                    'yearLevel' => $archivedAssignment->yearLevel,
-                    'created_at' => now(),
-                    'updated_at' => now()
+            // Restore responses
+            foreach ($archivedEvaluation->responses as $response) {
+                EvaluationResponse::create([
+                    'evaluation_id' => $evaluation->id,
+                    'question_id' => $response->question_id,
+                    'rating' => $response->rating,
+                    'comment' => $response->comment,
+                    'created_at' => $response->created_at,
+                    'updated_at' => $response->updated_at
                 ]);
             }
-
-            DB::commit();
-            \Log::info('Successfully restored Phase 1 data');
-            return true;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Error restoring Phase 1 data: ' . $e->getMessage());
-            throw $e;
         }
+
+        // Restore program assignments
+        $archivedAssignments = \App\Models\InstructorProgramArchive::where('phase', 'Phase 1')->get();
+        foreach ($archivedAssignments as $archivedAssignment) {
+            DB::table('instructor_program')->insert([
+                'instructor_id' => $archivedAssignment->instructor_id,
+                'program_id' => $archivedAssignment->program_id,
+                'yearLevel' => $archivedAssignment->yearLevel,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
+
+        \Log::info('Successfully restored Phase 1 data');
+        return true;
     }
 
     public function checkStorageStatus(Request $request) {

@@ -118,7 +118,7 @@
                             </div>
 
                             <p style="margin: 0 0 20px 0; font-size: 16px; color: #000000;">
-                                Your evaluations have been successfully recorded in our system. The feedback you provided will be carefully reviewed and used to help our instructors improve their teaching methods.
+                                Your evaluations have been successfully recorded in our system. The feedback you provided will be used to help our instructors improve their teaching methods.
                             </p>
                             
                             <!-- CTA -->
