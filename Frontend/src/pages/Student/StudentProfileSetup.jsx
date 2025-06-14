@@ -229,16 +229,34 @@ function StudentProfileSetup() {
     return (
       <div className="relative w-full">
         <select
-          className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463] hover:border-[#1F3463]/50 transition-colors appearance-none pr-10 truncate"
+          className="w-full border rounded-xl p-4 text-gray-700 focus:ring-2 focus:ring-[#1F3463] hover:border-[#1F3463]/50 transition-colors appearance-none pr-10 truncate [&>option]:hover:bg-[#1F3463] [&>option]:hover:text-white [&>option]:focus:bg-[#1F3463] [&>option]:focus:text-white [&>option]:active:bg-[#1F3463] [&>option]:active:text-white"
           value={value}
           onChange={onChange}
+          style={{
+            '& option:hover': {
+              backgroundColor: '#1F3463',
+              color: 'white'
+            },
+            '& option:focus': {
+              backgroundColor: '#1F3463',
+              color: 'white'
+            },
+            '& option:active': {
+              backgroundColor: '#1F3463',
+              color: 'white'
+            }
+          }}
         >
-          <option value="" disabled>{disabledOption || "Select an option"}</option>
+          <option value="" disabled className="text-gray-500">{disabledOption || "Select an option"}</option>
           {options.map((option) => (
             <option 
               key={option.value || option.id} 
               value={option.value || option.id}
               className="truncate"
+              style={{
+                backgroundColor: 'white',
+                color: 'inherit'
+              }}
             >
               {option.label || option.name}
             </option>
@@ -292,59 +310,135 @@ function StudentProfileSetup() {
             )}
             
             {[1, 2, 3].map((s) => {
-              if (s === 3 && educationLevel !== "Higher Education") return null;
-              const active = step === s;
-              const completed = isStepCompleted(s);
-              let baseLabel = "";
-              let selectedValue = "";
-
-              if (s === 1) {
-                baseLabel = "Education Level";
-                if (completed) selectedValue = educationLevel;
-              } else if (s === 2) {
-                baseLabel = educationLevel === "Higher Education" ? "Program" : "Grade Level";
-                if (completed) selectedValue = programs.find(p => String(p.id) === selectedProgramId)?.name || "";
-              } else if (s === 3) {
-                baseLabel = "Year Level";
-                if (completed) selectedValue = selectedYearLevel;
-              }
-
-              return (
-                <li
-                  key={s}
-                  className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ease-in-out ${
-                    active ? "bg-[#1F3463]/10" : "" 
-                  } ${completed && !active ? "opacity-70" : ""}`}
-                >
-                  <div>
-                    {completed ? (
-                      <CheckCircle className={`w-5 h-5 ${active ? "text-[#1F3463]" : "text-green-500"}`} />
-                    ) : (
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 ${
-                          active ? "bg-[#1F3463] border-[#1F3463]" : "border-gray-300 bg-gray-100"
+              if (s === 3 && educationLevel === "Higher Education") {
+                const active = step === s;
+                const completed = isStepCompleted(s);
+                return (
+                  <li
+                    key={s}
+                    className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ease-in-out ${
+                      active ? "bg-[#1F3463]/10" : "" 
+                    } ${completed && !active ? "opacity-70" : ""}`}
+                  >
+                    <div>
+                      {completed ? (
+                        <CheckCircle className={`w-5 h-5 ${active ? "text-[#1F3463]" : "text-green-500"}`} />
+                      ) : (
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 ${
+                            active ? "bg-[#1F3463] border-[#1F3463]" : "border-gray-300 bg-gray-100"
+                          }`}
+                        ></div>
+                      )}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span
+                        className={`font-medium truncate ${
+                          active ? "text-[#1F3463]" : completed ? "text-gray-700" : "text-gray-500"
                         }`}
-                      ></div>
-                    )}
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span
-                      className={`font-medium truncate ${
-                        active ? "text-[#1F3463]" : completed ? "text-gray-700" : "text-gray-500"
-                      }`}
-                    >
-                      {baseLabel}
-                    </span>
-                    {completed && selectedValue && (
-                      <span className={`text-xs mt-0.5 truncate ${
-                        active ? "text-[#1F3463]/80" : "text-gray-500"
-                      }`}>
-                        {selectedValue}
+                      >
+                        Year Level
                       </span>
-                    )}
-                  </div>
-                </li>
-              );
+                      {completed && selectedYearLevel && (
+                        <span className={`text-xs mt-0.5 truncate ${
+                          active ? "text-[#1F3463]/80" : "text-gray-500"
+                        }`}>
+                          {selectedYearLevel}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                );
+              } else if (s === 3 && educationLevel !== "Higher Education") {
+                const active = step === s;
+                const completed = isStepCompleted(s);
+                return (
+                  <li
+                    key={s}
+                    className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ease-in-out ${
+                      active ? "bg-[#1F3463]/10" : "" 
+                    } ${completed && !active ? "opacity-70" : ""}`}
+                  >
+                    <div>
+                      {completed ? (
+                        <CheckCircle className={`w-5 h-5 ${active ? "text-[#1F3463]" : "text-green-500"}`} />
+                      ) : (
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 ${
+                            active ? "bg-[#1F3463] border-[#1F3463]" : "border-gray-300 bg-gray-100"
+                          }`}
+                        ></div>
+                      )}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span
+                        className={`font-medium truncate ${
+                          active ? "text-[#1F3463]" : completed ? "text-gray-700" : "text-gray-500"
+                        }`}
+                      >
+                        Section
+                      </span>
+                      {completed && selectedSection && (
+                        <span className={`text-xs mt-0.5 truncate ${
+                          active ? "text-[#1F3463]/80" : "text-gray-500"
+                        }`}>
+                          {programs.find(p => String(p.id) === selectedSection)?.name.split(' - ')[1] || selectedSection}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                );
+              } else {
+                const active = step === s;
+                const completed = isStepCompleted(s);
+                let baseLabel = "";
+                let selectedValue = "";
+
+                if (s === 1) {
+                  baseLabel = "Education Level";
+                  if (completed) selectedValue = educationLevel;
+                } else if (s === 2) {
+                  baseLabel = educationLevel === "Higher Education" ? "Program" : "Grade Level";
+                  if (completed) selectedValue = programs.find(p => String(p.id) === selectedProgramId)?.name || "";
+                }
+
+                return (
+                  <li
+                    key={s}
+                    className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ease-in-out ${
+                      active ? "bg-[#1F3463]/10" : "" 
+                    } ${completed && !active ? "opacity-70" : ""}`}
+                  >
+                    <div>
+                      {completed ? (
+                        <CheckCircle className={`w-5 h-5 ${active ? "text-[#1F3463]" : "text-green-500"}`} />
+                      ) : (
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 ${
+                            active ? "bg-[#1F3463] border-[#1F3463]" : "border-gray-300 bg-gray-100"
+                          }`}
+                        ></div>
+                      )}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span
+                        className={`font-medium truncate ${
+                          active ? "text-[#1F3463]" : completed ? "text-gray-700" : "text-gray-500"
+                        }`}
+                      >
+                        {baseLabel}
+                      </span>
+                      {completed && selectedValue && (
+                        <span className={`text-xs mt-0.5 truncate ${
+                          active ? "text-[#1F3463]/80" : "text-gray-500"
+                        }`}>
+                          {selectedValue}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                );
+              }
             })}
           </ul>
         </div>

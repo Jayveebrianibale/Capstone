@@ -14,19 +14,19 @@ const PhaseSwitcher = () => {
 
   const phases = ["Phase 1", "Phase 2"];
 
-  useEffect(() => {
-    const fetchPhase = async () => {
-      try {
-        const phase = await EvaluationPhaseService.getCurrentPhase();
-        setCurrentPhase(phase);
-      } catch (error) {
-        toast.error("Failed to fetch current phase.");
-        console.error("Failed to fetch current phase", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchPhase = async () => {
+    try {
+      const phase = await EvaluationPhaseService.getCurrentPhase();
+      setCurrentPhase(phase);
+    } catch (error) {
+      toast.error("Failed to fetch current phase.");
+      console.error("Failed to fetch current phase", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchPhase();
   }, []);
 
@@ -35,13 +35,21 @@ const PhaseSwitcher = () => {
 
     setSwitching(true);
     try {
-      await EvaluationPhaseService.switchPhase(phase);
+      const result = await EvaluationPhaseService.switchPhase(phase);
       setCurrentPhase(phase);
       setOpen(false);
-      toast.success(`Switched to ${phase}`);
+      toast.success(result.message || `Switched to ${phase}`);
+      
+      // Refresh the phase after a short delay to ensure consistency
+      setTimeout(() => {
+        fetchPhase();
+      }, 1000);
     } catch (error) {
       console.error("Failed to switch phase:", error);
       toast.error("Failed to switch phase. Please try again.");
+      
+      // Refresh the phase to ensure UI is in sync with backend
+      fetchPhase();
     } finally {
       setSwitching(false);
     }
@@ -75,6 +83,7 @@ const PhaseSwitcher = () => {
         ref={buttonRef}
         onClick={toggleDropdown}
         className="bg-[#1F3463] hover:bg-[#19294f] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
+        disabled={switching}
       >
         <Shuffle className="w-4 h-4" />
         <span className="text-sm font-semibold">{currentPhase}</span>
