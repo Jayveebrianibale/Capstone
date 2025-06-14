@@ -294,15 +294,17 @@ function Act() {
 
   if (fetchError) {
     return (
-      <div className="flex flex-col items-center justify-center h-[70vh]">
-        <Users className="w-16 h-16 text-gray-400 mb-4" />
-        <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-          No Instructors Found
-        </h2>
-        <p className="text-gray-500 dark:text-gray-400 text-center">
-          There are currently no instructors assigned to any year level for ACT.
-        </p>
-      </div>
+      <main className="p-4 bg-white dark:bg-gray-900 min-h-screen">
+        <div className="flex flex-col items-center justify-center h-[70vh]">
+          <Users className="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+            No Instructors Found
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 text-center">
+            There are currently no instructors assigned to any year level for ACT.
+          </p>
+        </div>
+      </main>
     );
   }
 
@@ -313,7 +315,7 @@ function Act() {
         <FullScreenLoader />
       ) : fetchError ? (
         <div className="flex flex-col items-center justify-center h-[70vh]">
-          <Users className="w-16 h-16 text-gray-400 mb-4" />
+          <Users className="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
           <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
             No Instructors Found
           </h2>
@@ -323,7 +325,7 @@ function Act() {
         </div>
       ) : noInstructors ? (
         <div className="flex flex-col items-center justify-center h-[70vh]">
-          <Users className="w-16 h-16 text-gray-400 mb-4" />
+          <Users className="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
           <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
             No Instructors Found
           </h2>
@@ -342,10 +344,10 @@ function Act() {
             onBulkSend={() => setShowConfirmModal(true)}
             onSchoolYearChange={(value) => handleFilterChange('schoolYear', value)}
             onSemesterChange={(value) => handleFilterChange('semester', value)}
-            selectedSchoolYear={filters.schoolYear} 
-            selectedSemester={filters.semester} 
-            schoolYearOptions={schoolYearOptions} 
-            semesterOptions={semesterOptions} 
+            selectedSchoolYear={filters.schoolYear}
+            selectedSemester={filters.semester}
+            schoolYearOptions={schoolYearOptions}
+            semesterOptions={semesterOptions}
           />
 
           <Tabs tabs={tabLabels} activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -353,7 +355,7 @@ function Act() {
             {hasInstructorsForYear(activeTab) ? (
               <InstructorTable 
                 instructors={mergedInstructorsByYear[activeTab]} 
-                questions={questions} // Pass questions prop
+                questions={questions}
               />
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg">

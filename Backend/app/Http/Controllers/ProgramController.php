@@ -460,6 +460,7 @@ public function bulkUpload(Request $request) {
     public function getFilteredInstructorResultsByProgram($code, Request $request) {
         $program = Program::where('code', $code)->firstOrFail();
 
+        // Get all instructors assigned to this program
         $instructors = $program->instructors()
             ->with(['evaluations' => function($query) use ($request) {
                 // Apply school year filter if provided
@@ -476,8 +477,9 @@ public function bulkUpload(Request $request) {
             }])
             ->get();
 
-        // Reuse the exact same mapping logic from your original method
+        // Get all evaluations for these instructors, regardless of program
         $results = $instructors->map(function ($instructor) {
+            // Get all evaluations for this instructor
             $responses = $instructor->evaluations->flatMap->responses;
 
             $grouped = $responses->groupBy('question_id');
@@ -509,7 +511,7 @@ public function bulkUpload(Request $request) {
             $comments = $responses->pluck('comment')->filter()->unique()->values();
 
             return [
-                'instructorId' => $instructor->id,
+                'id' => $instructor->id,
                 'email' => $instructor->email,
                 'name' => $instructor->name,
                 'pivot' => [

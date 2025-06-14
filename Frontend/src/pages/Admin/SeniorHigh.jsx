@@ -154,16 +154,22 @@ function SeniorHigh() {
             return;
           }
 
-          // Process each assignment for this instructor
           item.pivot.assignments.forEach((assignment) => {
             const yearLevel = parseInt(assignment.yearLevel, 10);
             console.log(`Processing assignment for ${item.name}:`, {
               yearLevel,
+              rawYearLevel: assignment.yearLevel,
               assignment: JSON.stringify(assignment, null, 2)
             });
             
             if (isNaN(yearLevel) || yearLevel < 11 || yearLevel > 12) {
-              console.log(`Invalid year level for instructor ${item.name}:`, yearLevel);
+              console.log(`Invalid year level for instructor ${item.name}:`, {
+                yearLevel,
+                rawYearLevel: assignment.yearLevel,
+                isNaN: isNaN(yearLevel),
+                lessThan11: yearLevel < 11,
+                greaterThan12: yearLevel > 12
+              });
               return;
             }
 

@@ -294,11 +294,12 @@ function Bab() {
   if (fetchError) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh]">
+        <Users className="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
         <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-          Something went wrong
+          No Instructors Found
         </h2>
-        <p className="text-red-500 text-center">
-          We encountered an error while loading the data. Please try again later.
+        <p className="text-gray-500 dark:text-gray-400 text-center">
+          There are currently no instructors assigned to any year level for BAB.
         </p>
       </div>
     );
@@ -311,7 +312,7 @@ function Bab() {
         <FullScreenLoader />
       ) : noInstructors || !hasInstructorsAssigned() ? (
         <div className="flex flex-col items-center justify-center h-[70vh]">
-          <Users className="w-16 h-16 text-gray-400 mb-4" />
+          <Users className="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
           <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
             No Instructors Found
           </h2>

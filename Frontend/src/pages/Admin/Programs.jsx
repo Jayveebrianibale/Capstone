@@ -12,6 +12,7 @@ import SeniorHighModal from "../../contents/Admin/Modals/SeniorHighModal";
 import JuniorHighModal from "../../contents/Admin/Modals/JuniorHighModal";
 import IntermediateModal from "../../contents/Admin/Modals/IntermediateModal";
 import DragDropUpload from "../../components/DragDropUpload";
+import SectionService from "../../services/SectionService";
 
 function Programs() {
   const [programs, setPrograms] = useState([]);
@@ -211,32 +212,39 @@ function Programs() {
     if (!deleteProgramId) return;
 
     try {
+      // Find the program to be deleted
+      const programToDelete = programs.find(p => p.id === deleteProgramId);
+      
+      if (!programToDelete) {
+        throw new Error('Program not found');
+      }
+
+      // If it's a Higher Education program, just delete the program
       if (activeTab === "Higher Education") {
         await ProgramService.delete(deleteProgramId);
       } else {
-        let programIdToDelete = deleteProgramId;
-        const gradeLevel = gradeLevels.find(gl => gl.id === deleteProgramId);
-        if (gradeLevel && gradeLevel.program_id) {
-          programIdToDelete = gradeLevel.program_id;
-        } else if (!gradeLevel) {
-          const match = programs.find(p =>
-            p.id === deleteProgramId
-          );
-          if (match) programIdToDelete = match.id;
+        // For other categories (Intermediate, Junior High, Senior High)
+        // First delete all associated sections
+        if (programToDelete.sections && programToDelete.sections.length > 0) {
+          for (const section of programToDelete.sections) {
+            await SectionService.delete(section.id);
+          }
         }
-        // Delete the program (always)
-        await ProgramService.delete(programIdToDelete);
-        // Optionally, also delete the grade level if it exists
-        if (gradeLevel) {
-          await GradeLevelService.delete(deleteProgramId);
-        }
+        
+        // Then delete the program
+        await ProgramService.delete(deleteProgramId);
       }
-      toast.success("Program deleted successfully!");
-      await fetchPrograms();
-      await fetchGradeLevels();
+
+      toast.success("Program and associated sections deleted successfully!");
+      
+      // Refresh both programs and grade levels
+      await Promise.all([
+        fetchPrograms(),
+        fetchGradeLevels()
+      ]);
     } catch (error) {
-      console.error("Error deleting item:", error);
-      toast.error("Failed to delete item.");
+      console.error("Error deleting program:", error);
+      toast.error(error.message || "Failed to delete program and sections.");
     } finally {
       setIsConfirmModalOpen(false);
       setDeleteProgramId(null);
