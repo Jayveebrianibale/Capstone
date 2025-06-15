@@ -22,7 +22,7 @@ const PerformingInstructor = () => {
       try {
         const data = await EvaluationService.getTopInstructors();
         setAllInstructors(data);
-        setTopInstructors(data.slice(0, 5));
+        setTopInstructors(data.slice(0, 3));
       } catch (error) {
         console.error("Error fetching top instructors:", error);
       } finally {
