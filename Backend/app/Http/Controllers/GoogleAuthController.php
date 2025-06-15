@@ -109,7 +109,7 @@ class GoogleAuthController extends Controller
 
                 // Issue token and redirect with success status
                 $token = $user->createToken('authToken')->plainTextToken;
-                return redirect("http://localhost:5173/login?status=success&token={$token}&role={$user->role}");
+                return redirect("https://tpes.vercel.app/login?status=success&token={$token}&role={$user->role}");
 
             } catch (Exception $e) {
                 // Enhanced error handling with frontend-friendly messages
