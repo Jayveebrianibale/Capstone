@@ -17,7 +17,7 @@ export default function HigherEducationModal({
   const [formData, setFormData] = useState({
     name: "",
     code: "",
-    yearLevel: "",
+    yearLevel: "1st - 4th Year", // Set default value
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,6 +26,22 @@ export default function HigherEducationModal({
     name: false,
     code: false
   });
+ 
+  // Add function to determine if program is ACT
+  const isACTProgram = () => {
+    const code = formData.code.toUpperCase();
+    const name = formData.name.toLowerCase();
+    return code === 'ACT' || name.includes('associate in computer technology');
+  };
+
+  // Update year level whenever code or name changes
+  useEffect(() => {
+    const defaultYearLevel = isACTProgram() ? "1st - 2nd Year" : "1st - 4th Year";
+    setFormData(prev => ({
+      ...prev,
+      yearLevel: defaultYearLevel
+    }));
+  }, [formData.code, formData.name]);
 
   useEffect(() => {
     if (isOpen) {
@@ -35,13 +51,18 @@ export default function HigherEducationModal({
       }, 500);
 
       if (isEditing && program) {
+        const defaultYearLevel = isACTProgram() ? "1st - 2nd Year" : "1st - 4th Year";
         setFormData({
           name: program.name || "",
           code: program.code || "",
-          yearLevel: program.yearLevel || "",
+          yearLevel: defaultYearLevel,
         });
       } else {
-        setFormData({ name: "", code: "", yearLevel: "" });
+        setFormData({ 
+          name: "", 
+          code: "", 
+          yearLevel: "1st - 4th Year" // Default to 4-year program initially
+        });
       }
 
       return () => clearTimeout(timer);
@@ -211,31 +232,19 @@ export default function HigherEducationModal({
                 Year Level
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <select
+              <input
+                type="text"
                 name="yearLevel"
                 value={formData.yearLevel}
-                onChange={handleChange}
-                disabled={isLoading || isSubmitting}
-                className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl
-                  focus:ring-2 focus:ring-[#1F3463] focus:border-transparent
+                readOnly
+                disabled
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-xl
                   text-gray-900 dark:text-gray-100
-                  transition-all duration-200
-                  hover:border-[#1F3463] dark:hover:border-[#1F3463]
-                  cursor-pointer
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  [&>option]:bg-white [&>option]:dark:bg-gray-700
-                  [&>option]:text-gray-900 [&>option]:dark:text-gray-100
-                  [&>option:hover]:bg-[#1F3463] [&>option:hover]:text-white
-                  [&>option:checked]:bg-[#1F3463] [&>option:checked]:text-white"
-                required
-              >
-                <option value="">Select Level</option>
-                <option value="1st Year">1st Year</option>
-                <option value="2nd Year">2nd Year</option>
-                <option value="3rd Year">3rd Year</option>
-                <option value="4th Year">4th Year</option>
-                <option value="1st-4th Year">1st - 4th Year</option> 
-              </select>
+                  cursor-not-allowed"
+              />
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Year level is automatically set based on the program type
+              </p>
             </div>
           </div>
           {/* Action Buttons */}

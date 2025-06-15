@@ -73,29 +73,26 @@ function Act() {
     );
   };
 
-  const handleBulkSend = async () => {
+  const handleBulkSend = async (selectedInstructorIds) => {
     setBulkSending(true);
     try {
-      // Get all ACT instructors from both year levels
-      const allActInstructors = mergedInstructorsByYear.flat();
-      
-      if (allActInstructors.length === 0) {
-        toast.warning("No instructors found for ACT program");
+      if (selectedInstructorIds.length === 0) {
+        toast.warning("No instructors selected");
         setBulkSending(false);
         setShowConfirmModal(false);
         return;
       }
 
       const response = await InstructorService.sendBulkResults(programCode, {
-        instructorIds: allActInstructors.map(instructor => instructor.id)
+        instructorIds: selectedInstructorIds
       });
-
+      
       setBulkSendStatus(response);
       toast.success(
         `Successfully sent results to ${response.sent_count} ACT instructors`,
         { autoClose: 5000 }
       );
-
+      
       if (response.failed_count > 0) {
         toast.warning(
           `Failed to send to ${response.failed_count} ACT instructors`,
@@ -105,7 +102,7 @@ function Act() {
       }
     } catch (err) {
       console.error("Bulk send error:", err);
-
+      
       if (err.sent_count !== undefined) {
         setBulkSendStatus(err);
         toast.success(
@@ -378,7 +375,7 @@ function Act() {
       <BulkSendModal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
-        onConfirm={handleBulkSend}
+        onConfirm={(selectedInstructorIds) => handleBulkSend(selectedInstructorIds)}
         programCode={programCode}
         instructors={mergedInstructorsByYear.flat()}
         isSending={bulkSending}

@@ -122,7 +122,6 @@ const SDashboard = () => {
                 </div>
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">Completed</h2>
               </div>
-              <FiChevronRight className="text-gray-400 mt-1" />
             </div>
             <div className="mb-4">
               <p className="text-base text-gray-600 dark:text-gray-300 mb-2">
@@ -153,7 +152,6 @@ const SDashboard = () => {
                 </div>
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">Next Evaluations</h2>
               </div>
-              <FiChevronRight className="text-gray-400 mt-1" />
             </div>
             <div className="flex items-center justify-center p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
               <div className="text-center">
@@ -177,7 +175,6 @@ const SDashboard = () => {
                 </div>
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">Instructors</h2>
               </div>
-              <FiChevronRight className="text-gray-400 mt-1" />
             </div>
             <div className="flex items-center justify-center p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
               {loading ? (
@@ -192,7 +189,7 @@ const SDashboard = () => {
                 <div className="text-center">
                   <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">{instructors.length}</p>
                   <p className="text-base text-gray-600 dark:text-gray-300">
-                    {instructors.length === 1 ? 'Instructor to evaluate' : 'Instructors to evaluate'}
+                    {instructors.length === 1 ? 'Instructor to evaluate this Semester' : 'Instructors to evaluate this Semester'}
                   </p>
                 </div>
               )}
@@ -211,7 +208,6 @@ const SDashboard = () => {
                 </div>
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">Announcements</h2>
               </div>
-              <FiChevronRight className="text-gray-400 mt-1" />
             </div>
             <div className="flex items-center justify-center p-3 bg-red-50 dark:bg-red-900/30 rounded-lg">
               <div className="text-center">

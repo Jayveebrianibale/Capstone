@@ -6,6 +6,7 @@ import ProgramService from "../../../services/ProgramService";
 import EvaluationService from "../../../services/EvaluationService";
 import EvaluationFilterService from "../../../services/EvaluationFilterService"; // Added EvaluationFilterService
 import InstructorService from "../../../services/InstructorService";
+import QuestionsService from "../../../services/QuestionService"; // Add QuestionsService import
 import BulkSendModal from "../../../components/BulkSendModal";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
@@ -31,6 +32,7 @@ function Bsa() {
   const [bulkSending, setBulkSending] = useState(false);
   const [bulkSendStatus, setBulkSendStatus] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [questions, setQuestions] = useState([]); // Add questions state
   const [filters, setFilters] = useState({ // Added filters state
     schoolYear: '',
     semester: '',
@@ -71,28 +73,26 @@ function Bsa() {
     );
   };
 
-  const handleBulkSend = async () => {
+  const handleBulkSend = async (selectedInstructorIds) => {
     setBulkSending(true);
     try {
-      const allInstructors = mergedInstructorsByYear.flat();
-      
-      if (allInstructors.length === 0) {
-        toast.warning("No instructors found for this program");
+      if (selectedInstructorIds.length === 0) {
+        toast.warning("No instructors selected");
         setBulkSending(false);
         setShowConfirmModal(false);
         return;
       }
 
       const response = await InstructorService.sendBulkResults(programCode, {
-        instructorIds: allInstructors.map(instructor => instructor.id)
+        instructorIds: selectedInstructorIds
       });
-
+      
       setBulkSendStatus(response);
       toast.success(
         `Successfully sent results to ${response.sent_count} instructors`,
         { autoClose: 5000 }
       );
-
+      
       if (response.failed_count > 0) {
         toast.warning(
           `Failed to send to ${response.failed_count} instructors`,
@@ -102,7 +102,7 @@ function Bsa() {
       }
     } catch (err) {
       console.error("Bulk send error:", err);
-
+      
       if (err.sent_count !== undefined) {
         setBulkSendStatus(err);
         toast.success(
@@ -263,6 +263,19 @@ function Bsa() {
     return () => clearTimeout(timer);
   }, [filters.searchQuery]);
 
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const fetchedQuestions = await QuestionsService.getAll();
+        setQuestions(fetchedQuestions);
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+        toast.error("Failed to load questions");
+      }
+    };
+
+    fetchQuestions();
+  }, []);
 
   const hasInstructorsForYear = (year) => {
     return mergedInstructorsByYear[year]?.length > 0;
@@ -348,7 +361,7 @@ function Bsa() {
       <BulkSendModal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
-        onConfirm={handleBulkSend}
+        onConfirm={(selectedInstructorIds) => handleBulkSend(selectedInstructorIds)}
         programCode={programCode}
         instructors={mergedInstructorsByYear.flat()}
         isSending={bulkSending}

@@ -92,7 +92,7 @@
                     <!-- Header -->
                     <tr>
                         <td align="center" style="background-color: #1F3463; padding: 25px 20px;">
-                            <h1 style="color: #ffffff; margin: 0; font-size: 22px;">Evaluation Completion Confirmation</h1>
+                            <h1 style="color: #ffffff; margin: 0; font-size: 22px;">Evaluation Complete!</h1>
                         </td>
                     </tr>
                     

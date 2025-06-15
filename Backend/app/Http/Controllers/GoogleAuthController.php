@@ -54,13 +54,20 @@ class GoogleAuthController extends Controller
 
             // All others unauthorized
             else {
-                return response()->json([
-                    'error' => 'Unauthorized email domain.'
-                ], 403);
+                return redirect("http://localhost:5173/login?status=error&error_type=unauthorized&message=" . urlencode('Unauthorized email domain.'));
             }
 
             // Check if user exists
             $user = User::where('email', $email)->first();
+
+            // Check if user is already authorized with active tokens
+            if ($user && $user->tokens()->count() > 0) {
+                // Revoke existing tokens
+                $user->tokens()->delete();
+                
+                // Return a structured response for the frontend
+                return redirect("http://localhost:5173/login?status=already_authorized&message=" . urlencode('Previous session terminated. Please log in again.'));
+            }
 
             if (!$user) {
                 // Create new user
@@ -100,15 +107,28 @@ class GoogleAuthController extends Controller
                 $user->save();
             }
 
-                // Issue token and redirect
+                // Issue token and redirect with success status
                 $token = $user->createToken('authToken')->plainTextToken;
-                return redirect("https://tpes.vercel.app/login?token={$token}");
+                return redirect("http://localhost:5173/login?status=success&token={$token}&role={$user->role}");
 
             } catch (Exception $e) {
-                return response()->json([
-                    'error'  => 'Authentication failed',
-                    'detail' => $e->getMessage(),
-                ], 500);    
+                // Enhanced error handling with frontend-friendly messages
+                $errorMessage = 'Authentication failed';
+                $errorType = 'general_error';
+
+                if ($e instanceof \Laravel\Socialite\Two\InvalidStateException) {
+                    $errorMessage = 'Invalid state parameter. Please try again.';
+                    $errorType = 'invalid_state';
+                } elseif ($e instanceof \GuzzleHttp\Exception\ClientException) {
+                    $errorMessage = 'Google authentication service error. Please try again later.';
+                    $errorType = 'service_error';
+                } elseif (str_contains($e->getMessage(), 'student.laverdad.edu.ph')) {
+                    $errorMessage = 'Only @student.laverdad.edu.ph student emails are allowed.';
+                    $errorType = 'unauthorized_email';
+                }
+
+                // Redirect to frontend with error information
+                return redirect("http://localhost:5173/login?status=error&error_type={$errorType}&message=" . urlencode($errorMessage));
             }
         }
 

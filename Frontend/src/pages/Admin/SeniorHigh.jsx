@@ -73,20 +73,18 @@ function SeniorHigh() {
     );
   };
 
-  const handleBulkSend = async () => {
+  const handleBulkSend = async (selectedInstructorIds) => {
     setBulkSending(true);
     try {
-      const allInstructors = mergedInstructorsByGrade.flat();
-      
-      if (allInstructors.length === 0) {
-        toast.warning("No instructors found for this program");
+      if (selectedInstructorIds.length === 0) {
+        toast.warning("No instructors selected");
         setBulkSending(false);
         setShowConfirmModal(false);
         return;
       }
 
       const response = await InstructorService.sendBulkResults(programCode, {
-        instructorIds: allInstructors.map(instructor => instructor.id)
+        instructorIds: selectedInstructorIds
       });
       
       setBulkSendStatus(response);
@@ -428,7 +426,7 @@ function SeniorHigh() {
       <BulkSendModal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
-        onConfirm={handleBulkSend}
+        onConfirm={(selectedInstructorIds) => handleBulkSend(selectedInstructorIds)}
         programCode={programCode}
         instructors={mergedInstructorsByGrade.flat()}
         isSending={bulkSending}

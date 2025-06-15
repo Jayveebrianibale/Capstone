@@ -9,7 +9,7 @@ const BulkSendModal = ({
   onConfirm,
   programCode,
   instructors,
-  isSending,
+  isSending: externalIsSending,
   showLoadingOverlay
 }) => {
   const [progress, setProgress] = useState(0);
@@ -18,6 +18,21 @@ const BulkSendModal = ({
   const [sentInstructors, setSentInstructors] = useState(new Set());
   const [isConfirming, setIsConfirming] = useState(false);
   const [selectedInstructors, setSelectedInstructors] = useState(new Set());
+  const [internalIsSending, setInternalIsSending] = useState(false);
+
+  // Use either external or internal sending state
+  const isSending = externalIsSending || internalIsSending;
+
+  // Reset progress tracking when selections change
+  useEffect(() => {
+    if (!isSending) {
+      setProgress(0);
+      setCurrentInstructor(null);
+      setSentCount(0);
+      setSentInstructors(new Set());
+      setIsConfirming(false);
+    }
+  }, [selectedInstructors, isSending]);
 
   // Deduplicate instructors by ID
   const uniqueInstructors = React.useMemo(() => {
@@ -28,7 +43,7 @@ const BulkSendModal = ({
 
   // Initialize selected instructors with all instructors by default
   useEffect(() => {
-    if (uniqueInstructors.length > 0) {
+    if (uniqueInstructors.length > 0 && selectedInstructors.size === 0) {
       setSelectedInstructors(new Set(uniqueInstructors.map(instructor => instructor.id)));
     }
   }, [uniqueInstructors]);
@@ -36,32 +51,49 @@ const BulkSendModal = ({
   useEffect(() => {
     if (isSending) {
       let currentIndex = 0;
-      const totalInstructors = uniqueInstructors.length;
+      // Only process selected instructors
+      const selectedInstructorArray = uniqueInstructors.filter(instructor => 
+        selectedInstructors.has(instructor.id)
+      );
+      const totalSelected = selectedInstructorArray.length;
+      
+      // Reset progress tracking at the start of sending
+      setProgress(0);
+      setSentCount(0);
+      setSentInstructors(new Set());
       
       const interval = setInterval(() => {
-        if (currentIndex < totalInstructors) {
-          const currentInstructor = uniqueInstructors[currentIndex];
-          setCurrentInstructor(currentInstructor);
-          setSentCount(currentIndex + 1);
-          setProgress(((currentIndex + 1) / totalInstructors) * 100);
-          setSentInstructors(prev => new Set([...prev, currentInstructor.id]));
+        if (currentIndex < totalSelected) {
+          const currentInstructor = selectedInstructorArray[currentIndex];
+          // Only process if the instructor is still selected
+          if (selectedInstructors.has(currentInstructor.id)) {
+            setCurrentInstructor(currentInstructor);
+            setSentCount(prev => prev + 1);
+            setProgress(((currentIndex + 1) / totalSelected) * 100);
+            setSentInstructors(prev => new Set([...prev, currentInstructor.id]));
+          }
           currentIndex++;
         } else {
           clearInterval(interval);
+          setCurrentInstructor(null);
+          setInternalIsSending(false);
         }
       }, 500);
 
-      return () => clearInterval(interval);
-    } else {
-      setProgress(0);
-      setCurrentInstructor(null);
-      setSentCount(0);
-      setSentInstructors(new Set());
-      setIsConfirming(false);
+      return () => {
+        clearInterval(interval);
+        if (!isSending) {
+          setProgress(0);
+          setCurrentInstructor(null);
+          setSentCount(0);
+          setSentInstructors(new Set());
+        }
+      };
     }
-  }, [isSending, uniqueInstructors]);
+  }, [isSending, uniqueInstructors, selectedInstructors]);
 
   const toggleInstructorSelection = (instructorId) => {
+    if (isSending) return; // Prevent selection changes while sending
     setSelectedInstructors(prev => {
       const newSet = new Set(prev);
       if (newSet.has(instructorId)) {
@@ -74,6 +106,7 @@ const BulkSendModal = ({
   };
 
   const toggleSelectAll = () => {
+    if (isSending) return; // Prevent selection changes while sending
     if (selectedInstructors.size === uniqueInstructors.length) {
       setSelectedInstructors(new Set());
     } else {
@@ -90,6 +123,13 @@ const BulkSendModal = ({
 
     try {
       setIsConfirming(true);
+      setInternalIsSending(true);
+      // Reset progress tracking before starting
+      setProgress(0);
+      setSentCount(0);
+      setSentInstructors(new Set());
+      
+      // Only send to currently selected instructors
       const response = await onConfirm(Array.from(selectedInstructors));
       
       // Show success toast
@@ -133,7 +173,9 @@ const BulkSendModal = ({
           draggable: true,
         }
       );
+    } finally {
       setIsConfirming(false);
+      setInternalIsSending(false);
     }
   };
 
@@ -219,7 +261,7 @@ const BulkSendModal = ({
                   <div
                     key={instructor.id}
                     className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
-                      currentInstructor?.id === instructor.id
+                      selectedInstructors.has(instructor.id) && currentInstructor?.id === instructor.id
                         ? 'bg-blue-50 dark:bg-blue-900/20'
                         : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
                     }`}
@@ -243,10 +285,10 @@ const BulkSendModal = ({
                         </div>
                       </div>
                     </div>
-                    {sentInstructors.has(instructor.id) && (
+                    {selectedInstructors.has(instructor.id) && sentInstructors.has(instructor.id) && (
                       <CheckCircle2 className="h-5 w-5 text-green-500" />
                     )}
-                    {currentInstructor?.id === instructor.id && !sentInstructors.has(instructor.id) && (
+                    {selectedInstructors.has(instructor.id) && currentInstructor?.id === instructor.id && !sentInstructors.has(instructor.id) && (
                       <Loader2 className="h-5 w-5 text-[#1F3463] animate-spin" />
                     )}
                   </div>
