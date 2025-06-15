@@ -54,7 +54,7 @@ class GoogleAuthController extends Controller
 
             // All others unauthorized
             else {
-                return redirect("http://localhost:5173/login?status=error&error_type=unauthorized&message=" . urlencode('Unauthorized email domain.'));
+                return redirect("https://tpes.vercel.app/login?status=error&error_type=unauthorized&message=" . urlencode('Unauthorized email domain.'));
             }
 
             // Check if user exists
@@ -66,7 +66,7 @@ class GoogleAuthController extends Controller
                 $user->tokens()->delete();
                 
                 // Return a structured response for the frontend
-                return redirect("http://localhost:5173/login?status=already_authorized&message=" . urlencode('Previous session terminated. Please log in again.'));
+                return redirect("https://tpes.vercel.app/login?status=already_authorized&message=" . urlencode('Previous session terminated. Please log in again.'));
             }
 
             if (!$user) {
@@ -128,7 +128,7 @@ class GoogleAuthController extends Controller
                 }
 
                 // Redirect to frontend with error information
-                return redirect("http://localhost:5173/login?status=error&error_type={$errorType}&message=" . urlencode($errorMessage));
+                return redirect("https://tpes.vercel.app/login?status=error&error_type={$errorType}&message=" . urlencode($errorMessage));
             }
         }
 

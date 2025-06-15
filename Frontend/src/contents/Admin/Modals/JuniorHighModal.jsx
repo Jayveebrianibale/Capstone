@@ -73,15 +73,14 @@ export default function JuniorHighModal({ isOpen, onClose, onSave, isEditing, pr
       const programData = {
         name: `${formData.gradeLevel} - ${formData.section}`,
         code: "JHS",
-        category: "JHS",
+        category: "Junior High",
         yearLevel: formData.gradeLevel,
-        entries: [{
-          gradeLevel: formData.gradeLevel,
-          sections: [formData.section]
-        }]
+        section: formData.section  // This is what the backend expects
       };
 
-      await onSave(programData, isEditing, program?.id);
+      console.log("Sending program data:", programData);
+      const result = await onSave(programData, isEditing, program?.id);
+      console.log("Save result:", result);
       onClose();
     } catch (error) {
       console.error("Error saving program:", error);

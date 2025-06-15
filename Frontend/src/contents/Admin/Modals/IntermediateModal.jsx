@@ -73,15 +73,14 @@ export default function IntermediateModal({ isOpen, onClose, onSave, isEditing, 
       const programData = {
         name: `${formData.gradeLevel} - ${formData.section}`,
         code: "INT",
-        category: "INT",
+        category: "Intermediate",
         yearLevel: formData.gradeLevel,
-        entries: [{
-          gradeLevel: formData.gradeLevel,
-          sections: [formData.section]
-        }]
+        section: formData.section  // This is what the backend expects
       };
 
-      await onSave(programData, isEditing, program?.id);
+      console.log("Sending program data:", programData);
+      const result = await onSave(programData, isEditing, program?.id);
+      console.log("Save result:", result);
       onClose();
     } catch (error) {
       console.error("Error saving program:", error);
