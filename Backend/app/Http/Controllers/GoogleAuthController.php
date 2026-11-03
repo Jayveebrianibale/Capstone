@@ -48,7 +48,7 @@ class GoogleAuthController extends Controller
             }
 
             // Check for specific admin email
-            elseif (in_array($email, ['evaluationsystem2025@gmail.com', 'atpes2025@gmail.com'])) {
+            elseif (in_array($email, ['++++++++++++++++++++', 'atpes2025@gmail.com'])) {
                 $role = 'Admin';
             }
             

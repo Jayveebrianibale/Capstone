@@ -59,7 +59,10 @@ function AssignInstructorModal({ isOpen, onClose, instructor }) {
           <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
             Cancel
           </button>
-          <button onClick={handleAssign} className="px-4 py-2 bg-green-600 text-white rounded">
+          <button
+            onClick={handleAssign}
+            className="px-4 py-2 bg-green-600 text-white rounded"
+          >
             Assign
           </button>
         </div>
